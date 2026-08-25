@@ -1,12 +1,13 @@
 'use client';
 
 /**
- * The child chat screen.
+ * Child chat.
  *
- * D4: responses are BUFFERED. The loading state is honest — a designed waiting
- * state, never a simulated token stream of text that is already complete. The
- * reviewed prior art buffered the full response and then replayed it in
- * five-word chunks with no delay, which is theatre.
+ * D4: responses are BUFFERED, so the waiting state is honest — a designed
+ * pause, never a simulated token stream of text that is already complete.
+ *
+ * The crisis response is styled as a distinct, calm card rather than an alarm.
+ * A child reading it is already frightened; the interface should not add to it.
  */
 import { useEffect, useRef, useState } from 'react';
 
@@ -18,6 +19,8 @@ interface Msg {
   blocked?: boolean;
 }
 
+const PROMPTS = ['Why is the sky blue?', 'How do volcanoes work?', 'Tell me about space'];
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
@@ -25,18 +28,19 @@ export default function ChatPage() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, thinking]);
 
-  async function send() {
-    const text = input.trim();
-    if (!text || thinking) return;
+  async function send(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed || thinking) return;
 
     setInput('');
     setError(null);
-    setMessages((m) => [...m, { id: crypto.randomUUID(), role: 'child', content: text }]);
+    setMessages((m) => [...m, { id: crypto.randomUUID(), role: 'child', content: trimmed }]);
     setThinking(true);
 
     try {
@@ -45,16 +49,16 @@ export default function ChatPage() {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           conversationId,
-          content: text,
-          // Generated client-side and stable for this send, so a retry
-          // deduplicates instead of producing a second flag.
+          content: trimmed,
+          // Stable for this send, so a retry deduplicates rather than
+          // producing a second flag.
           idempotencyKey: crypto.randomUUID(),
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? 'Something went wrong.');
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data) {
+        setError(data?.error ?? 'I could not reach the server. Try again in a moment.');
         return;
       }
       setConversationId(data.conversationId);
@@ -72,28 +76,44 @@ export default function ChatPage() {
       setError('I could not reach the server. Try again in a moment.');
     } finally {
       setThinking(false);
+      inputRef.current?.focus();
     }
   }
 
   return (
-    <div className="mx-auto flex h-dvh max-w-2xl flex-col bg-[#fdfbf7]">
-      <header className="flex items-center justify-between border-b border-[#e6ded0] px-5 py-4">
-        <span className="font-serif text-xl tracking-tight text-[#1a1815]">Bubbli</span>
+    <div className="relative z-10 mx-auto flex h-dvh max-w-2xl flex-col">
+      <header className="flex items-center justify-between border-b border-line px-5 py-4">
+        <span className="font-[family-name:var(--font-display)] text-xl tracking-tight">Bubbli</span>
         <a
           href="/safety"
-          className="rounded-full border border-[#d8cfbe] px-3 py-1.5 text-xs text-[#6b6258] transition-colors hover:border-[#1a1815] hover:text-[#1a1815] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8232c]"
+          className="rounded-full border border-line px-3 py-1.5 text-xs text-muted transition-colors duration-150 hover:border-accent hover:text-accent"
         >
           How you&apos;re kept safe
         </a>
       </header>
 
-      <main className="flex-1 space-y-4 overflow-y-auto px-5 py-6">
+      <main className="flex-1 space-y-4 overflow-y-auto px-5 py-8">
         {messages.length === 0 && (
-          <div className="pt-10 text-center">
-            <p className="font-serif text-2xl text-[#1a1815]">Hello! What shall we learn about?</p>
-            <p className="mt-2 text-sm text-[#6b6258]">
+          <div className="pt-8">
+            <h1 className="text-[clamp(1.75rem,5vw,2.25rem)]">
+              What shall we
+              <br />
+              <span className="italic text-accent">learn about?</span>
+            </h1>
+            <p className="mt-3 max-w-sm text-[15px] text-muted">
               Ask me anything. A safety helper reads messages to keep you safe.
             </p>
+            <div className="mt-7 flex flex-wrap gap-2">
+              {PROMPTS.map((p) => (
+                <button
+                  key={p}
+                  onClick={() => void send(p)}
+                  className="min-h-11 rounded-full border border-line bg-surface px-4 text-[15px] text-ink transition-colors duration-150 hover:border-accent hover:text-accent"
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -101,14 +121,19 @@ export default function ChatPage() {
           <div key={m.id} className={m.role === 'child' ? 'flex justify-end' : 'flex justify-start'}>
             <div
               className={[
-                'max-w-[85%] whitespace-pre-wrap px-4 py-3 text-[15px] leading-relaxed',
+                'max-w-[85%] whitespace-pre-wrap px-4 py-3 text-[16px] leading-relaxed',
                 m.role === 'child'
-                  ? 'bg-[#efe9dd] text-[#1a1815]'
+                  ? 'rounded-2xl rounded-br-md bg-raised text-ink'
                   : m.crisis
-                    ? 'border-l-2 border-[#b8232c] bg-white text-[#1a1815]'
-                    : 'border border-[#e6ded0] bg-white text-[#1a1815]',
+                    ? 'rounded-2xl rounded-bl-md border border-critical bg-critical-bg text-ink'
+                    : 'rounded-2xl rounded-bl-md border border-line bg-surface text-ink',
               ].join(' ')}
             >
+              {m.crisis && (
+                <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-critical">
+                  Please read this
+                </p>
+              )}
               {m.content}
             </div>
           </div>
@@ -116,46 +141,51 @@ export default function ChatPage() {
 
         {thinking && (
           <div className="flex justify-start">
-            <div className="flex items-center gap-2 border border-[#e6ded0] bg-white px-4 py-3">
-              <span className="text-[15px] text-[#6b6258]">Thinking</span>
-              <span className="flex gap-1" aria-hidden>
-                <i className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#6b6258]" />
-                <i className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#c9c0b1] [animation-delay:150ms]" />
-                <i className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#c9c0b1] [animation-delay:300ms]" />
+            <div className="flex items-center gap-2.5 rounded-2xl rounded-bl-md border border-line bg-surface px-4 py-3">
+              <span className="text-[15px] text-muted">Thinking</span>
+              <span className="flex gap-1" aria-hidden="true">
+                <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-accent" />
+                <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-accent [animation-delay:150ms]" />
+                <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-accent [animation-delay:300ms]" />
               </span>
               <span className="sr-only">Bubbli is thinking about your message</span>
             </div>
           </div>
         )}
 
-        {error && <p className="text-center text-sm text-[#b8232c]">{error}</p>}
+        {error && (
+          <p role="alert" className="rounded-xl bg-critical-bg px-4 py-3 text-center text-[15px] text-critical">
+            {error}
+          </p>
+        )}
         <div ref={endRef} />
       </main>
 
-      <footer className="border-t border-[#e6ded0] px-5 py-4">
-        <div className="flex gap-2">
+      <footer className="border-t border-line px-5 py-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void send(input);
+          }}
+          className="flex gap-2"
+        >
           <input
+            ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                void send();
-              }
-            }}
             placeholder="Ask me anything"
             aria-label="Your message"
             // 16px avoids the mobile zoom-on-focus jump.
-            className="min-h-11 flex-1 border border-[#d8cfbe] bg-white px-4 text-[16px] text-[#1a1815] outline-none placeholder:text-[#a99f90] focus-visible:border-[#1a1815]"
+            className="min-h-12 flex-1 rounded-2xl border border-line bg-surface px-4 text-[16px] text-ink placeholder:text-subtle transition-colors duration-150 hover:border-line-strong focus:border-accent focus:outline-none"
           />
           <button
-            onClick={() => void send()}
+            type="submit"
             disabled={thinking || !input.trim()}
-            className="min-h-11 bg-[#1a1815] px-5 text-[15px] text-[#fdfbf7] transition-opacity disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8232c]"
+            className="min-h-12 rounded-2xl bg-accent px-6 text-[16px] font-medium text-on-accent transition-all duration-150 ease-[var(--ease-out-quart)] hover:-translate-y-0.5 hover:bg-accent-hover active:translate-y-0 disabled:opacity-40 disabled:hover:translate-y-0"
           >
             Send
           </button>
-        </div>
+        </form>
       </footer>
     </div>
   );

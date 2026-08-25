@@ -22,25 +22,30 @@ export default async function TranscriptPage({ params }: { params: Promise<{ id:
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12 text-[#1a1815]">
-      <a href="/parent" className="text-sm text-[#b8232c] underline">
-        Back to dashboard
+    <main className="relative z-10 mx-auto max-w-2xl px-6 py-14">
+      <a href="/parent" className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted hover:text-accent">
+        ← Dashboard
       </a>
-      <h1 className="mt-4 font-serif text-2xl">Conversation</h1>
-      <p className="mt-1 text-xs text-[#6b6258]">
-        Opening this was recorded. Other guardians on your family can see that record.
+      <h1 className="mt-4 text-[clamp(1.5rem,3.5vw,2rem)]">Conversation</h1>
+      <p className="mt-2 text-[13px] text-muted">
+        Opening this was recorded. Other guardians can see that record.
       </p>
 
-      <div className="mt-8 space-y-3">
+      <div className="mt-10 space-y-3">
         {messages.map((m) => (
           <div key={m.id} className={m.role === 'child' ? 'flex justify-end' : 'flex justify-start'}>
             <div
               className={[
                 'max-w-[85%] whitespace-pre-wrap px-4 py-3 text-[15px] leading-relaxed',
-                m.role === 'child' ? 'bg-[#efe9dd]' : 'border border-[#e6ded0] bg-white',
-                m.flagged ? 'border-l-2 border-l-[#b8232c]' : '',
+                m.role === 'child' ? 'bg-raised text-ink' : 'border border-line bg-surface text-ink',
+                m.flagged ? 'border-l-2 border-l-critical' : '',
               ].join(' ')}
             >
+              {m.flagged && (
+                <p className="mb-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-critical">
+                  Flagged
+                </p>
+              )}
               {m.content}
             </div>
           </div>

@@ -408,7 +408,13 @@ export const loginAttempts = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     ipHash: text('ip_hash').notNull(),
-    familyId: uuid('family_id').references(() => families.id, { onDelete: 'cascade' }),
+    /**
+     * NOT a foreign key. This records what was ATTEMPTED, not a reference to a
+     * real family — an attacker probing family codes must be recorded and
+     * throttled, and an FK here made those exact attempts throw instead. Same
+     * reasoning as audit_events carrying no foreign keys.
+     */
+    familyId: uuid('family_id'),
     identifier: text('identifier'),
     succeeded: boolean('succeeded').notNull(),
     createdAt: now(),

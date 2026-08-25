@@ -1,26 +1,200 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/**
+ * Bubbli design tokens.
+ *
+ * ONE token layer, TWO registers built on it:
+ *   Child  — warm, low-density, soft shapes, generous targets. Must never feel
+ *            like surveillance.
+ *   Parent — denser, sharper, severity legible at a glance. Must never feel
+ *            like a toy.
+ *
+ * Both themes are first-class. The previous stylesheet flipped `--background`
+ * to near-black under prefers-color-scheme and left components assuming a light
+ * ground, so cream panels floated on black and dark text vanished. Every colour
+ * below is therefore defined TWICE and measured in both.
+ *
+ * No raw #000 or #fff anywhere: the neutral ramp is warm-tinted throughout,
+ * which is what makes "paper" read as paper rather than as grey.
+ */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  /* Ground and surfaces */
+  --ground: #fbf7f0;
+  --surface: #fefcf8;
+  --surface-raised: #f4eee3;
+  --surface-sunken: #efe7d9;
+
+  /* Ink ramp */
+  --ink: #1f1b16;
+  --ink-muted: #635a4e;
+  --ink-subtle: #8a7f70;
+  --ink-inverse: #fbf7f0;
+
+  /* Hairlines */
+  --line: #e4dac9;
+  --line-strong: #c9bca6;
+
+  /* Accent: warm coral. Used for emphasis, focus and active state only. */
+  --accent: #b34a32;
+  --accent-hover: #963d29;
+  --accent-soft: #f6e3dc;
+  --on-accent: #fffaf5;
+
+  /* Severity. These carry meaning, so they are separate from the accent. */
+  --sev-info: #7a7161;
+  --sev-low: #8a6d3f;
+  --sev-medium: #a4622a;
+  --sev-high: #a8412a;
+  --sev-critical: #8f2318;
+  --sev-critical-bg: #f8e5e0;
+
+  /* Focus */
+  --focus: #b34a32;
+
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Warm-tinted near-black, never #0a0a0a. Surfaces elevate by lightening. */
+    --ground: #16130f;
+    --surface: #1e1a15;
+    --surface-raised: #272219;
+    --surface-sunken: #120f0c;
+
+    --ink: #f3ece0;
+    --ink-muted: #b3a695;
+    --ink-subtle: #857a6a;
+    --ink-inverse: #16130f;
+
+    --line: #322b22;
+    --line-strong: #4b4133;
+
+    /* Lightened so it still clears AA against a dark ground. */
+    --accent: #e59078;
+    --accent-hover: #f0a68f;
+    --accent-soft: #3a271f;
+    --on-accent: #1a1109;
+
+    --sev-info: #a89c88;
+    --sev-low: #cfa76a;
+    --sev-medium: #e0955c;
+    --sev-high: #ef8a70;
+    --sev-critical: #ff9b85;
+    --sev-critical-bg: #3a1d17;
+
+    --focus: #e59078;
+
+    color-scheme: dark;
   }
 }
 
+@theme inline {
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-raised: var(--surface-raised);
+  --color-sunken: var(--surface-sunken);
+
+  --color-ink: var(--ink);
+  --color-muted: var(--ink-muted);
+  --color-subtle: var(--ink-subtle);
+  --color-inverse: var(--ink-inverse);
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+
+  --color-info: var(--sev-info);
+  --color-low: var(--sev-low);
+  --color-medium: var(--sev-medium);
+  --color-high: var(--sev-high);
+  --color-critical: var(--sev-critical);
+  --color-critical-bg: var(--sev-critical-bg);
+
+  /* Self-hosted stacks only: the app must need no network for type. A serif
+     display against a humanist sans is a contrast pairing, not two similar
+     sans faces. */
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --font-sans: "Avenir Next", "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* 4pt spacing scale. No 13px, no 22px. */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+  --spacing-24: 96px;
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* One focus treatment everywhere, on-brand and always visible. */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Paper grain. Subtle enough to feel like a surface, not a texture. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.035;
+  background-image: radial-gradient(var(--ink) 0.5px, transparent 0.5px);
+  background-size: 3px 3px;
+}
+
+/* Dark mode reads heavier: loosen tracking and leading slightly. */
+@media (prefers-color-scheme: dark) {
+  body {
+    letter-spacing: 0.006em;
+    line-height: 1.65;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

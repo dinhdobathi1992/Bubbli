@@ -1,26 +1,46 @@
-/**
- * Parent safety dashboard.
- *
- * The visible line between "we tell you this happened" and "you may read it" is
- * the product. Rows below the gate render a count and a type, never content.
- */
+import Link from 'next/link';
 import { pool } from '@/lib/db/client';
 import { getSession } from '@/lib/auth/request-session';
 import { projectFlagRow } from '@/lib/parent/dto';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Parent safety dashboard.
+ *
+ * A DIFFERENT REGISTER from the child surface, on purpose. Sharper corners,
+ * denser rows, monospace severity labels: this is an instrument, and it should
+ * read as one. The child surface is soft because it must never feel like
+ * surveillance; this one is precise because it must never feel like a toy.
+ *
+ * The dashed rule is the product. Above it, a parent may read. Below it, they
+ * get a count and a category and nothing else.
+ */
+const SEV_STYLE: Record<string, string> = {
+  critical: 'border-l-critical text-critical',
+  high: 'border-l-high text-high',
+  medium: 'border-l-medium text-medium',
+  low: 'border-l-low text-low',
+  info: 'border-l-info text-info',
+};
+
 export default async function ParentDashboard() {
   const session = await getSession();
 
   if (!session || session.principalType !== 'parent') {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-16 text-[#1a1815]">
-        <h1 className="font-serif text-3xl">Safety dashboard</h1>
-        <p className="mt-3 text-[15px] text-[#6b6258]">
-          Parent sign-in is wired in Phase 3 and is not enabled in this build. Use the seeded
-          family link from the development console to view a populated dashboard.
-        </p>
+      <main className="relative z-10 mx-auto max-w-3xl px-6 py-20">
+        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-subtle">Bubbli</p>
+        <h1 className="mt-4 text-[clamp(1.75rem,4vw,2.5rem)]">Safety dashboard</h1>
+        <div className="mt-8 border-l-2 border-l-line-strong bg-raised px-5 py-4">
+          <p className="text-[15px] text-muted">
+            Parent sign-in is not enabled in this build. The authentication layer exists and is
+            tested; the sign-in screen is scheduled work.
+          </p>
+        </div>
+        <Link href="/" className="mt-8 inline-block text-sm text-muted underline underline-offset-4 hover:text-accent">
+          Back
+        </Link>
       </main>
     );
   }
@@ -39,69 +59,85 @@ export default async function ParentDashboard() {
                max(f.created_at) desc`,
     [session.familyId],
   );
+
   const flags = r.rows.map(projectFlagRow);
   const above = flags.filter((f) => f.opensTranscript);
   const below = flags.filter((f) => !f.opensTranscript);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12 text-[#1a1815]">
-      <h1 className="font-serif text-3xl">Safety dashboard</h1>
+    <main className="relative z-10 mx-auto max-w-3xl px-6 py-14">
+      <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-subtle">Bubbli</p>
+      <h1 className="mt-3 text-[clamp(1.75rem,4vw,2.5rem)]">Safety dashboard</h1>
 
       {above.length === 0 && below.length === 0 && (
-        <p className="mt-6 text-[15px] text-[#6b6258]">Everything looks good. No concerns to review.</p>
+        <div className="mt-10 border border-line bg-surface px-6 py-10 text-center">
+          <p className="font-[family-name:var(--font-display)] text-2xl">Everything looks good.</p>
+          <p className="mt-2 text-[15px] text-muted">No concerns to review this week.</p>
+        </div>
       )}
 
       {above.length > 0 && (
-        <section className="mt-8 space-y-3">
-          {above.map((f) => (
-            <a
-              key={f.conversationId}
-              href={`/parent/conversations/${f.conversationId}`}
-              className={`block border px-4 py-3 transition-colors hover:bg-[#f6f1e8] ${
-                f.severity === 'critical' ? 'border-[#b8232c]' : 'border-[#1a1815]'
-              }`}
-            >
-              <span
-                className={`font-mono text-[10px] uppercase tracking-[0.12em] ${
-                  f.severity === 'critical' ? 'text-[#b8232c]' : 'text-[#6b6258]'
-                }`}
-              >
-                {f.severity}
-              </span>
-              <p className="mt-1 text-[15px]">
-                {f.category} · {f.childName}
-              </p>
-              <p className="mt-0.5 text-xs text-[#6b6258]">
-                {new Date(f.lastAt).toLocaleString()} · transcript open
-              </p>
-            </a>
-          ))}
-        </section>
+        <>
+          <p className="mt-10 font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
+            Needs your attention
+          </p>
+          <ul className="mt-3">
+            {above.map((f) => (
+              <li key={f.conversationId}>
+                <a
+                  href={`/parent/conversations/${f.conversationId}`}
+                  className={`flex items-baseline gap-4 border-b border-line border-l-2 bg-surface px-5 py-4 transition-colors duration-150 hover:bg-raised ${SEV_STYLE[f.severity] ?? ''}`}
+                >
+                  <span className="font-mono text-[10px] uppercase tracking-[0.14em]">
+                    {f.severity}
+                  </span>
+                  <span className="flex-1 text-[15px] text-ink">
+                    {f.category.replace(/[._]/g, ' ')} · {f.childName}
+                  </span>
+                  <span className="font-mono text-[11px] text-subtle tabular-nums">
+                    {new Date(f.lastAt).toLocaleDateString()}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
-      <div className="mt-10 border-t border-dashed border-[#b8232c] pt-3">
-        <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#b8232c]">
-          Below the gate — count and type only
-        </p>
+      {/* The gate, drawn. Everything below is counted, never quoted. */}
+      <div className="mt-12 flex items-center gap-3">
+        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-accent">
+          Below the gate
+        </span>
+        <span className="h-px flex-1 border-t border-dashed border-accent" />
       </div>
+      <p className="mt-2 text-[13px] text-muted">
+        Recorded so you know it happened. The content stays private to your child.
+      </p>
 
-      <section className="mt-3 space-y-2">
-        {below.length === 0 && <p className="text-sm text-[#6b6258]">Nothing recorded.</p>}
+      <ul className="mt-4">
+        {below.length === 0 && <li className="text-[15px] text-muted">Nothing recorded.</li>}
         {below.map((f) => (
-          <div key={f.conversationId} className="bg-[#efe9dd] px-4 py-3">
-            <p className="text-[15px] text-[#4a443c]">
-              {f.count} × {f.category} · {f.childName}
-            </p>
-            <p className="mt-0.5 text-xs text-[#6b6258]">
-              Content is not shown. {new Date(f.lastAt).toLocaleDateString()}
-            </p>
-          </div>
+          <li
+            key={f.conversationId}
+            className="flex items-baseline gap-4 border-b border-line px-5 py-3.5"
+          >
+            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-subtle">
+              {f.severity}
+            </span>
+            <span className="flex-1 text-[15px] text-muted">
+              <span className="tabular-nums">{f.count}</span> ×{' '}
+              {f.category.replace(/[._]/g, ' ')} · {f.childName}
+            </span>
+            <span className="font-mono text-[11px] text-subtle tabular-nums">
+              {new Date(f.lastAt).toLocaleDateString()}
+            </span>
+          </li>
         ))}
-      </section>
+      </ul>
 
-      <p className="mt-10 text-xs text-[#6b6258]">
-        Every time you open a transcript it is recorded, and other guardians on this family can see
-        that record.
+      <p className="mt-12 border-t border-line pt-4 text-[13px] text-subtle">
+        Opening a transcript is recorded. Other guardians on your family can see that record.
       </p>
     </main>
   );
