@@ -38,7 +38,7 @@
   /* Accent: warm coral. Used for emphasis, focus and active state only. */
   --accent: #b34a32;
   --accent-hover: #963d29;
-  --accent-soft: #f6e3dc;
+  --accent-soft: #f2d8cd;
   --on-accent: #fffaf5;
 
   /* Severity. These carry meaning, so they are separate from the accent. */
@@ -59,8 +59,8 @@
   :root {
     /* Warm-tinted near-black, never #0a0a0a. Surfaces elevate by lightening. */
     --ground: #16130f;
-    --surface: #1e1a15;
-    --surface-raised: #272219;
+    --surface: #262119;
+    --surface-raised: #322b21;
     --surface-sunken: #120f0c;
 
     --ink: #f3ece0;
@@ -74,7 +74,7 @@
     /* Lightened so it still clears AA against a dark ground. */
     --accent: #e59078;
     --accent-hover: #f0a68f;
-    --accent-soft: #3a271f;
+    --accent-soft: #45291f;
     --on-accent: #1a1109;
 
     --sev-info: #a89c88;
@@ -135,6 +135,10 @@
   --spacing-24: 96px;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  /* Child register only. A slight overshoot makes a control feel squishy to
+     press, which is the one thing worth taking from the claymorphism
+     recommendation without importing its palette or its typeface. */
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
 }
 
 html {
