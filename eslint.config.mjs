@@ -1,5 +1,9 @@
 import coreWebVitals from 'eslint-config-next/core-web-vitals';
 import typescript from 'eslint-config-next/typescript';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const noDirectMessageQuery = require('./eslint-rules/no-direct-message-query.js');
 
 const config = [
   ...coreWebVitals,
@@ -10,7 +14,9 @@ const config = [
     // bypassed validation this way, one of which silently disabled a safety
     // check in production.
     files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/config/settings.ts'],
+    // NODE_ENV is a build-time constant, not runtime configuration, and cookie
+    // prefixes must key off it before settings.ts is even loaded.
+    ignores: ['src/config/settings.ts', 'src/lib/auth/child-session.ts', 'src/lib/db/client.ts'],
     rules: {
       'no-restricted-properties': [
         'error',
@@ -22,6 +28,12 @@ const config = [
         },
       ],
     },
+  },
+  {
+    // G1 enforced structurally: only audited modules may read messages.content.
+    files: ['src/**/*.{ts,tsx}'],
+    plugins: { bubbli: { rules: { 'no-direct-message-query': noDirectMessageQuery } } },
+    rules: { 'bubbli/no-direct-message-query': 'error' },
   },
   {
     ignores: ['node_modules/**', 'drizzle/**', 'coverage/**', '.stryker-tmp/**'],

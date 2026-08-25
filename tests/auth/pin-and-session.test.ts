@@ -15,7 +15,7 @@ import {
   resolveChildSession,
   revokeAllForChild,
   childCookieOptions,
-  CHILD_SESSION_COOKIE,
+  childCookieName,
 } from '@/lib/auth/child-session';
 import { recordConsent, withdrawConsent, getConsentState, purgeUnconsentedChildren } from '@/lib/auth/consent';
 import { checkLoginRate, recordLoginAttempt, IP_MAX_FAILURES } from '@/lib/auth/login-rate-limit';
@@ -57,6 +57,12 @@ async function fresh() {
 }
 
 async function cleanup() {
+  // FK-safe order. `children.family_id` is ON DELETE RESTRICT by design, so a
+  // family cannot be dropped while its records exist: erasure is deliberate.
+  await pool.query(
+    `delete from conversations c using children ch
+      where c.child_id = ch.id and ch.family_id = $1`, [familyId]).catch(() => {});
+  await pool.query(`delete from family_pseudonyms where family_id = $1`, [familyId]).catch(() => {});
   await pool.query(`delete from child_sessions where family_id = $1`, [familyId]).catch(() => {});
   await pool.query(`delete from login_attempts where family_id = $1`, [familyId]).catch(() => {});
   await pool.query(`delete from children where family_id = $1`, [familyId]).catch(() => {});
@@ -211,10 +217,26 @@ describe('child sessions', () => {
     expect(await resolveChildSession(pool, token)).toBeNull();
   });
 
-  it('uses a __Host- cookie that a subdomain cannot set', () => {
-    expect(CHILD_SESSION_COOKIE.startsWith('__Host-')).toBe(true);
-    const o = childCookieOptions(1000);
-    expect(o).toMatchObject({ httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
+  it('uses a __Host- cookie in production, which a subdomain cannot set', () => {
+    // The prefix REQUIRES Secure, so plain http on localhost cannot carry it.
+    // The policy is a function of the environment, and both readings are
+    // asserted rather than only whichever one the test happens to run under.
+    expect(childCookieName('production')).toBe('__Host-bubbli_child');
+    expect(childCookieOptions(1000, 'production')).toMatchObject({
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      path: '/',
+    });
+  });
+
+  it('falls back to an unprefixed name in development, still httpOnly', () => {
+    expect(childCookieName('development').startsWith('__Host-')).toBe(false);
+    expect(childCookieOptions(1000, 'development')).toMatchObject({
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+    });
   });
 });
 

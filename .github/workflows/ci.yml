@@ -23,6 +23,10 @@ jobs:
     env:
       DATABASE_URL: postgresql://bubbli:bubbli@localhost:5432/bubbli_test
       DATABASE_MIGRATION_URL: postgresql://bubbli:bubbli@localhost:5432/bubbli_test
+      # CI never calls a provider: tests exercise the degradation path. The key
+      # is a placeholder so the config guard is satisfied and still enforced.
+      DEEPSEEK_API_KEY: ci-placeholder-not-a-real-key
+      AI_PROVIDER_ORDER: deepseek
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

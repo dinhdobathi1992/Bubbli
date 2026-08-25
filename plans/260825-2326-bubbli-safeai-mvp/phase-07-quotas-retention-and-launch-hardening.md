@@ -13,6 +13,11 @@ dependencies: [1, 2, 3, 4, 5, 6]
 > P2 → P1: this phase holds deletion-on-request and acceptance criterion 3, neither of which is
 > optional hardening.
 
+> **Status 2026-08-26: PARTIAL.** Atomic family ceiling (concurrency-tested), per-child window,
+> retention jobs on the V5 clocks, erasure by pseudonym, liveness-only /health, and Stryker
+> wired into CI. **Not done:** login rate limiting is built but not yet applied as middleware to
+> every unauthenticated route; log redaction; dependency audit.
+
 ## Overview
 
 Per-family AI spend ceiling that demonstrably enforces, data retention, deletion on request, and
@@ -105,16 +110,16 @@ Here `/health` returns status and timestamp. No provider names, endpoints, or mo
 
 ## Success Criteria
 
-- [ ] Request N allowed, N+1 refused, at the real route
-- [ ] **`limit + 10` parallel requests admit exactly `limit`** (#13)
-- [ ] **Mutation testing fails CI when the quota middleware is removed** — every run (G3)
+- [x] Request N allowed, N+1 refused, at the real route
+- [x] **`limit + 10` parallel requests admit exactly `limit`** (#13)
+- [x] **Mutation testing fails CI when the quota middleware is removed** — every run (G3)
 - [ ] Every AI-invoking route covered; a new one without quota fails the enumeration test
 - [ ] **Child login is rate-limited per-IP and per-route** (#15)
 - [ ] Budget behaviour on gate-blocked and aborted requests is decided and recorded
-- [ ] Retention jobs implement **90d content / 1y flags / 2y audit**, with a test per clock (V5)
-- [ ] No post-dismissal revocation job exists (V5, V7)
-- [ ] **Family erasure pseudonymises audit rows without any `UPDATE` on `audit_events`** (#11)
-- [ ] `/health` contains no provider name, endpoint or model id
+- [x] Retention jobs implement **90d content / 1y flags / 2y audit**, with a test per clock (V5)
+- [x] No post-dismissal revocation job exists (V5, V7)
+- [x] **Family erasure pseudonymises audit rows without any `UPDATE` on `audit_events`** (#11)
+- [x] `/health` contains no provider name, endpoint or model id
 - [ ] Metrics authenticated, or absent
 - [ ] No message content, PIN, email or display name in logs (2nd tier)
 - [ ] G9 artefacts re-confirmed current at launch

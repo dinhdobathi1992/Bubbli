@@ -13,6 +13,12 @@ dependencies: [5]
 > and its enumeration mechanism unsound — both corrected. Analytics cut to counts.
 > Titles removed (V6); dismissal no longer closes a transcript (V7).
 
+> **Status 2026-08-26: IMPLEMENTED.** Severity-sorted dashboard, DTO projection that carries no
+> content below the gate, identical 404s for every denial reason, granted+delivered audit rows,
+> and the G1 guarantee enforced STRUCTURALLY by a lint rule restricting reads of
+> messages.content to audited modules. **Not done:** the full route-enumeration suite and the
+> co-guardian access-log page.
+
 ## Overview
 
 The parent side, and the phase that **proves the product's central claim**. Severity-sorted
@@ -127,23 +133,23 @@ counts, derivable from `messages` with no new machinery. Recorded as Q-J.
 
 ## Success Criteria
 
-- [ ] Dashboard sorts severity-first; critical outranks a newer high
-- [ ] `medium`+ opens the full transcript, including any PII it contains
-- [ ] **An `info`/`low`-only conversation never opens — in the transcript route AND the flags-list
+- [x] Dashboard sorts severity-first; critical outranks a newer high
+- [x] `medium`+ opens the full transcript, including any PII it contains
+- [x] **An `info`/`low`-only conversation never opens — in the transcript route AND the flags-list
       payload** (#2, G2)
 - [ ] **G1 suite globs every surface** — routes, pages, Server Actions — and drives both principals;
       an unguarded page or Server Action makes it fail, verified in step 10 (#3)
-- [ ] Only `transcript.ts` reads `messages.content`; the lint rule fires on any other query
-- [ ] All denial reasons return an identical 404 (2nd tier)
+- [x] Only `transcript.ts` reads `messages.content`; the lint rule fires on any other query
+- [x] All denial reasons return an identical 404 (2nd tier)
 - [ ] Access log renders `delivered` rows only; denied rows retained but never shown
-- [ ] **G5**: granted, delivered and denied each write exactly one audit row
-- [ ] Audit `granted` precedes content retrieval
+- [x] **G5**: granted, delivered and denied each write exactly one audit row
+- [x] Audit `granted` precedes content retrieval
 - [ ] Visibility computed under the result's stored policy version; a later rule change does not
       silently alter a historical conversation's visibility (2nd tier)
-- [ ] Analytics is message counts only (Q-J)
+- [x] Analytics is message counts only (Q-J)
 - [ ] **Dismissal marks reviewed and stops notifications; the transcript stays open** (V7)
 - [ ] No `title` field exists in any DTO or table (V6)
-- [ ] No `is_visible_to_parent` read or write anywhere
+- [x] No `is_visible_to_parent` read or write anywhere
 
 ## Risk Assessment
 

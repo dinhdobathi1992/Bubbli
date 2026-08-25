@@ -10,7 +10,17 @@
 import { randomBytes, createHash, timingSafeEqual } from 'crypto';
 import type { Pool, PoolClient } from 'pg';
 
-export const CHILD_SESSION_COOKIE = '__Host-bubbli_child';
+/**
+ * The `__Host-` prefix forces Secure, path=/ and no Domain, so no subdomain can
+ * set the cookie. Browsers REJECT such a cookie without Secure, which plain
+ * http on localhost cannot provide — so development uses an unprefixed name.
+ * Production always gets the hardened one.
+ */
+export function childCookieName(env: string | undefined = process.env.NODE_ENV): string {
+  return env === 'production' ? '__Host-bubbli_child' : 'bubbli_child_dev';
+}
+
+export const CHILD_SESSION_COOKIE = childCookieName();
 export const CHILD_SESSION_TTL_MS = 8 * 60 * 60 * 1000; // one school day
 /** Re-issue when this much life remains, so an active child is never logged out mid-conversation. */
 export const CHILD_SESSION_ROTATE_AFTER_MS = 6 * 60 * 60 * 1000;
@@ -42,10 +52,10 @@ function hashToken(token: string): string {
  * while keeping ordinary navigation working — the CSRF posture for every child
  * route, none of which is a cross-site GET.
  */
-export function childCookieOptions(maxAgeMs: number) {
+export function childCookieOptions(maxAgeMs: number, env: string | undefined = process.env.NODE_ENV) {
   return {
     httpOnly: true,
-    secure: true,
+    secure: env === 'production',
     sameSite: 'lax' as const,
     path: '/',
     maxAge: Math.floor(maxAgeMs / 1000),

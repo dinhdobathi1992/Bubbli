@@ -14,7 +14,8 @@
     "db:migrate": "drizzle-kit migrate",
     "corpus:eval": "tsx corpus/eval.ts",
     "test:unit": "vitest run tests/guardrails",
-    "test:mutation": "stryker run"
+    "test:mutation": "stryker run",
+    "seed:dev": "tsx scripts/seed-dev.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.1.0",

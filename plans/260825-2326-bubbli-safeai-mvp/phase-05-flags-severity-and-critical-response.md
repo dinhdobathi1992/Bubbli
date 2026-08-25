@@ -13,6 +13,11 @@ dependencies: [4]
 > Effort 3d → 4d. Critical-path ordering corrected — the previous order could return a 500 to a
 > child in crisis. Crisis-copy sign-off resolved (V4); `max_severity` immutability fixed (V7).
 
+> **Status 2026-08-26: IMPLEMENTED.** Single flag path atomic with max_severity, medium-tier
+> escalator, crisis copy computed before any write, metadata-only notifications with audit.
+> **Not done:** Resend/VAPID transports (a console transport ships; swapping it is a
+> constructor change). Crisis copy carries a recorded accepted risk, not clinical review.
+
 ## Overview
 
 Turn guardrail results into flags, rank them by severity, and implement the **complete
@@ -118,20 +123,20 @@ notification. The Phase 4 idempotency key is the deduplication point. (#12)
 
 ## Success Criteria
 
-- [ ] `createFlag` is the sole insertion path into `flags`
-- [ ] Flag insert and `max_severity` update are **in one transaction** (#9)
-- [ ] Output flags attach to the assistant message; input flags to the child message
-- [ ] **N blocked inputs in a conversation synthesize a `medium` flag** (#14)
-- [ ] Critical input produces crisis copy in the child's response
-- [ ] **Crisis copy still reaches the child when the database is forced to throw** (#10)
-- [ ] All critical steps complete **before HTTP response flush**, asserted by test (2nd tier)
-- [ ] Notification payloads contain no message content, details, or title (2nd tier)
-- [ ] Every notification dispatch writes an audit row (G5)
+- [x] `createFlag` is the sole insertion path into `flags`
+- [x] Flag insert and `max_severity` update are **in one transaction** (#9)
+- [x] Output flags attach to the assistant message; input flags to the child message
+- [x] **N blocked inputs in a conversation synthesize a `medium` flag** (#14)
+- [x] Critical input produces crisis copy in the child's response
+- [x] **Crisis copy still reaches the child when the database is forced to throw** (#10)
+- [x] All critical steps complete **before HTTP response flush**, asserted by test (2nd tier)
+- [x] Notification payloads contain no message content, details, or title (2nd tier)
+- [x] Every notification dispatch writes an audit row (G5)
 - [ ] Push subscriptions deleted on guardian removal and family erasure
-- [ ] A replayed idempotency key produces no second flag and no second notification (#12)
-- [ ] Notification provider failure does not lose the flag or the child-facing response
-- [ ] Critical writes an audit row even when no parent opens the dashboard
-- [ ] Crisis copy is adapted from the contract-vetted source, cites its crisis-line reference, and
+- [x] A replayed idempotency key produces no second flag and no second notification (#12)
+- [x] Notification provider failure does not lose the flag or the child-facing response
+- [x] Critical writes an audit row even when no parent opens the dashboard
+- [x] Crisis copy is adapted from the contract-vetted source, cites its crisis-line reference, and
       carries a **recorded accepted risk** naming why no second signer exists (V4)
 - [ ] `max_severity` never decreases; dismissal does not close a transcript (V7)
 

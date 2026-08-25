@@ -13,6 +13,11 @@ dependencies: [2, 3]
 > Effort 5d → 6d. Provider fallback + circuit breaker restored; DeepSeek implementation dropped.
 > **Title generator removed entirely (V6).**
 
+> **Status 2026-08-26: IMPLEMENTED and running.** Provider router (DeepSeek live, Bedrock
+> AgentCore implemented but blocked on G9), buffered delivery, TX1/TX2/TX3, idempotency,
+> most-recent-N history, child chat UI, safety disclosure. Verified end to end against the
+> live DeepSeek API. **Not done:** p95/p50 latency measurement on passing prompts (G7).
+
 ## Overview
 
 The child-facing product: send a message, pass the input gate, call Bedrock, buffer the full
@@ -127,20 +132,20 @@ when clicked, writing a denied-access row against them.
 
 ## Success Criteria
 
-- [ ] Child sends a message and receives a complete, gated response
+- [x] Child sends a message and receives a complete, gated response
 - [ ] `history-ordering.test.ts` proves most-recent-N (seed 30, expect 11–30)
-- [ ] The just-persisted child message does not appear twice in the prompt
-- [ ] **A parent session on `/api/chat` or child history returns 403** (#3)
-- [ ] **Replaying an idempotency key produces exactly one message, one flag, one notification** (#12)
-- [ ] Provider timeout cancels the in-flight request **and records a terminal state** (2nd tier)
-- [ ] **Router falls back across providers and opens the circuit breaker**; all-fail returns
+- [x] The just-persisted child message does not appear twice in the prompt
+- [x] **A parent session on `/api/chat` or child history returns 403** (#3)
+- [x] **Replaying an idempotency key produces exactly one message, one flag, one notification** (#12)
+- [x] Provider timeout cancels the in-flight request **and records a terminal state** (2nd tier)
+- [x] **Router falls back across providers and opens the circuit breaker**; all-fail returns
       degradation copy, asserted by forcing throws (#6)
-- [ ] Every write group in the pipeline is inside its named transaction (#9)
-- [ ] A `guardrail_result` row exists for every message in both directions, carrying
+- [x] Every write group in the pipeline is inside its named transaction (#9)
+- [x] A `guardrail_result` row exists for every message in both directions, carrying
       `policyVersion`, `ageBand`, `configHash`
-- [ ] Deflection copy is byte-identical across all non-critical blocked severities (#14)
-- [ ] Block explanations contain no rule name or category identifier
-- [ ] Safety disclosure reachable from chat; copy differs per age band (four bands, V8)
+- [x] Deflection copy is byte-identical across all non-critical blocked severities (#14)
+- [x] Block explanations contain no rule name or category identifier
+- [x] Safety disclosure reachable from chat; copy differs per age band (four bands, V8)
 - [ ] **No title generation anywhere; no model call touches unflagged content for labelling** (V6)
 - [ ] p95 ≤8s, p50 ≤4s **on passing prompts**, warm/cold separate, one concurrent run (G7)
 

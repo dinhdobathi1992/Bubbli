@@ -11,6 +11,8 @@
  */
 import {
   pgTable,
+  date,
+  primaryKey,
   uuid,
   text,
   integer,
@@ -415,4 +417,34 @@ export const loginAttempts = pgTable(
     index('login_attempts_ip_idx').on(t.ipHash, t.createdAt),
     index('login_attempts_family_idx').on(t.familyId, t.createdAt),
   ],
+);
+
+// ── Quota ────────────────────────────────────────────────────────────────────
+
+export const quotaEvents = pgTable(
+  'quota_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    childId: uuid('child_id').notNull().references(() => children.id, { onDelete: 'cascade' }),
+    familyId: uuid('family_id').notNull().references(() => families.id, { onDelete: 'cascade' }),
+    createdAt: now(),
+  },
+  (t) => [index('quota_events_child_idx').on(t.childId, t.createdAt)],
+);
+
+/**
+ * The per-family daily ceiling, as a row that can be incremented atomically.
+ *
+ * A counter you read and then write is a race: two concurrent requests both
+ * observe limit-1 and both proceed. The guarded UPDATE in quota/limiter.ts
+ * enforces the ceiling inside the statement instead.
+ */
+export const familyDailyQuota = pgTable(
+  'family_daily_quota',
+  {
+    familyId: uuid('family_id').notNull().references(() => families.id, { onDelete: 'cascade' }),
+    day: date('day').notNull(),
+    countUsed: integer('count_used').notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.familyId, t.day] })],
 );
