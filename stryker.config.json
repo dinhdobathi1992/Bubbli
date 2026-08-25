@@ -1,0 +1,24 @@
+{
+  "_comment": "Release gate G3. The prior-art review found guards that were absent, not merely weak. A one-time manual 'delete it and watch it go red' is an observation that decays on the next refactor; this re-performs it every CI run over the security-critical modules only.",
+  "packageManager": "pnpm",
+  "testRunner": "vitest",
+  "reporters": [
+    "progress",
+    "clear-text"
+  ],
+  "coverageAnalysis": "perTest",
+  "mutate": [
+    "src/lib/authz/**/*.ts",
+    "src/lib/auth/child-pin.ts",
+    "src/lib/auth/child-session.ts",
+    "src/lib/auth/consent.ts",
+    "src/lib/auth/login-rate-limit.ts"
+  ],
+  "thresholds": {
+    "high": 85,
+    "low": 70,
+    "break": 65
+  },
+  "timeoutMS": 60000,
+  "concurrency": 2
+}

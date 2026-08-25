@@ -13,9 +13,12 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "corpus:eval": "tsx corpus/eval.ts",
-    "test:unit": "vitest run tests/guardrails"
+    "test:unit": "vitest run tests/guardrails",
+    "test:mutation": "stryker run"
   },
   "dependencies": {
+    "@node-rs/argon2": "^2.1.0",
+    "better-auth": "^1.7.1",
     "drizzle-orm": "^0.45.2",
     "next": "16.3.3",
     "pg": "^8.23.0",
@@ -25,6 +28,8 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
+    "@stryker-mutator/core": "^10.0.0",
+    "@stryker-mutator/vitest-runner": "^10.0.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/pg": "^8.23.1",

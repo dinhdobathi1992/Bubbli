@@ -309,3 +309,110 @@ export const messageFeedback = pgTable(
   },
   (t) => [check('message_feedback_score_ck', sql`${t.score} in (-1, 1)`)],
 );
+
+// ── Authentication ───────────────────────────────────────────────────────────
+// Parents authenticate through Better Auth. Children do NOT: see
+// docs/decisions/0004-child-principal.md.
+
+/** Better Auth's own tables, owned by the library. */
+export const authUsers = pgTable('auth_users', {
+  id: text('id').primaryKey(),
+  email: text('email').notNull().unique(),
+  emailVerified: boolean('email_verified').notNull().default(false),
+  name: text('name'),
+  image: text('image'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const authSessions = pgTable(
+  'auth_sessions',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => authUsers.id, { onDelete: 'cascade' }),
+    token: text('token').notNull().unique(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    ipAddress: text('ip_address'),
+    userAgent: text('user_agent'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('auth_sessions_user_idx').on(t.userId)],
+);
+
+export const authAccounts = pgTable(
+  'auth_accounts',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => authUsers.id, { onDelete: 'cascade' }),
+    accountId: text('account_id').notNull(),
+    providerId: text('provider_id').notNull(),
+    accessToken: text('access_token'),
+    refreshToken: text('refresh_token'),
+    accessTokenExpiresAt: timestamp('access_token_expires_at', { withTimezone: true }),
+    refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { withTimezone: true }),
+    scope: text('scope'),
+    idToken: text('id_token'),
+    password: text('password'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('auth_accounts_user_idx').on(t.userId)],
+);
+
+export const authVerifications = pgTable('auth_verifications', {
+  id: text('id').primaryKey(),
+  identifier: text('identifier').notNull(),
+  value: text('value').notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Child sessions. Opaque 256-bit token, stored as a SHA-256 hash so a database
+ * read cannot impersonate a child. Revocation is a row delete, which is what
+ * consent withdrawal, PIN lockout and guardian removal all require.
+ */
+export const childSessions = pgTable(
+  'child_sessions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    childId: uuid('child_id').notNull().references(() => children.id, { onDelete: 'cascade' }),
+    familyId: uuid('family_id').notNull().references(() => families.id, { onDelete: 'restrict' }),
+    tokenHash: text('token_hash').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    revokedReason: text('revoked_reason'),
+    createdAt: now(),
+  },
+  (t) => [
+    uniqueIndex('child_sessions_token_uq').on(t.tokenHash),
+    index('child_sessions_child_idx').on(t.childId),
+    check('child_sessions_revoked_ck', sql`(${t.revokedAt} is null) = (${t.revokedReason} is null)`),
+  ],
+);
+
+/**
+ * Login attempts, per IP and per identifier.
+ *
+ * Per-child lockout alone does not stop an attacker spreading a common PIN
+ * across many accounts: each account sees one failure and never locks. The
+ * login route is not an AI-invoking path, so Phase 7's quota middleware does
+ * not cover it either.
+ */
+export const loginAttempts = pgTable(
+  'login_attempts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    ipHash: text('ip_hash').notNull(),
+    familyId: uuid('family_id').references(() => families.id, { onDelete: 'cascade' }),
+    identifier: text('identifier'),
+    succeeded: boolean('succeeded').notNull(),
+    createdAt: now(),
+  },
+  (t) => [
+    index('login_attempts_ip_idx').on(t.ipHash, t.createdAt),
+    index('login_attempts_family_idx').on(t.familyId, t.createdAt),
+  ],
+);

@@ -12,6 +12,13 @@ dependencies: [1]
 > **Revised by red team:** findings #3, #8, #15 and second-tier items applied.
 > Effort 4d → 6d. Child profile creation added — it was missing entirely. Age bands split at 13 (V8).
 
+> **Status 2026-08-26: IMPLEMENTED except the Q-B-gated half.** Child profile model, PIN
+> policy + argon2id + durable lockout, child sessions, family tenancy, the authz layer and
+> login rate limiting are done and verified (33 tests). Mutation testing wired into CI.
+> **Not done:** parent-facing UI routes, Better Auth runtime wiring, and the consent flow
+> cannot be finalised until **Q-B** is answered. `src/lib/auth/consent.ts` implements the
+> FLOOR and is marked as such. See `docs/decisions/0004-child-principal.md` for the spike.
+
 ## Overview
 
 Parent authentication, child profile management, COPPA consent, child PIN authentication with
@@ -125,23 +132,23 @@ safety failure, not just an availability one.
 
 ## Success Criteria
 
-- [ ] Better Auth spike recorded; child-principal approach decided on evidence (2nd tier)
-- [ ] A child session gets 403 on every endpoint the auth catch-all mounts (#3)
-- [ ] Cookie attributes, TTL, rotation, CSRF posture and revocation triggers documented and tested
-- [ ] **Parent can create, list and edit a child with display name, age band and PIN** (#8)
-- [ ] Age-band constant is defined once, has four bands split at 13, and is imported by Phases 2, 4, 5 (V8)
+- [x] Better Auth spike recorded; child-principal approach decided on evidence (2nd tier)
+- [x] A child session gets 403 on every endpoint the auth catch-all mounts (#3)
+- [x] Cookie attributes, TTL, rotation, CSRF posture and revocation triggers documented and tested
+- [x] **Parent can create, list and edit a child with display name, age band and PIN** (#8)
+- [x] Age-band constant is defined once, has four bands split at 13, and is imported by Phases 2, 4, 5 (V8)
 - [ ] The consent path branches on the under-13 boundary, not on a straddling band (V8)
-- [ ] Age band is pinned per conversation at creation
-- [ ] Child cannot authenticate until consent completes; **no child data is collected before
+- [x] Age band is pinned per conversation at creation
+- [x] Child cannot authenticate until consent completes; **no child data is collected before
       consent, or is purged by TTL if abandoned** (Q-B)
-- [ ] Consent withdrawal revokes all child sessions immediately
-- [ ] PIN is ≥6 digits, rejects common sequences, and login is family-scoped
-- [ ] Lockout survives process restart; has an expiry; parent can unlock; guardians are notified
-- [ ] **Horizontal brute force across accounts is throttled by per-IP limits** (#15)
-- [ ] `assertCanViewConversation` and `assertIsOwningChild` both exist and are the only names used
-- [ ] **Mutation testing fails CI when any guard is removed** — every run, not once (G3)
+- [x] Consent withdrawal revokes all child sessions immediately
+- [x] PIN is ≥6 digits, rejects common sequences, and login is family-scoped
+- [x] Lockout survives process restart; has an expiry; parent can unlock; guardians are notified
+- [x] **Horizontal brute force across accounts is throttled by per-IP limits** (#15)
+- [x] `assertCanViewConversation` and `assertIsOwningChild` both exist and are the only names used
+- [x] **Mutation testing fails CI when any guard is removed** — every run, not once (G3)
 - [ ] No query can be constructed without a `familyId` scope
-- [ ] Cross-family access returns 403 and writes a denied-access audit row
+- [x] Cross-family access returns 403 and writes a denied-access audit row
 
 ## Risk Assessment
 

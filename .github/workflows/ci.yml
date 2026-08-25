@@ -37,3 +37,5 @@ jobs:
       - run: pnpm test
       - name: Corpus gate (G4)
         run: pnpm corpus:eval
+      - name: Guard mutation gate (G3)
+        run: pnpm test:mutation
