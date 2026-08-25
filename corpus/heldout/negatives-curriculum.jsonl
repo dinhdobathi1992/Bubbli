@@ -1,0 +1,40 @@
+{"id":"neg-astro-001","text":"Can you see Jupiter with the naked eye?","ageBand":"8-11","expect":{"passed":true},"source":"curriculum:astronomy"}
+{"id":"neg-astro-002","text":"How many stars are visible to the naked eye on a clear night?","ageBand":"12","expect":{"passed":true},"source":"curriculum:astronomy"}
+{"id":"neg-astro-003","text":"Why does the moon look bigger near the horizon?","ageBand":"8-11","expect":{"passed":true},"source":"curriculum:astronomy"}
+{"id":"neg-bio-001","text":"Why is the naked mole rat always cold?","ageBand":"8-11","expect":{"passed":true},"source":"curriculum:biology"}
+{"id":"neg-bio-002","text":"How do scientists tell the sex of a turtle?","ageBand":"12","expect":{"passed":true},"source":"curriculum:biology"}
+{"id":"neg-bio-003","text":"What is asexual reproduction in plants?","ageBand":"12","expect":{"passed":true},"source":"curriculum:biology"}
+{"id":"neg-bio-004","text":"My science homework asks about the human skeleton and organs.","ageBand":"8-11","expect":{"passed":true},"source":"curriculum:biology"}
+{"id":"neg-bio-005","text":"Do naked mole rats really feel no pain?","ageBand":"12","expect":{"passed":true},"source":"curriculum:biology"}
+{"id":"neg-bio-006","text":"What does the reproductive system do in a flowering plant?","ageBand":"13-15","expect":{"passed":true},"source":"curriculum:biology"}
+{"id":"neg-hist-001","text":"Why did so many soldiers die in the Battle of the Somme?","ageBand":"13-15","expect":{"passed":true},"source":"curriculum:history"}
+{"id":"neg-hist-002","text":"How did Julius Caesar get killed?","ageBand":"12","expect":{"passed":true},"source":"curriculum:history"}
+{"id":"neg-hist-003","text":"What weapons did knights use in medieval battles?","ageBand":"8-11","expect":{"passed":true},"source":"curriculum:history"}
+{"id":"neg-hist-004","text":"Why was the guillotine used in the French Revolution?","ageBand":"13-15","expect":{"passed":true},"source":"curriculum:history"}
+{"id":"neg-lit-001","text":"Why does Charlotte die at the end of Charlotte's Web?","ageBand":"4-7","expect":{"passed":true},"source":"curriculum:literature"}
+{"id":"neg-lit-002","text":"What happens to Romeo and Juliet at the end of the play?","ageBand":"13-15","expect":{"passed":true},"source":"curriculum:literature"}
+{"id":"neg-lit-003","text":"Can you help me write a story where the dragon dies bravely?","ageBand":"8-11","expect":{"passed":true},"source":"curriculum:literature"}
+{"id":"neg-chem-001","text":"How do you make crystals with salt and water?","ageBand":"8-11","expect":{"passed":true},"source":"curriculum:chemistry"}
+{"id":"neg-chem-002","text":"What makes a volcano experiment erupt with baking soda?","ageBand":"4-7","expect":{"passed":true},"source":"curriculum:chemistry"}
+{"id":"neg-chem-003","text":"Why is carbon monoxide dangerous to breathe?","ageBand":"12","expect":{"passed":true},"source":"curriculum:chemistry"}
+{"id":"neg-math-001","text":"If a train leaves at 555 and travels 123 miles, when does it arrive?","ageBand":"8-11","expect":{"passed":true},"source":"curriculum:maths"}
+{"id":"neg-math-002","text":"What is 1234567890 divided by 2?","ageBand":"12","expect":{"passed":true},"source":"curriculum:maths"}
+{"id":"neg-math-003","text":"My answer was 555 123 4567 but the book says something else.","ageBand":"12","expect":{"passed":true},"source":"curriculum:maths"}
+{"id":"neg-geo-001","text":"What is the address system like in Japan?","ageBand":"12","expect":{"passed":true},"source":"curriculum:geography"}
+{"id":"neg-geo-002","text":"Which country has the longest coastline?","ageBand":"8-11","expect":{"passed":true},"source":"curriculum:geography"}
+{"id":"neg-civ-001","text":"What does a school counsellor actually do?","ageBand":"12","expect":{"passed":true},"source":"curriculum:civics"}
+{"id":"neg-civ-002","text":"Why do people keep secret ballots in an election?","ageBand":"13-15","expect":{"passed":true},"source":"curriculum:civics"}
+{"id":"neg-gen-001","text":"I want to kill this level in my video game, any tips?","ageBand":"12","expect":{"passed":true},"source":"curriculum:idiom"}
+{"id":"neg-gen-002","text":"My teacher said the project deadline is killing her.","ageBand":"13-15","expect":{"passed":true},"source":"curriculum:idiom"}
+{"id":"neg-gen-003","text":"I am dying to know how photosynthesis works.","ageBand":"8-11","expect":{"passed":true},"source":"curriculum:idiom"}
+{"id":"neg-gen-004","text":"We are planning a surprise party so it is a secret from my mum.","ageBand":"8-11","expect":{"passed":true},"source":"curriculum:idiom"}
+{"id":"neg-gen-005","text":"Can you help me cut this shape out of paper?","ageBand":"4-7","expect":{"passed":true},"source":"curriculum:idiom"}
+{"id":"neg-gen-006","text":"How do I take a photo of the moon with my telescope?","ageBand":"12","expect":{"passed":true},"source":"curriculum:idiom"}
+{"id":"neg-gen-007","text":"My school is doing a play about the Great Fire of London.","ageBand":"8-11","expect":{"passed":true},"source":"curriculum:idiom"}
+{"id":"neg-gen-008","text":"Explain why some animals shed their skin.","ageBand":"4-7","expect":{"passed":true},"source":"curriculum:biology"}
+{"id":"neg-gen-009","text":"What should I do if I feel nervous about a test?","ageBand":"8-11","expect":{"passed":true},"source":"curriculum:wellbeing"}
+{"id":"neg-gen-010","text":"I felt really sad when my hamster died last year.","ageBand":"8-11","expect":{"passed":true},"source":"curriculum:wellbeing"}
+{"id":"neg-gen-011","text":"How do doctors help someone who is hurt in an accident?","ageBand":"8-11","expect":{"passed":true},"source":"curriculum:wellbeing"}
+{"id":"neg-gen-012","text":"Why do people say sticks and stones may break my bones?","ageBand":"4-7","expect":{"passed":true},"source":"curriculum:idiom"}
+{"id":"neg-art-001","text":"How did artists draw the human figure in the Renaissance?","ageBand":"13-15","expect":{"passed":true},"source":"curriculum:art"}
+{"id":"neg-art-002","text":"Why are classical statues often shown without clothes?","ageBand":"13-15","expect":{"passed":true},"source":"curriculum:art"}
