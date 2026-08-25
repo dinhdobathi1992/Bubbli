@@ -9,7 +9,7 @@ alembic==1.13.3
 
 # AI / LLM
 boto3==1.35.0
-litellm==1.50.0
+litellm==1.84.0
 
 # Validation & Config
 pydantic==2.9.2
