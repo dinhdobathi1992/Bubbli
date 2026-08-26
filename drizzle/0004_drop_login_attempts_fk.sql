@@ -1,0 +1,13 @@
+-- login_attempts records what was ATTEMPTED, not a reference to a real family.
+--
+-- The foreign key made a probe against a nonexistent family throw on INSERT, so
+-- the attempt was never recorded — and since the rate limiter counts rows in
+-- this table, the per-IP counter never incremented and family-code enumeration
+-- was unthrottled. Same reasoning as audit_events carrying no foreign keys.
+--
+-- IF EXISTS is deliberate. The constraint was previously dropped by hand on the
+-- development database without a migration, so the model, the migrations and
+-- that database had all diverged. This statement must be correct whether the
+-- constraint is present (a fresh database, CI, production) or already absent
+-- (the drifted development database).
+ALTER TABLE "login_attempts" DROP CONSTRAINT IF EXISTS "login_attempts_family_id_families_id_fk";

@@ -38,6 +38,26 @@ jobs:
       - run: pnpm lint
       - name: Migrations from empty
         run: pnpm db:migrate
+
+      # src/db/schema.ts and drizzle/ drifted once already: the login_attempts
+      # foreign key was removed from the model, never generated into a
+      # migration, and dropped by hand on one database. Dev, CI and production
+      # then disagreed, and nothing noticed.
+      #
+      # `drizzle-kit check` does NOT catch this — it validates journal and
+      # snapshot consistency, not model-vs-migration agreement. `generate`
+      # does: it writes nothing when the two are in sync, so a dirty tree here
+      # means someone changed the model without generating the migration.
+      - name: Schema drift (model vs migrations)
+        run: |
+          pnpm exec drizzle-kit generate --name drift_check
+          if [ -n "$(git status --porcelain drizzle/)" ]; then
+            echo "::error::src/db/schema.ts has changes with no migration. Run 'pnpm db:generate' and commit the result."
+            git status --porcelain drizzle/
+            git --no-pager diff -- drizzle/
+            exit 1
+          fi
+          echo "schema and migrations agree"
       - run: pnpm test
       - name: Corpus gate (G4)
         run: pnpm corpus:eval

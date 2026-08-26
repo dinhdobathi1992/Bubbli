@@ -29,6 +29,13 @@
       "when": 1787681606592,
       "tag": "0003_quota",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1787711154549,
+      "tag": "0004_drop_login_attempts_fk",
+      "breakpoints": true
     }
   ]
 }
