@@ -13,6 +13,7 @@ import { assertIsOwningChild, assertIsChild, AuthzError } from '@/lib/authz';
 import { runTurn } from '@/lib/chat/pipeline';
 import { getOwnTranscript } from '@/lib/chat/child-transcript';
 import { checkChatQuota, recordChatUsage } from '@/lib/quota/limiter';
+import { checkInput } from '@/lib/guardrails/engine';
 import type { AgeBand } from '@/config/settings';
 
 export const maxDuration = 60;
@@ -49,12 +50,28 @@ export async function POST(req: Request) {
 
   // Quota BEFORE any model call. Gate-blocked messages never reach a provider
   // and so never consume the family's AI budget (see quota/limiter.ts).
+  //
+  // The quota verdict must NEVER short-circuit the safety path. This check sat
+  // in front of `runTurn`, so a child over the limit never reached the
+  // guardrail: no crisis copy, no flag, no guardian alert — they were told
+  // "come back a bit later" instead. One sibling exhausting the family's daily
+  // budget on homework locked the other out of the crisis path for the day.
+  //
+  // Layer 1 is pure, linear-time and touches neither the database nor a
+  // provider, so classifying here is cheap. A severe message proceeds; it will
+  // be blocked at the gate anyway, which means no provider call and no budget
+  // consumed — safety costs nothing here.
   const quota = await checkChatQuota(pool, session.childId!, session.familyId);
   if (!quota.allowed) {
-    return NextResponse.json(
-      { error: "You've reached your limit for now. Come back a bit later!", quota: quota.reason },
-      { status: 429 },
-    );
+    const triage = checkInput(body.content.trim(), ageBand, child.rows[0].guardrail_config ?? {});
+    const severe =
+      !triage.passed && (triage.severity === 'high' || triage.severity === 'critical');
+    if (!severe) {
+      return NextResponse.json(
+        { error: "You've reached your limit for now. Come back a bit later!", quota: quota.reason },
+        { status: 429 },
+      );
+    }
   }
 
   // Reuse or open a conversation.

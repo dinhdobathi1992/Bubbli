@@ -97,6 +97,15 @@ export const PROVIDER_COMPLIANCE: Record<Provider, { productionCleared: boolean;
   },
 };
 
+/**
+ * Whether a layer-2 classifier client is actually wired into the pipeline.
+ *
+ * Flip to `true` in the same commit that supplies a real `ClassifierClient`.
+ * Kept explicit rather than inferred so that enabling the layer is a deliberate
+ * two-part act, not something a stray env var can do on its own.
+ */
+const CLASSIFIER_CLIENT_AVAILABLE = false;
+
 function load() {
   const parsed = schema.safeParse(process.env);
 
@@ -118,6 +127,27 @@ function load() {
   );
   if (missing.length > 0) {
     console.error(`[config] Provider(s) in AI_PROVIDER_ORDER lack credentials: ${missing.join(', ')}`);
+    process.exit(1);
+  }
+
+  // Layer 2 is wired to a `null` client in the pipeline, and `classify()`
+  // fail-closes on a null client by returning `passed:false, severity:'medium'`.
+  // Turning this on therefore blocks EVERY message that passed layer 1 and
+  // raises a `medium` flag on it — and `medium` is the threshold that opens a
+  // transcript to a parent. A well-meant "enable the safety layer before
+  // launch" would deflect every homework question and expose every innocuous
+  // conversation. Refuse to start rather than fail that way silently.
+  if (s.SAFETY_CLASSIFIER_ENABLED && !CLASSIFIER_CLIENT_AVAILABLE) {
+    console.error(
+      '[config] SAFETY_CLASSIFIER_ENABLED is true but no classifier client is wired.',
+    );
+    console.error(
+      '  classify() fail-closes on a null client, so every message that passes layer 1',
+    );
+    console.error(
+      "  would be blocked at 'medium' — the severity that opens a transcript to a parent.",
+    );
+    console.error('  Wire a ClassifierClient in src/lib/chat/pipeline.ts before enabling this.');
     process.exit(1);
   }
 
