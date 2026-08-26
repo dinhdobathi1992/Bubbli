@@ -54,14 +54,36 @@ export interface Rule {
 /** "naked eye" (astronomy), "naked mole rat" (biology), classical statues (art). */
 const NAKED_OK = [/\bnaked\s+eye\b/i, /\bnaked\s+mole\s*-?\s*rat/i, /\bnaked\s+flame\b/i];
 
-/** "sex of a turtle", "asexual reproduction", "sex cells" (biology). */
+/**
+ * "sex of a turtle", "asexual reproduction", "sex cells" (biology).
+ *
+ * These are the reason there is no bare `\bsex\b` rule: the reviewed prior art
+ * used one and blocked the curriculum. Every entry traces to a held-out
+ * negative, and the topic rules below all carry this list.
+ */
 const SEX_OK = [
   /\b(the\s+)?sex\s+of\b/i,
   /\basexual\b/i,
   /\bsex\s+cells?\b/i,
   /\bsame[-\s]sex\b/i,
   /\bopposite\s+sex\b/i,
+  /\bsex\s+chromosomes?\b/i,
+  /\bsex[-\s]linked\b/i,
+  /\bsexual\s+reproduction\b/i,
+  /\bsex\s+determination\b/i,
+  /\bintersex\b/i,
 ];
+
+/**
+ * The sexual topic, as a child actually types it.
+ *
+ * `sexx` and `seggs` are deliberate misspellings that survive normalization —
+ * the normalizer collapses leetspeak and censoring (`s3x`, `s*x`) but not a
+ * doubled letter or a phonetic swap, so they are matched here explicitly.
+ * `sexx` was the exact string that reached the model in testing.
+ */
+const SEX_TOPIC =
+  /\bsex\b|\bsexx+\b|\bseggs\b|\bsexual\s+(intercourse|activity)\b|\bmaking\s+love\b|\bhow\s+are\s+babies\s+made\b|\blose\s+my\s+virginity\b/i;
 
 /** Third-person and historical death, and figurative idiom. */
 const DEATH_IDIOM_OK = [
@@ -239,6 +261,35 @@ const inappropriate: Rule[] = [
     exclude: NAKED_OK,
     enabled: true,
     note: 'Sexual content request. Excludes naked eye / naked mole rat.',
+  },
+  // ── The topic itself, banded by age ────────────────────────────────────────
+  // `inap.sexual` catches artefacts (porn, nudes) and `inap.sexual.describe`
+  // catches one verb phrase. Neither caught a child simply ASKING — "what is
+  // sex", "i want to find about sex" — which is how it actually arrives, and
+  // which reached the model with nothing recorded for the parent. PRD §5 lists
+  // sexual content as a blocked topic, so it blocks for every band; only the
+  // parent's visibility differs.
+  {
+    id: 'inap.sexual.topic.young',
+    category: 'inappropriate_request',
+    direction: 'input',
+    severity: 'medium',
+    ageBands: ['4-7', '8-11'],
+    pattern: SEX_TOPIC,
+    exclude: SEX_OK,
+    enabled: true,
+    note: 'A young child asking about sex. Medium so a guardian can open the transcript and have the conversation themselves. Must not catch "the sex of a turtle" or "sexual reproduction" — see SEX_OK.',
+  },
+  {
+    id: 'inap.sexual.topic.older',
+    category: 'inappropriate_request',
+    direction: 'input',
+    severity: 'low',
+    ageBands: ['12', '13-15'],
+    pattern: SEX_TOPIC,
+    exclude: SEX_OK,
+    enabled: true,
+    note: 'A tween or teenager asking about sex is developmentally ordinary. Recorded below the gate so a guardian knows the topic arose, without surfacing the words — PRD D3: a child who feels surveilled stops trusting the product permanently.',
   },
   {
     id: 'inap.sexual.describe',
