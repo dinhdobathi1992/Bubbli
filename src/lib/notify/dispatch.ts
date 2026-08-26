@@ -30,7 +30,7 @@ export interface Transport {
 
 /**
  * Development transport. Logs metadata only, exactly as a real one would send.
- * Replacing it with Resend/VAPID is a constructor change, not a redesign.
+ * Replacing it with SES/VAPID is a constructor change, not a redesign.
  */
 export const consoleTransport: Transport = {
   name: 'email',

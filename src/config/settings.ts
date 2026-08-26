@@ -67,9 +67,19 @@ const schema = z.object({
   /** Minutes an emailed sign-in code stays valid. */
   PARENT_OTP_TTL_MIN: z.coerce.number().int().positive().default(10),
 
-  // ── Email delivery ─────────────────────────────────────────────────────
-  /** Absent in development: codes are written to the server log instead. */
-  RESEND_API_KEY: z.string().min(1).optional(),
+  // ── Email delivery — AWS SES over SMTP ─────────────────────────────────
+  /**
+   * SES SMTP endpoint. Absent in development: messages go to the server log.
+   *
+   * SES SMTP credentials are NOT an IAM access key pair — the password is
+   * derived from a secret key, so the SESv2 HTTPS API (which needs SigV4) is
+   * not reachable with them. SMTP is the correct interface for these.
+   */
+  SES_SMTP_HOST: z.string().min(1).optional(),
+  SES_SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SES_SMTP_USER: z.string().min(1).optional(),
+  SES_SMTP_PASSWORD: z.string().min(1).optional(),
+  /** Must be an identity SES has verified, or every send is rejected. */
   EMAIL_FROM: z.string().default('Bubbli <no-reply@bubbli.local>'),
 
   // ── Child device pairing ───────────────────────────────────────────────

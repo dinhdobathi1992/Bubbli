@@ -15,13 +15,15 @@
     "corpus:eval": "tsx corpus/eval.ts",
     "test:unit": "vitest run tests/guardrails",
     "test:mutation": "stryker run",
-    "seed:dev": "tsx scripts/seed-dev.ts"
+    "seed:dev": "tsx scripts/seed-dev.ts",
+    "email:verify": "tsx scripts/verify-email.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.1.0",
     "better-auth": "^1.7.1",
     "drizzle-orm": "^0.45.2",
     "next": "16.3.3",
+    "nodemailer": "^9.0.5",
     "pg": "^8.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -33,6 +35,7 @@
     "@stryker-mutator/vitest-runner": "^10.0.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
