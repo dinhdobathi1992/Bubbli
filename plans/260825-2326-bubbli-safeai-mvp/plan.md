@@ -298,3 +298,10 @@ mechanism, and the 13+ path needs confirmation that a lighter one is permissible
 
 **Recommendation:** proceed. Phase 1 is fully unblocked and has no dependency on Q-B. Phase 3
 carries the only Q-B-gated steps (9–10) and can start its other eight steps meanwhile.
+
+> **Remaining scope moved.** Verified on 2026-08-26: several open checkboxes below
+> describe work already built and passing. The honest remainder — plus two holes this
+> plan's percentage never showed (no parent sign-in, no working notification transport)
+> — is tracked in [`260826-0750-path-to-launch`](../260826-0750-path-to-launch/plan.md),
+> whose §0 reconciles each item against the code.
+

@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Path to launch — Bubbli</title>
+<style>
+:root{
+  --paper:#faf7f2; --panel:#f0ebe1; --ink:#0a0a0a; --muted:#6b6258;
+  --accent:#b8232c; --rule:#d9d1c4; --rule-soft:#e6dfd3;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:"Avenir Next","Segoe UI","Helvetica Neue",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+  font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.04;
+  background-image:radial-gradient(var(--ink) .5px,transparent .5px);background-size:3px 3px}
+.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 24px}
+h1,h2,h3,h4{font-family:var(--serif);line-height:1.14;text-wrap:balance;margin:0}
+p{text-wrap:pretty}
+code{font-family:var(--mono);font-size:.86em;background:var(--panel);padding:.1em .35em}
+a{color:var(--accent)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 14px}
+.lede{font-size:19px;color:var(--muted);max-width:62ch}
+
+/* cover */
+.cover{padding:96px 0 56px;border-bottom:1px solid var(--rule)}
+.cover h1{font-size:clamp(2.6rem,7vw,5rem);letter-spacing:-.02em}
+.cover h1 em{font-style:italic;color:var(--accent)}
+.cover .meta{display:flex;flex-wrap:wrap;gap:28px;margin-top:36px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+/* stat band */
+.band{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  border-bottom:1px solid var(--rule)}
+.band div{padding:26px 20px 26px 0;border-right:1px solid var(--rule-soft)}
+.band div:last-child{border-right:0}
+.band .n{font-family:var(--serif);font-size:2.6rem;line-height:1;display:block}
+.band .n.warn{color:var(--accent)}
+.band .k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--muted);margin-top:8px;display:block}
+
+section{padding:64px 0;border-bottom:1px solid var(--rule)}
+section>h2{font-size:clamp(1.6rem,3.4vw,2.3rem);margin-bottom:8px}
+.sub{color:var(--muted);max-width:66ch;margin:0 0 32px}
+
+/* tables */
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+.scroll{overflow-x:auto}
+th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);font-weight:400;
+  border-bottom:1px solid var(--rule);padding:0 14px 10px 0;vertical-align:bottom}
+td{padding:12px 14px 12px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+td:first-child{width:34%}
+
+/* decisions */
+.dec{border-left:2px solid var(--accent);padding:2px 0 2px 20px;margin:0 0 26px;max-width:74ch}
+.dec .q{font-family:var(--serif);font-style:italic;font-size:18px;margin:0 0 8px}
+.dec .a{margin:0;color:var(--muted)}
+.dec .a b{color:var(--ink);font-weight:600}
+.dec .id{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--accent)}
+
+/* diagram */
+.diagram{background:var(--panel);padding:28px 20px;overflow-x:auto}
+.diagram svg{width:100%;min-width:640px;height:auto;display:block}
+.node rect{fill:var(--paper);stroke:var(--ink);stroke-width:1}
+.node.blocked rect{stroke-dasharray:4 3;stroke:var(--accent)}
+.node .nn{font-family:var(--mono);font-size:9px;letter-spacing:.13em;fill:var(--muted)}
+.node .nl{font-family:var(--serif);font-size:15px;fill:var(--ink)}
+.node.blocked .nl{fill:var(--accent)}
+.edge{fill:none;stroke:var(--muted);stroke-width:1}
+.arrow{fill:none;stroke:var(--muted);stroke-width:1.2}
+
+/* phase cards */
+.phases{display:grid;gap:0;border-top:1px solid var(--rule)}
+.phase{padding:30px 0;border-bottom:1px solid var(--rule-soft);cursor:pointer;
+  transition:background .15s ease}
+.phase:hover,.phase:focus-visible{background:var(--panel);outline:none}
+.phase:focus-visible{box-shadow:inset 2px 0 0 var(--accent)}
+.phase header{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap}
+.folio{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--accent)}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 7px;border:1px solid var(--rule);color:var(--muted)}
+.tag.t-blocked{border-color:var(--accent);color:var(--accent)}
+.phase h3{font-size:1.5rem;margin:10px 0 4px}
+.dep{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 14px}
+.obj{margin:0 0 20px;max-width:70ch;color:var(--muted)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:18px}
+.phase h4{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);font-weight:400;margin:0 0 8px}
+.phase ol,.phase ul{margin:0;padding-left:18px;font-size:14px}
+.phase li{margin-bottom:5px}
+.files{list-style:none;padding:0}
+.files li{margin-bottom:5px}
+.verb{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);display:inline-block;min-width:48px}
+.v-create{color:var(--accent)}
+.crit{list-style:none;padding:0;font-size:14px;columns:2;column-gap:32px}
+.crit li{margin-bottom:6px;break-inside:avoid;padding-left:16px;position:relative}
+.crit li::before{content:"";position:absolute;left:0;top:.55em;width:7px;height:7px;
+  border:1px solid var(--muted)}
+.crit li.more{color:var(--muted);font-style:italic}
+.crit li.more::before{display:none}
+.open{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--accent);display:inline-block;margin-top:16px}
+
+/* mockups */
+.mocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:40px}
+.mock figcaption{font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.screen{background:var(--panel);border:1px solid var(--rule);padding:22px}
+.ui-card{background:var(--paper);border:1px solid var(--rule);padding:20px}
+.ui-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--muted)}
+.ui-h{font-family:var(--serif);font-size:22px;margin:8px 0 4px}
+.ui-h em{font-style:italic;color:var(--accent)}
+.ui-sub{font-size:12.5px;color:var(--muted);margin:0 0 16px}
+.ui-label{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px}
+.ui-field{border:1px solid var(--rule);padding:9px 10px;font-size:12.5px;
+  color:var(--muted);margin-bottom:12px;background:var(--paper)}
+.ui-field.ok{border-color:var(--accent);color:var(--ink)}
+.ui-btn{background:var(--ink);color:var(--paper);padding:10px;text-align:center;
+  font-size:13px;margin-top:4px}
+.ui-note{font-size:11px;color:var(--muted);text-align:center;margin-top:12px}
+.ann{list-style:none;padding:0;margin:16px 0 0;font-size:13px}
+.ann li{padding-left:26px;position:relative;margin-bottom:9px;color:var(--muted)}
+.ann .m{position:absolute;left:0;top:0;font-family:var(--mono);font-size:9px;
+  color:var(--accent);border:1px solid var(--accent);width:17px;height:17px;
+  display:grid;place-items:center}
+.ann b{color:var(--ink);font-weight:600}
+.before{text-decoration:line-through;color:var(--muted)}
+
+/* modal */
+dialog{border:1px solid var(--ink);background:var(--paper);color:var(--ink);
+  max-width:820px;width:calc(100% - 32px);padding:0;max-height:86vh}
+dialog::backdrop{background:rgba(10,10,10,.55)}
+.mhead{position:sticky;top:0;background:var(--paper);border-bottom:1px solid var(--rule);
+  padding:18px 26px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.mhead .folio{margin:0}
+.mclose{background:none;border:1px solid var(--rule);font-family:var(--mono);font-size:10px;
+  letter-spacing:.12em;text-transform:uppercase;padding:7px 12px;cursor:pointer;color:var(--muted)}
+.mclose:hover{border-color:var(--accent);color:var(--accent)}
+.mbody{padding:26px 30px 40px;overflow-y:auto;max-height:calc(86vh - 62px)}
+.mbody h1{font-size:1.9rem;margin:0 0 16px}
+.mbody h2{font-size:1.3rem;margin:30px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+.mbody h3{font-size:1.05rem;margin:22px 0 8px}
+.mbody p{margin:0 0 12px;font-size:15px}
+.mbody ul,.mbody ol{font-size:15px;padding-left:20px;margin:0 0 14px}
+.mbody li{margin-bottom:5px}
+.mbody blockquote{border-left:2px solid var(--accent);margin:0 0 14px;padding-left:16px;
+  color:var(--muted);font-style:italic}
+.mbody pre{background:var(--panel);padding:14px;overflow-x:auto;font-size:13px;margin:0 0 14px}
+.mbody pre code{background:none;padding:0}
+.mbody hr{border:0;border-top:1px solid var(--rule);margin:24px 0}
+.mbody table{margin-bottom:16px}
+.mbody .fm{background:var(--panel);padding:12px 14px;font-family:var(--mono);font-size:11.5px;
+  color:var(--muted);margin:0 0 20px;white-space:pre-wrap}
+.mbody .cb{list-style:none;padding-left:0}
+.mbody .cb li{padding-left:22px;position:relative}
+.mbody .cb li::before{content:"";position:absolute;left:0;top:.42em;width:9px;height:9px;
+  border:1px solid var(--muted)}
+.mbody .cb li.done::before{background:var(--accent);border-color:var(--accent)}
+
+footer{padding:56px 0 80px;color:var(--muted);font-size:13px}
+footer h2{font-size:1.4rem;color:var(--ink);margin-bottom:12px}
+.cite{font-family:var(--mono);font-size:11px;word-break:break-all;line-height:1.9}
+
+@media (max-width:720px){
+  .cols{grid-template-columns:1fr;gap:20px}
+  .crit{columns:1}
+  .cover{padding:60px 0 40px}
+  section{padding:44px 0}
+  td:first-child{width:auto}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+@media print{.phase{break-inside:avoid}dialog{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="cover">
+  <p class="eyebrow">Bubbli · Implementation plan · 2026-08-26</p>
+  <h1>Path to <em>launch</em></h1>
+  <p class="lede" style="margin-top:22px">Everything genuinely unbuilt between today's 74% MVP and a Bubbli that can serve a real family.</p>
+  <div class="meta">
+    <span>Branch · main-rebuild</span>
+    <span>Continues · 260825-2326-bubbli-safeai-mvp</span>
+    <span>Status · pending</span>
+  </div>
+</header>
+
+<div class="band">
+  <div><span class="n">7</span><span class="k">Phases</span></div>
+  <div><span class="n">41</span><span class="k">Success criteria</span></div>
+  <div><span class="n warn">1</span><span class="k">Externally blocked</span></div>
+  <div><span class="n warn">2</span><span class="k">Holes 74% hid</span></div>
+</div>
+
+<section>
+  <p class="eyebrow">Section 00</p>
+  <h2>The percentage was lying in both directions</h2>
+  <p class="sub">The MVP plan reports 74%. A batch of its open checkboxes describe work already
+  built and passing; meanwhile two of its closed-looking areas hide the fact that the parent half
+  of a child-safety product cannot be logged into, and a critical flag reaches nobody.</p>
+
+  <div class="scroll"><table>
+    <thead><tr><th>MVP item listed as open</th><th>Evidence it is already done</th></tr></thead>
+    <tbody>
+      <tr><td>Age bands exactly <code>4-7</code>/<code>8-11</code>/<code>12</code>/<code>13-15</code> (V8)</td><td><code>AGE_BANDS</code> in settings, schema CHECK, all four present in <code>rules.ts</code></td></tr>
+      <tr><td>Retention columns support 90d / 1y / 2y (V5)</td><td><code>RETENTION_*_DAYS</code>; <code>retention/jobs.ts</code> drives all three intervals</td></tr>
+      <tr><td>Region decision recorded</td><td><code>docs/decisions/0001-region-and-residency.md</code></td></tr>
+      <tr><td>Rate-limit library and datastore provisioned</td><td><code>0003</code>; Postgres <code>quota_events</code> and <code>family_daily_quota</code> live</td></tr>
+      <tr><td><code>policy_versions</code> stores rule bodies; historical resolution</td><td><code>policy-store.ts</code>; <code>policyVersionId</code> stamped on each flag</td></tr>
+      <tr><td>No title generation over unflagged content (V6)</td><td>zero hits in <code>lib/ai</code> and <code>lib/chat</code>; <code>schema.ts:118</code> documents the deliberate absence</td></tr>
+      <tr><td><code>max_severity</code> never decreases (V7)</td><td><code>conversations_severity_monotonic</code> trigger, plus a test asserting the UPDATE is rejected</td></tr>
+      <tr><td><b>Child login rate-limited per-IP and per-route</b></td><td><code>checkLoginRate</code> hashes the IP, enforces per-IP <em>and</em> per-family windows, wired at the route</td></tr>
+      <tr><td>G4 corpus gate · G8 no unvalidated config</td><td><code>pnpm corpus:eval</code> passes; <code>no-restricted-properties</code> on <code>process.env</code>, lint clean</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <p class="eyebrow">Section 01</p>
+  <h2>Validation decisions</h2>
+  <p class="sub">Four forks that changed what gets built. Taken 2026-08-26.</p>
+
+  <div class="dec">
+    <span class="id">L1 · G1 GATE</span>
+    <p class="q">The ESLint rule replaced the planned glob suite. Which satisfies G1?</p>
+    <p class="a"><b>Both.</b> The rule constrains <em>who may read the column</em>, so it covers RSC
+    pages and Server Actions no route manifest can enumerate. The suite proves <em>what a real
+    request returns</em>, which no static rule can establish. Neither subsumes the other.</p>
+  </div>
+  <div class="dec">
+    <span class="id">L2 · NOTIFICATIONS</span>
+    <p class="q">What transport ships in MVP?</p>
+    <p class="a"><b>Resend email first; web push deferred and recorded.</b> iOS Safari delivers web
+    push only to an installed PWA, so a push-only alert fails silently for most iPhone parents —
+    the worst available failure mode for a child-safety notification.</p>
+  </div>
+  <div class="dec">
+    <span class="id">L3 · G7 EVIDENCE</span>
+    <p class="q">Latency measured on a provider not cleared for production child data?</p>
+    <p class="a"><b>Measure now as an explicitly provisional baseline; re-measurement on Bedrock
+    AgentCore is launch-blocking.</b> Pipeline overhead is provider-independent and knowable today —
+    if overhead alone eats the budget, no amount of provider clearance fixes it.</p>
+  </div>
+  <div class="dec">
+    <span class="id">L4 · JOIN CODE</span>
+    <p class="q">Replacement for the raw 36-character family UUID on the child login form?</p>
+    <p class="a"><b>Short indexed join code and a family-scoped link.</b> The link for the everyday
+    case, the code for a fresh device.</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Section 02</p>
+  <h2>Dependency flow</h2>
+  <p class="sub">Parent access unblocks the most. Compliance is dashed because no amount of code
+  closes it.</p>
+  <div class="diagram">
+<svg viewBox="0 0 760 400" role="img" aria-label="Phase dependency flow: Phase 1 Parent access unblocks Phases 2 and 3; Phase 2 unblocks Phase 5; Phases 1 and 2 unblock Phase 6. Phase 4 Join code and Phase 7 Compliance are independent.">
+  <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+    <path d="M0,1 L9,5 L0,9" class="arrow"/></marker></defs>
+  <path d="M210,177.0 C255.0,177.0 255.0,107.0 300,107.0" class="edge" marker-end="url(#ar)"/><path d="M210,177.0 C255.0,177.0 255.0,247.0 300,247.0" class="edge" marker-end="url(#ar)"/><path d="M450,107.0 C497.5,107.0 497.5,107.0 545,107.0" class="edge" marker-end="url(#ar)"/><path d="M210,177.0 C377.5,177.0 377.5,247.0 545,247.0" class="edge" marker-end="url(#ar)"/><path d="M450,107.0 C497.5,107.0 497.5,247.0 545,247.0" class="edge" marker-end="url(#ar)"/><g class="node"><rect x="60" y="150" width="150" height="54"/><text x="72" y="172" class="nn">PHASE 01 · P1</text><text x="72" y="191" class="nl">Parent access</text></g><g class="node"><rect x="300" y="80" width="150" height="54"/><text x="312" y="102" class="nn">PHASE 02 · P1</text><text x="312" y="121" class="nl">Notifications</text></g><g class="node"><rect x="300" y="220" width="150" height="54"/><text x="312" y="242" class="nn">PHASE 03 · P1</text><text x="312" y="261" class="nl">Isolation gates</text></g><g class="node"><rect x="60" y="300" width="150" height="54"/><text x="72" y="322" class="nn">PHASE 04 · P2</text><text x="72" y="341" class="nl">Join code</text></g><g class="node"><rect x="545" y="80" width="150" height="54"/><text x="557" y="102" class="nn">PHASE 05 · P2</text><text x="557" y="121" class="nl">Latency</text></g><g class="node"><rect x="545" y="220" width="150" height="54"/><text x="557" y="242" class="nn">PHASE 06 · P2</text><text x="557" y="261" class="nl">Hardening</text></g><g class="node blocked"><rect x="545" y="330" width="150" height="54"/><text x="557" y="352" class="nn">PHASE 07 · P1</text><text x="557" y="371" class="nl">Compliance</text></g>
+</svg></div>
+</section>
+
+<section>
+  <p class="eyebrow">Section 03</p>
+  <h2>Interface changes</h2>
+  <p class="sub">Two surfaces change shape. Annotations tie each element to the token layer and to
+  the criterion it satisfies.</p>
+  <div class="mocks">
+    <figure class="mock" style="margin:0">
+      <figcaption>Phase 01 — Parent sign-in (new)</figcaption>
+      <div class="screen">
+        <div class="ui-card">
+          <span class="ui-eyebrow">Bubbli</span>
+          <h3 class="ui-h">Parent sign-in</h3>
+          <p class="ui-sub">Review what needed attention.</p>
+          <span class="ui-label">Email</span>
+          <div class="ui-field">parent@example.com</div>
+          <span class="ui-label">Password</span>
+          <div class="ui-field">••••••••••</div>
+          <div class="ui-btn">Sign in</div>
+          <p class="ui-note">Denser and sharper than the child surface.</p>
+        </div>
+      </div>
+      <ul class="ann">
+        <li><span class="m">1</span><b>Parent register</b> — same token layer, tighter type scale.
+        A safety instrument must not read as a toy.</li>
+        <li><span class="m">2</span><b>Rate limited</b> on the same per-IP basis as child login,
+        reusing <code>checkLoginRate</code>.</li>
+        <li><span class="m">3</span>Satisfies <b>“a parent signs in and reaches /parent with a real
+        session”</b>. Without it the entire dashboard is unreachable.</li>
+      </ul>
+    </figure>
+
+    <figure class="mock" style="margin:0">
+      <figcaption>Phase 04 — Child sign-in (changed)</figcaption>
+      <div class="screen">
+        <div class="ui-card">
+          <span class="ui-eyebrow">Bubbli</span>
+          <h3 class="ui-h">Hello<em>!</em></h3>
+          <p class="ui-sub">Sign in to talk with Bubbli.</p>
+          <span class="ui-label">Family code</span>
+          <div class="ui-field before">b50b8da2-b36b-4557-aa64-afd9299d1c39</div>
+          <div class="ui-field ok">BUBBLI-7K2F</div>
+          <span class="ui-label">Your name</span>
+          <div class="ui-field">Emma</div>
+          <span class="ui-label">PIN</span>
+          <div class="ui-field">••••••</div>
+          <div class="ui-btn">Start</div>
+          <p class="ui-note">Or follow /login/BUBBLI-7K2F — name and PIN only.</p>
+        </div>
+      </div>
+      <ul class="ann">
+        <li><span class="m">1</span><b>The struck-through row is today.</b> An eight-year-old cannot
+        type a UUID and a fifteen-year-old will not.</li>
+        <li><span class="m">2</span><b>Confusable-free alphabet</b> — no O/0, no I/1, so it survives
+        being read aloud across a room.</li>
+        <li><span class="m">3</span>The code is <b>not a credential</b>. It selects a namespace; the
+        PIN authenticates, and the per-IP limiter protects it.</li>
+      </ul>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Section 04</p>
+  <h2>Phases</h2>
+  <p class="sub">Select any phase for the full specification — requirements, architecture, files,
+  steps, criteria and risk.</p>
+  <div class="phases">
+<article class="phase" data-phase="1" tabindex="0" role="button"
+         aria-label="Phase 1: Parent access — open full detail">
+  <header>
+    <span class="folio">Phase 01</span>
+    <span class="tags">
+      <span class="tag t-pending">pending</span>
+      <span class="tag t-pri">P1</span>
+      <span class="tag t-eff">6h</span>
+    </span>
+  </header>
+  <h3>Parent access</h3>
+  <p class="dep">no dependencies</p>
+  <p class="obj">Better Auth is configured at the library level and `getSession()` has a comment where the parent branch should be. There is no sign-in page, no handler mounted, and no way to obtain a parent session — so `/parent` and the transcript route, both fully built and tested, are unreachable by an actual human.</p>
+  <div class="cols">
+    <div><h4>Key steps</h4><ol><li>Mount the Better Auth handler and confirm its tables match `drizzle/0002_auth.sql`;</li><li>Add the parent branch to `getSession()`, resolving `familyId`/`parentId` from the</li><li>Build the sign-in page in the parent register — denser and sharper than the child</li><li>Add a `(parent)` layout that redirects unauthenticated requests to the sign-in page.</li><li>Extend the per-IP login limiter to the parent identifier.</li><li>Re-run the G3 mutation gate and the parent-isolation tests unchanged.</li></ol></div>
+    <div><h4>Files</h4><ul class="files"><li><span class="verb v-create">Create</span> <code>src/app/(parent)/login/page.tsx</code></li><li><span class="verb v-create">Create</span> <code>src/app/api/auth/[...all]/route.ts</code></li><li><span class="verb v-create">Create</span> <code>src/app/(parent)/layout.tsx</code></li><li><span class="verb v-modify">Modify</span> <code>src/lib/auth/request-session.ts</code></li><li><span class="verb v-modify">Modify</span> <code>src/lib/auth/login-rate-limit.ts</code></li></ul></div>
+  </div>
+  <h4>Success criteria</h4>
+  <ul class="crit"><li>A seeded parent signs in and reaches `/parent` with a real session</li><li>`getSession()` returns `principalType: 'parent'` with a resolved `familyId`</li><li>An unauthenticated request to `/parent` and to the transcript route redirects</li><li>A request carrying both a child cookie and a parent session resolves as the child</li><li class="more">+2 more</li></ul>
+  <span class="open">Read the full phase &rarr;</span>
+</article>
+<article class="phase" data-phase="2" tabindex="0" role="button"
+         aria-label="Phase 2: Notification delivery — open full detail">
+  <header>
+    <span class="folio">Phase 02</span>
+    <span class="tags">
+      <span class="tag t-pending">pending</span>
+      <span class="tag t-pri">P1</span>
+      <span class="tag t-eff">5h</span>
+    </span>
+  </header>
+  <h3>Notification delivery</h3>
+  <p class="dep">after 1</p>
+  <p class="obj">`notifyGuardians` is built, tested, and correct about what it must not leak — and its only transport writes to the console. A `critical` flag today reaches nobody. This is the largest gap between what the product claims and what it does.</p>
+  <div class="cols">
+    <div><h4>Key steps</h4><ol><li>Add the Resend settings to the config schema; the app must refuse to start with a</li><li>Write the email transport against the existing `Transport` interface.</li><li>Compose the message from metadata only — subject and body carry the child's name,</li><li>Resolve recipients as consented, non-removed guardians of that child's family.</li><li>Write an audit row per dispatch attempt, recording outcome, so G5 stays complete.</li><li>Extend the existing payload-boundary test to assert the rendered email body also</li></ol></div>
+    <div><h4>Files</h4><ul class="files"><li><span class="verb v-create">Create</span> <code>src/lib/notify/transports/email.ts</code></li><li><span class="verb v-modify">Modify</span> <code>src/lib/notify/dispatch.ts</code></li><li><span class="verb v-modify">Modify</span> <code>src/config/settings.ts</code></li><li><span class="verb v-modify">Modify</span> <code>.env.example</code></li><li><span class="verb v-modify">Modify</span> <code>tests/pipeline/turn.test.ts</code></li></ul></div>
+  </div>
+  <h4>Success criteria</h4>
+  <ul class="crit"><li>A `critical` flag delivers an email to every consented guardian</li><li>A removed or non-consented parent receives nothing</li><li>The rendered email body contains no message content, matched text, or rule name</li><li>Every dispatch attempt writes an audit row, success or failure</li><li class="more">+3 more</li></ul>
+  <span class="open">Read the full phase &rarr;</span>
+</article>
+<article class="phase" data-phase="3" tabindex="0" role="button"
+         aria-label="Phase 3: Isolation and coverage gates — open full detail">
+  <header>
+    <span class="folio">Phase 03</span>
+    <span class="tags">
+      <span class="tag t-pending">pending</span>
+      <span class="tag t-pri">P1</span>
+      <span class="tag t-eff">5h</span>
+    </span>
+  </header>
+  <h3>Isolation and coverage gates</h3>
+  <p class="dep">after 1</p>
+  <p class="obj">G1 is currently enforced structurally by an ESLint rule and not at all at runtime. Decision L1 keeps the rule and adds the suite the MVP plan specified. Two smaller coverage holes close here too: nothing proves every AI-invoking route is quota-covered, and the history-ordering test was never written.</p>
+  <div class="cols">
+    <div><h4>Key steps</h4><ol><li>Glob `src/app/**` for route handlers, pages, and Server Actions; build the surface list</li><li>Seed a family with conversations at `info` and at `low` — flagged, below the gate.</li><li>Drive every surface with a parent principal and with a child principal; assert no</li><li>Assert the suite itself fails when a surface is added to the glob but not to the</li><li>Enumerate AI-invoking routes and assert each calls `checkChatQuota`.</li><li>Write the history-ordering test: seed 30 messages, expect most-recent-N returns 11–30.</li></ol></div>
+    <div><h4>Files</h4><ul class="files"><li><span class="verb v-create">Create</span> <code>tests/isolation/g1-surfaces.test.ts</code></li><li><span class="verb v-create">Create</span> <code>tests/routes/quota-coverage.test.ts</code></li><li><span class="verb v-create">Create</span> <code>tests/chat/history-ordering.test.ts</code></li><li><span class="verb v-modify">Modify</span> <code>plans/260825-2326-bubbli-safeai-mvp/plan.md</code></li></ul></div>
+  </div>
+  <h4>Success criteria</h4>
+  <ul class="crit"><li>G1 suite globs every surface and drives both principal types</li><li>Seeds are flagged `info`/`low` conversations, not unflagged ones</li><li>Adding a surface without covering it fails the suite</li><li>Every AI-invoking route is quota-covered; an uncovered new route fails</li><li class="more">+2 more</li></ul>
+  <span class="open">Read the full phase &rarr;</span>
+</article>
+<article class="phase" data-phase="4" tabindex="0" role="button"
+         aria-label="Phase 4: Child join code — open full detail">
+  <header>
+    <span class="folio">Phase 04</span>
+    <span class="tags">
+      <span class="tag t-pending">pending</span>
+      <span class="tag t-pri">P2</span>
+      <span class="tag t-eff">3h</span>
+    </span>
+  </header>
+  <h3>Child join code</h3>
+  <p class="dep">no dependencies</p>
+  <p class="obj">The child login form asks for a raw 36-character family UUID. An eight-year-old cannot type it and a fifteen-year-old will not. MVP Phase 3 specified "a family-scoped URL or a parent-issued join code so display names are never a global namespace" — the security scoping was implemented correctly and then the primary key was exposed as the input.</p>
+  <div class="cols">
+    <div><h4>Key steps</h4><ol><li>Add `join_code` to `families`: unique, indexed, not null, backfilled for existing rows.</li><li>Generate from a confusable-free alphabet; verify collision handling on insert.</li><li>Resolve code or UUID to a `familyId` at the top of the login route; everything below</li><li>Add the `/login/<code>` route rendering name and PIN only.</li><li>Relabel the manual field "Family code" and stop asking for a UUID.</li><li>Update the dev seed to print the code and the family link.</li></ol></div>
+    <div><h4>Files</h4><ul class="files"><li><span class="verb v-create">Create</span> <code>drizzle/0004_join_code.sql</code></li><li><span class="verb v-create">Create</span> <code>src/lib/auth/join-code.ts</code></li><li><span class="verb v-create">Create</span> <code>src/app/(child)/login/[code]/page.tsx</code></li><li><span class="verb v-modify">Modify</span> <code>src/db/schema.ts</code></li><li><span class="verb v-modify">Modify</span> <code>src/app/api/child/login/route.ts</code></li><li><span class="verb v-modify">Modify</span> <code>src/app/(child)/login/page.tsx</code></li></ul></div>
+  </div>
+  <h4>Success criteria</h4>
+  <ul class="crit"><li>A child signs in with a short code</li><li>`/login/<code>` prefills the family and asks only for name and PIN</li><li>An invalid code is rate-limited and recorded exactly as an invalid UUID is</li><li>A valid code alone grants nothing without a correct name and PIN</li><li class="more">+2 more</li></ul>
+  <span class="open">Read the full phase &rarr;</span>
+</article>
+<article class="phase" data-phase="5" tabindex="0" role="button"
+         aria-label="Phase 5: Latency baseline — open full detail">
+  <header>
+    <span class="folio">Phase 05</span>
+    <span class="tags">
+      <span class="tag t-pending">pending</span>
+      <span class="tag t-pri">P2</span>
+      <span class="tag t-eff">3h</span>
+    </span>
+  </header>
+  <h3>Latency baseline</h3>
+  <p class="dep">after 2</p>
+  <p class="obj">G7 requires p95 ≤ 8s and p50 ≤ 4s on total round-trip. Decision L3: measure now on DeepSeek as an explicitly provisional baseline, and make re-measurement on Bedrock AgentCore launch-blocking.</p>
+  <div class="cols">
+    <div><h4>Key steps</h4><ol><li>Assemble a prompt set that passes the guardrails and is representative of real use</li><li>Instrument the pipeline to record overhead and generation separately.</li><li>Run cold, then warm, then one concurrent run at a realistic family count.</li><li>Report p50 and p95 for each, split by overhead and generation.</li><li>Write the report with the provider named in the title and the first line.</li><li>Record in the MVP plan that G7 is provisional and blocked on re-measurement.</li></ol></div>
+    <div><h4>Files</h4><ul class="files"><li><span class="verb v-create">Create</span> <code>scripts/measure-latency.ts</code></li><li><span class="verb v-create">Create</span> <code>plans/reports/latency-<date>-deepseek.md</code></li><li><span class="verb v-modify">Modify</span> <code>plans/260825-2326-bubbli-safeai-mvp/plan.md</code></li></ul></div>
+  </div>
+  <h4>Success criteria</h4>
+  <ul class="crit"><li>p50 and p95 exist for warm, cold, and concurrent runs</li><li>Pipeline overhead is reported separately from generation</li><li>Every figure names DeepSeek as the measured provider</li><li>The prompt set demonstrably passes the guardrails rather than short-circuiting</li><li class="more">+1 more</li></ul>
+  <span class="open">Read the full phase &rarr;</span>
+</article>
+<article class="phase" data-phase="6" tabindex="0" role="button"
+         aria-label="Phase 6: Operational hardening — open full detail">
+  <header>
+    <span class="folio">Phase 06</span>
+    <span class="tags">
+      <span class="tag t-pending">pending</span>
+      <span class="tag t-pri">P2</span>
+      <span class="tag t-eff">4h</span>
+    </span>
+  </header>
+  <h3>Operational hardening</h3>
+  <p class="dep">after 1, 2</p>
+  <p class="obj">The remaining Phase 7 items from the MVP plan that are neither gates nor features: log redaction, the metrics posture, budget behaviour on blocked and aborted requests, and a clean dependency audit and secret scan.</p>
+  <div class="cols">
+    <div><h4>Key steps</h4><ol><li>Write the redaction module and route every log through it.</li><li>Test with an error object carrying a message body, a PIN, and an email; assert none</li><li>Confirm metrics are either authenticated or not exposed; remove any unauthenticated</li><li>Decide budget behaviour on gate-blocked and aborted requests; record it in `0005`</li><li>Add dependency audit and secret scan steps to CI with job-level `contents: read`.</li></ol></div>
+    <div><h4>Files</h4><ul class="files"><li><span class="verb v-create">Create</span> <code>src/lib/log/redact.ts</code></li><li><span class="verb v-create">Create</span> <code>docs/decisions/0005-budget-on-blocked-requests.md</code></li><li><span class="verb v-modify">Modify</span> <code>src/lib/quota/limiter.ts</code></li><li><span class="verb v-modify">Modify</span> <code>.github/workflows/ci.yml</code></li><li><span class="verb v-create">Create</span> <code>tests/log/redaction.test.ts</code></li></ul></div>
+  </div>
+  <h4>Success criteria</h4>
+  <ul class="crit"><li>An error carrying message content, a PIN, and an email logs none of them</li><li>No unauthenticated metrics endpoint exists</li><li>Budget behaviour on blocked and aborted requests is recorded in a decision file</li><li>Dependency audit and secret scan run in CI and pass</li><li class="more">+1 more</li></ul>
+  <span class="open">Read the full phase &rarr;</span>
+</article>
+<article class="phase" data-phase="7" tabindex="0" role="button"
+         aria-label="Phase 7: Compliance close-out — open full detail">
+  <header>
+    <span class="folio">Phase 07</span>
+    <span class="tags">
+      <span class="tag t-blocked">blocked</span>
+      <span class="tag t-pri">P1</span>
+      <span class="tag t-eff">unknown — external</span>
+    </span>
+  </header>
+  <h3>Compliance close-out</h3>
+  <p class="dep">no dependencies</p>
+  <p class="obj">G9 and Q-B. Neither is closeable by writing code, and both gate launch. This phase exists so they are tracked as work rather than remembered as caveats.</p>
+  <div class="cols">
+    <div><h4>Key steps</h4><ol><li>Obtain DPA and zero-retention terms in writing for the production provider.</li><li>Request Bedrock AgentCore model access in the residency region.</li><li>Make a real inference call through AgentCore and record the result.</li><li>Record the at-rest encryption position as actually provided.</li><li>Get a determination on Q-B for the target markets.</li><li>Only then, flip `productionCleared` and re-run the full gate set.</li></ol></div>
+    <div><h4>Files</h4><ul class="files"><li><span class="verb v-modify">Modify</span> <code>docs/decisions/0002-compliance-premises.md</code></li><li><span class="verb v-modify">Modify</span> <code>src/config/settings.ts</code></li></ul></div>
+  </div>
+  <h4>Success criteria</h4>
+  <ul class="crit"><li>DPA and zero-retention confirmed in writing and recorded in `0002`</li><li>A real AgentCore inference call succeeds in the residency region</li><li>Q-B answered for the target markets</li><li>`PROVIDER_COMPLIANCE` flipped only after the artefacts exist</li><li class="more">+2 more</li></ul>
+  <span class="open">Read the full phase &rarr;</span>
+</article></div>
+</section>
+
+<footer>
+  <h2>Open questions</h2>
+  <p style="max-width:70ch"><b style="color:var(--ink)">Q-B — COPPA verifiable parental consent
+  depth.</b> Email-plus-affirmation is what is built. Whether that clears “verifiable” for the
+  target markets is a legal determination, not an engineering one, and the <code>4-7</code>,
+  <code>8-11</code> and <code>12</code> bands all depend on the answer.</p>
+  <p style="max-width:70ch">No other unresolved questions. The three remaining unknowns —
+  DPA terms, AgentCore access, and the production latency figure — are tracked as Phase 7 and
+  Phase 5 work rather than as questions.</p>
+  <h2 style="margin-top:34px">Sources</h2>
+  <p class="cite">
+    plans/260825-2326-bubbli-safeai-mvp/plan.md — the plan this continues<br>
+    docs/decisions/0001-region-and-residency.md · 0002-compliance-premises.md · 0003-rate-limit-library.md · 0004-child-principal.md<br>
+    PRD.md v1.1.0 §3 principles · §7 privacy model · §13 compliance<br>
+    src/config/settings.ts — PROVIDER_COMPLIANCE, the code-enforced production gate<br>
+    Web push on iOS requires an installed PWA: https://developer.apple.com/documentation/usernotifications/sending-web-push-notifications-in-web-apps-and-browsers<br>
+    COPPA verifiable parental consent: https://www.ftc.gov/business-guidance/resources/complying-coppa-frequently-asked-questions
+  </p>
+</footer>
+</div>
+
+<dialog id="dlg">
+  <div class="mhead"><span class="folio" id="dlg-folio"></span>
+    <button class="mclose" id="dlg-close">Close · Esc</button></div>
+  <div class="mbody" id="dlg-body"></div>
+</dialog>
+
+<script id="plan-data" type="application/json">{"phases": [{"n": "1", "title": "Parent access", "status": "pending", "priority": "P1", "effort": "6h", "deps": "[]", "objective": "Better Auth is configured at the library level and `getSession()` has a comment where the parent branch should be. There is no sign-in page, no handler mounted, and no way to obtain a parent session — so `/parent` and the transcript route, both fully built and tested, are unreachable by an actual human.", "steps": ["Mount the Better Auth handler and confirm its tables match `drizzle/0002_auth.sql`;", "Add the parent branch to `getSession()`, resolving `familyId`/`parentId` from the", "Build the sign-in page in the parent register — denser and sharper than the child", "Add a `(parent)` layout that redirects unauthenticated requests to the sign-in page.", "Extend the per-IP login limiter to the parent identifier.", "Re-run the G3 mutation gate and the parent-isolation tests unchanged."], "files": [["Create", "src/app/(parent)/login/page.tsx"], ["Create", "src/app/api/auth/[...all]/route.ts"], ["Create", "src/app/(parent)/layout.tsx"], ["Modify", "src/lib/auth/request-session.ts"], ["Modify", "src/lib/auth/login-rate-limit.ts"]], "criteria": ["A seeded parent signs in and reaches `/parent` with a real session", "`getSession()` returns `principalType: 'parent'` with a resolved `familyId`", "An unauthenticated request to `/parent` and to the transcript route redirects", "A request carrying both a child cookie and a parent session resolves as the child", "The forged-parent-session-with-childId test still fails the mutant", "`pnpm test` and `pnpm test:mutation` pass"], "md": "---\nphase: 1\ntitle: \"Parent access\"\nstatus: pending\npriority: P1\neffort: \"6h\"\ndependencies: []\n---\n\n# Phase 1: Parent access\n\n## Overview\n\nBetter Auth is configured at the library level and `getSession()` has a comment where\nthe parent branch should be. There is no sign-in page, no handler mounted, and no way\nto obtain a parent session — so `/parent` and the transcript route, both fully built\nand tested, are unreachable by an actual human.\n\n## Requirements\n\n- Functional: a parent signs in with email and password and lands on `/parent` with a\n  session `getSession()` resolves as `principalType: 'parent'`.\n- Functional: an unauthenticated visitor to any parent surface is redirected, not shown\n  an error, and never learns whether a resource exists.\n- Non-functional: the parent session must not be forgeable into a child principal.\n  `principalType` stays derived server-side from which store resolved, never read from\n  a client claim.\n- Non-functional: sign-in failures are rate-limited on the same per-IP basis the child\n  login already uses.\n\n## Architecture\n\n`getSession()` already resolves the child store first and returns `null` otherwise.\nThe parent branch slots in behind it: ask Better Auth for a session, and on a hit\nreturn `{ principalType: 'parent', familyId, parentId }` resolved from the `parents`\nrow, not from anything the client sent.\n\nOrder matters and is deliberate — child first. A request carrying both a child cookie\nand a parent session resolves as the child, which is the safer failure: a child\nprincipal can never read another conversation, whereas a parent principal can read\n`medium`+ transcripts.\n\nThe mutation guard from G3 already proves a forged parent session carrying a `childId`\nis rejected. That test must keep passing once a real parent session exists, so it is\nre-run as an explicit success criterion here rather than assumed.\n\n## Related Code Files\n\n- Create: `src/app/(parent)/login/page.tsx`\n- Create: `src/app/api/auth/[...all]/route.ts` (Better Auth handler mount)\n- Create: `src/app/(parent)/layout.tsx` (redirect guard)\n- Modify: `src/lib/auth/request-session.ts` (parent branch)\n- Modify: `src/lib/auth/login-rate-limit.ts` (reuse for the parent identifier)\n\n## Implementation Steps\n\n1. Mount the Better Auth handler and confirm its tables match `drizzle/0002_auth.sql`;\n   generate a migration if they have drifted.\n2. Add the parent branch to `getSession()`, resolving `familyId`/`parentId` from the\n   `parents` row keyed by the authenticated user.\n3. Build the sign-in page in the parent register — denser and sharper than the child\n   surface, same token layer, no raw hex.\n4. Add a `(parent)` layout that redirects unauthenticated requests to the sign-in page.\n5. Extend the per-IP login limiter to the parent identifier.\n6. Re-run the G3 mutation gate and the parent-isolation tests unchanged.\n\n## Success Criteria\n\n- [ ] A seeded parent signs in and reaches `/parent` with a real session\n- [ ] `getSession()` returns `principalType: 'parent'` with a resolved `familyId`\n- [ ] An unauthenticated request to `/parent` and to the transcript route redirects\n- [ ] A request carrying both a child cookie and a parent session resolves as the child\n- [ ] The forged-parent-session-with-childId test still fails the mutant\n- [ ] `pnpm test` and `pnpm test:mutation` pass\n\n## Risk Assessment\n\nBetter Auth's generated schema may not match the hand-written `0002_auth.sql`. Signal:\nsign-in fails on a missing column, or `db:migrate` from empty diverges from the running\ndatabase. Response: regenerate the migration from Better Auth's schema and reconcile in\none migration rather than patching columns by hand — CI runs migrations from empty and\nwill catch a drifted pair immediately.\n", "slug": "phase-01-parent-access.md"}, {"n": "2", "title": "Notification delivery", "status": "pending", "priority": "P1", "effort": "5h", "deps": "[1]", "objective": "`notifyGuardians` is built, tested, and correct about what it must not leak — and its only transport writes to the console. A `critical` flag today reaches nobody. This is the largest gap between what the product claims and what it does.", "steps": ["Add the Resend settings to the config schema; the app must refuse to start with a", "Write the email transport against the existing `Transport` interface.", "Compose the message from metadata only — subject and body carry the child's name,", "Resolve recipients as consented, non-removed guardians of that child's family.", "Write an audit row per dispatch attempt, recording outcome, so G5 stays complete.", "Extend the existing payload-boundary test to assert the rendered email body also"], "files": [["Create", "src/lib/notify/transports/email.ts"], ["Modify", "src/lib/notify/dispatch.ts"], ["Modify", "src/config/settings.ts"], ["Modify", ".env.example"], ["Modify", "tests/pipeline/turn.test.ts"]], "criteria": ["A `critical` flag delivers an email to every consented guardian", "A removed or non-consented parent receives nothing", "The rendered email body contains no message content, matched text, or rule name", "Every dispatch attempt writes an audit row, success or failure", "A transport throwing does not fail the child's chat request", "No credential appears in any log line or error path", "Severities below `high` still send nothing"], "md": "---\nphase: 2\ntitle: \"Notification delivery\"\nstatus: pending\npriority: P1\neffort: \"5h\"\ndependencies: [1]\n---\n\n# Phase 2: Notification delivery\n\n## Overview\n\n`notifyGuardians` is built, tested, and correct about what it must not leak — and its\nonly transport writes to the console. A `critical` flag today reaches nobody. This is\nthe largest gap between what the product claims and what it does.\n\n## Requirements\n\n- Functional: a `high` or `critical` flag emails every consented guardian of that child.\n- Functional: the payload carries `childName`, `severity`, `flagId` and a deep link and\n  nothing else. Never message content, never the matched text, never the rule.\n- Functional: every dispatch attempt writes an append-only audit row, delivered or not.\n- Non-functional: a transport failure must not fail the child's request. Notification is\n  downstream of the response, never in front of it.\n- Non-functional: no provider credential reaches a log line or an error message.\n\n## Architecture\n\nThe `Transport` interface already exists and `notifyGuardians` already takes an array,\nso this phase adds an implementation rather than reshaping anything. The existing test\nasserting the payload key set (`childName`, `deepLink`, `flagId`, `severity`) is the\ncontract and must not be relaxed to accommodate a template.\n\n**Web push is deferred (decision L2).** iOS Safari delivers web push only to a PWA the\nuser installed, so for the majority of parents on iPhone a push-only alert fails\nsilently — the worst possible failure mode for a child-safety notification. Email is\nthe transport that works everywhere today. The `Transport` array means adding VAPID\nlater changes no call site.\n\nGuardian resolution must respect consent and removal: a parent removed from a family, or\none whose consent was withdrawn, is not a recipient.\n\n## Related Code Files\n\n- Create: `src/lib/notify/transports/email.ts`\n- Modify: `src/lib/notify/dispatch.ts` (register the transport; unchanged interface)\n- Modify: `src/config/settings.ts` (Resend key and from-address, Zod-validated)\n- Modify: `.env.example`\n- Modify: `tests/pipeline/turn.test.ts` (extend the boundary assertions)\n\n## Implementation Steps\n\n1. Add the Resend settings to the config schema; the app must refuse to start with a\n   transport enabled and no credential, matching how provider credentials behave.\n2. Write the email transport against the existing `Transport` interface.\n3. Compose the message from metadata only — subject and body carry the child's name,\n   the severity, and the deep link. No excerpt, no category, no rule name.\n4. Resolve recipients as consented, non-removed guardians of that child's family.\n5. Write an audit row per dispatch attempt, recording outcome, so G5 stays complete.\n6. Extend the existing payload-boundary test to assert the rendered email body also\n   contains no content, not merely the payload object.\n\n## Success Criteria\n\n- [ ] A `critical` flag delivers an email to every consented guardian\n- [ ] A removed or non-consented parent receives nothing\n- [ ] The rendered email body contains no message content, matched text, or rule name\n- [ ] Every dispatch attempt writes an audit row, success or failure\n- [ ] A transport throwing does not fail the child's chat request\n- [ ] No credential appears in any log line or error path\n- [ ] Severities below `high` still send nothing\n\n## Risk Assessment\n\nThe tempting shortcut is to put a helpful excerpt in the email so the parent knows what\nhappened. That inverts the entire visibility ladder — the ladder exists so a parent sees\ncontent only after crossing `medium` *and* through an audited path. Signal it happened:\nthe body assertion fails, or a reviewer proposes \"just a snippet\". Response: the deep\nlink is the only route to content; hold the line.\n\nDeferring push is recorded, not forgotten. Signal it needs revisiting: guardians report\nmissing time-critical alerts. Response: add the VAPID transport to the same array.\n", "slug": "phase-02-notification-delivery.md"}, {"n": "3", "title": "Isolation and coverage gates", "status": "pending", "priority": "P1", "effort": "5h", "deps": "[1]", "objective": "G1 is currently enforced structurally by an ESLint rule and not at all at runtime. Decision L1 keeps the rule and adds the suite the MVP plan specified. Two smaller coverage holes close here too: nothing proves every AI-invoking route is quota-covered, and the history-ordering test was never written.", "steps": ["Glob `src/app/**` for route handlers, pages, and Server Actions; build the surface list", "Seed a family with conversations at `info` and at `low` — flagged, below the gate.", "Drive every surface with a parent principal and with a child principal; assert no", "Assert the suite itself fails when a surface is added to the glob but not to the", "Enumerate AI-invoking routes and assert each calls `checkChatQuota`.", "Write the history-ordering test: seed 30 messages, expect most-recent-N returns 11–30."], "files": [["Create", "tests/isolation/g1-surfaces.test.ts"], ["Create", "tests/routes/quota-coverage.test.ts"], ["Create", "tests/chat/history-ordering.test.ts"], ["Modify", "plans/260825-2326-bubbli-safeai-mvp/plan.md"]], "criteria": ["G1 suite globs every surface and drives both principal types", "Seeds are flagged `info`/`low` conversations, not unflagged ones", "Adding a surface without covering it fails the suite", "Every AI-invoking route is quota-covered; an uncovered new route fails", "History ordering proves most-recent-N (seed 30, expect 11–30)", "The ESLint rule stays in place and `pnpm lint` is clean"], "md": "---\nphase: 3\ntitle: \"Isolation and coverage gates\"\nstatus: pending\npriority: P1\neffort: \"5h\"\ndependencies: [1]\n---\n\n# Phase 3: Isolation and coverage gates\n\n## Overview\n\nG1 is currently enforced structurally by an ESLint rule and not at all at runtime.\nDecision L1 keeps the rule and adds the suite the MVP plan specified. Two smaller\ncoverage holes close here too: nothing proves every AI-invoking route is quota-covered,\nand the history-ordering test was never written.\n\n## Requirements\n\n- Functional: the G1 suite enumerates every surface by filesystem glob over `src/app/**`\n  — route handlers, pages, and Server Actions — and drives each with both principal types.\n- Functional: seeds are `info`/`low` conversations, not merely unflagged ones. The leak\n  surface is a flagged row below the gate; an unflagged row does not exercise it.\n- Functional: a new AI-invoking route added without a quota check fails a test.\n- Non-functional: the suite must fail loudly when a surface is added, not silently skip it.\n\n## Architecture\n\nThe ESLint rule and the runtime suite prove different things and neither subsumes the\nother, which is why decision L1 keeps both.\n\n| | ESLint rule (built) | Runtime suite (this phase) |\n|---|---|---|\n| Proves | Who may read `messages.content` | What a real request actually returns |\n| Covers RSC pages and Server Actions | Yes — sees every file | Only if the glob finds them |\n| Catches a leak through an audited module | No — that module is allow-listed | Yes |\n| Fails when | Code is written | Code is run |\n| Blind spot | A permitted module leaking downstream | A surface the glob misses |\n\nThe rule constrains *who may read the column* and therefore covers surfaces no route\nmanifest can enumerate. The suite proves *what a real request returns*, which no static\nrule can establish.\n\nQuota coverage is enumerated the same way, which is the only mechanism that survives\nsomeone adding a route and forgetting: discover the routes from the filesystem, assert\neach AI-invoking one calls the limiter, and fail on an unrecognised new route rather\nthan passing by omission.\n\n## Related Code Files\n\n- Create: `tests/isolation/g1-surfaces.test.ts`\n- Create: `tests/routes/quota-coverage.test.ts`\n- Create: `tests/chat/history-ordering.test.ts`\n- Modify: `plans/260825-2326-bubbli-safeai-mvp/plan.md` (record that G1 is proven both ways)\n\n## Implementation Steps\n\n1. Glob `src/app/**` for route handlers, pages, and Server Actions; build the surface list\n   at test time so a new file is discovered automatically.\n2. Seed a family with conversations at `info` and at `low` — flagged, below the gate.\n3. Drive every surface with a parent principal and with a child principal; assert no\n   response body contains any seeded message content.\n4. Assert the suite itself fails when a surface is added to the glob but not to the\n   drive list, so an untested surface cannot pass silently.\n5. Enumerate AI-invoking routes and assert each calls `checkChatQuota`.\n6. Write the history-ordering test: seed 30 messages, expect most-recent-N returns 11–30.\n\n## Success Criteria\n\n- [ ] G1 suite globs every surface and drives both principal types\n- [ ] Seeds are flagged `info`/`low` conversations, not unflagged ones\n- [ ] Adding a surface without covering it fails the suite\n- [ ] Every AI-invoking route is quota-covered; an uncovered new route fails\n- [ ] History ordering proves most-recent-N (seed 30, expect 11–30)\n- [ ] The ESLint rule stays in place and `pnpm lint` is clean\n\n## Risk Assessment\n\nA glob-driven suite that cannot construct a valid request for some surface will be\ntempted to skip it, and a skipped surface reads as a pass. Signal: a `skip`, a `try/catch`\nthat swallows, or a surface count that drops between runs. Response: assert the surface\ncount explicitly and fail on any surface the suite could not drive, rather than\ntolerating a silent gap in the gate that protects a child's conversation from a parent.\n", "slug": "phase-03-isolation-and-coverage-gates.md"}, {"n": "4", "title": "Child join code", "status": "pending", "priority": "P2", "effort": "3h", "deps": "[]", "objective": "The child login form asks for a raw 36-character family UUID. An eight-year-old cannot type it and a fifteen-year-old will not. MVP Phase 3 specified \"a family-scoped URL or a parent-issued join code so display names are never a global namespace\" — the security scoping was implemented correctly and then the primary key was exposed as the input.", "steps": ["Add `join_code` to `families`: unique, indexed, not null, backfilled for existing rows.", "Generate from a confusable-free alphabet; verify collision handling on insert.", "Resolve code or UUID to a `familyId` at the top of the login route; everything below", "Add the `/login/<code>` route rendering name and PIN only.", "Relabel the manual field \"Family code\" and stop asking for a UUID.", "Update the dev seed to print the code and the family link."], "files": [["Create", "drizzle/0004_join_code.sql"], ["Create", "src/lib/auth/join-code.ts"], ["Create", "src/app/(child)/login/[code]/page.tsx"], ["Modify", "src/db/schema.ts"], ["Modify", "src/app/api/child/login/route.ts"], ["Modify", "src/app/(child)/login/page.tsx"], ["Modify", "scripts/seed-dev.ts"]], "criteria": ["A child signs in with a short code", "`/login/<code>` prefills the family and asks only for name and PIN", "An invalid code is rate-limited and recorded exactly as an invalid UUID is", "A valid code alone grants nothing without a correct name and PIN", "Family scoping and the display-name namespace are unchanged", "`pnpm seed:dev` prints a code a child could actually type"], "md": "---\nphase: 4\ntitle: \"Child join code\"\nstatus: pending\npriority: P2\neffort: \"3h\"\ndependencies: []\n---\n\n# Phase 4: Child join code\n\n## Overview\n\nThe child login form asks for a raw 36-character family UUID. An eight-year-old cannot\ntype it and a fifteen-year-old will not. MVP Phase 3 specified \"a family-scoped URL or a\nparent-issued join code so display names are never a global namespace\" — the security\nscoping was implemented correctly and then the primary key was exposed as the input.\n\n## Requirements\n\n- Functional: a child signs in with a short code, or follows a family link and enters\n  only their name and PIN.\n- Functional: the code is unambiguous to read aloud and to type — no `O`/`0`, no `I`/`1`.\n- Non-functional: family scoping is unchanged. The code resolves to a `familyId`\n  server-side and grants nothing on its own; name and PIN are still required.\n- Non-functional: a code is not a secret, so it must not weaken the rate limit. Probing\n  codes is throttled exactly as probing family IDs is today.\n\n## Architecture\n\nA `join_code` column on `families`, unique and indexed, generated from a\nconfusable-free alphabet. The login route accepts either a code or a UUID during the\ntransition, resolving both to a `familyId` before anything else happens, so the\nauthorization path below it does not change at all.\n\n`/login/<code>` prefills the family and renders a two-field form. The parent sends that\nlink once; the browser remembers it; the child types name and PIN thereafter.\n\nThe existing per-IP limiter already covers this: `checkLoginRate` throttles by hashed IP\nbefore the family is resolved, so a code-enumeration probe is limited identically to a\nUUID probe. This is exactly why dropping the `login_attempts` foreign key mattered — a\nprobe against a nonexistent family is now recorded and throttled rather than 500-ing.\n\n## Related Code Files\n\n- Create: `drizzle/0004_join_code.sql`\n- Create: `src/lib/auth/join-code.ts`\n- Create: `src/app/(child)/login/[code]/page.tsx`\n- Modify: `src/db/schema.ts`\n- Modify: `src/app/api/child/login/route.ts`\n- Modify: `src/app/(child)/login/page.tsx`\n- Modify: `scripts/seed-dev.ts` (print the code, not the UUID)\n\n## Implementation Steps\n\n1. Add `join_code` to `families`: unique, indexed, not null, backfilled for existing rows.\n2. Generate from a confusable-free alphabet; verify collision handling on insert.\n3. Resolve code or UUID to a `familyId` at the top of the login route; everything below\n   is unchanged.\n4. Add the `/login/<code>` route rendering name and PIN only.\n5. Relabel the manual field \"Family code\" and stop asking for a UUID.\n6. Update the dev seed to print the code and the family link.\n\n## Success Criteria\n\n- [ ] A child signs in with a short code\n- [ ] `/login/<code>` prefills the family and asks only for name and PIN\n- [ ] An invalid code is rate-limited and recorded exactly as an invalid UUID is\n- [ ] A valid code alone grants nothing without a correct name and PIN\n- [ ] Family scoping and the display-name namespace are unchanged\n- [ ] `pnpm seed:dev` prints a code a child could actually type\n\n## Risk Assessment\n\nA short code invites the assumption that it is a secret and therefore a credential.\nIt is not — it is a namespace selector. Signal it drifted: a proposal to skip the PIN\nfor link visitors, or to lengthen the code \"for security\". Response: the code is public\nby design; authentication is the PIN, and the rate limit is what protects it.\n", "slug": "phase-04-child-join-code.md"}, {"n": "5", "title": "Latency baseline", "status": "pending", "priority": "P2", "effort": "3h", "deps": "[2]", "objective": "G7 requires p95 ≤ 8s and p50 ≤ 4s on total round-trip. Decision L3: measure now on DeepSeek as an explicitly provisional baseline, and make re-measurement on Bedrock AgentCore launch-blocking.", "steps": ["Assemble a prompt set that passes the guardrails and is representative of real use", "Instrument the pipeline to record overhead and generation separately.", "Run cold, then warm, then one concurrent run at a realistic family count.", "Report p50 and p95 for each, split by overhead and generation.", "Write the report with the provider named in the title and the first line.", "Record in the MVP plan that G7 is provisional and blocked on re-measurement."], "files": [["Create", "scripts/measure-latency.ts"], ["Create", "plans/reports/latency-<date>-deepseek.md"], ["Modify", "plans/260825-2326-bubbli-safeai-mvp/plan.md"]], "criteria": ["p50 and p95 exist for warm, cold, and concurrent runs", "Pipeline overhead is reported separately from generation", "Every figure names DeepSeek as the measured provider", "The prompt set demonstrably passes the guardrails rather than short-circuiting", "G7 is recorded as provisional, with re-measurement listed as launch-blocking"], "md": "---\nphase: 5\ntitle: \"Latency baseline\"\nstatus: pending\npriority: P2\neffort: \"3h\"\ndependencies: [2]\n---\n\n# Phase 5: Latency baseline\n\n## Overview\n\nG7 requires p95 ≤ 8s and p50 ≤ 4s on total round-trip. Decision L3: measure now on\nDeepSeek as an explicitly provisional baseline, and make re-measurement on Bedrock\nAgentCore launch-blocking.\n\n## Requirements\n\n- Functional: p50 and p95 total round-trip on **passing** prompts — ones that reach a\n  provider. Corpus prompts short-circuit at the guardrail and cannot measure generation.\n- Functional: warm and cold reported separately; one concurrent-load run.\n- Functional: pipeline overhead reported separately from generation, so the\n  provider-independent half of the number survives a provider change.\n- Non-functional: every figure is labelled with the provider it was measured on. An\n  unlabelled latency number will be mistaken for the production one.\n\n## Architecture\n\nSplitting the measurement into pipeline overhead and generation is what makes this\nphase worth doing before G9 rather than after. Guardrail evaluation, the three\ntransactions, flag creation, and audit writes are provider-independent and measurable\ntoday; only generation changes when Bedrock is cleared. If overhead alone is already\neating the budget, that is knowable now and no amount of provider clearance fixes it.\n\nMeasurement runs against the real pipeline with a real provider, not a mock — a mocked\ngeneration call measures nothing about the gate.\n\n## Related Code Files\n\n- Create: `scripts/measure-latency.ts`\n- Create: `plans/reports/latency-<date>-deepseek.md`\n- Modify: `plans/260825-2326-bubbli-safeai-mvp/plan.md` (G7 status, labelled provisional)\n\n## Implementation Steps\n\n1. Assemble a prompt set that passes the guardrails and is representative of real use\n   across the four age bands.\n2. Instrument the pipeline to record overhead and generation separately.\n3. Run cold, then warm, then one concurrent run at a realistic family count.\n4. Report p50 and p95 for each, split by overhead and generation.\n5. Write the report with the provider named in the title and the first line.\n6. Record in the MVP plan that G7 is provisional and blocked on re-measurement.\n\n## Success Criteria\n\n- [ ] p50 and p95 exist for warm, cold, and concurrent runs\n- [ ] Pipeline overhead is reported separately from generation\n- [ ] Every figure names DeepSeek as the measured provider\n- [ ] The prompt set demonstrably passes the guardrails rather than short-circuiting\n- [ ] G7 is recorded as provisional, with re-measurement listed as launch-blocking\n\n## Risk Assessment\n\nA provisional number becomes the accepted number the moment someone quotes it without\nthe caveat. Signal: G7 cited as met, or the figure appearing without the provider name.\nResponse: the provider is in the report title and the first line for exactly this\nreason; if it is quoted bare, correct it at the source rather than restating the caveat.\n", "slug": "phase-05-latency-baseline.md"}, {"n": "6", "title": "Operational hardening", "status": "pending", "priority": "P2", "effort": "4h", "deps": "[1, 2]", "objective": "The remaining Phase 7 items from the MVP plan that are neither gates nor features: log redaction, the metrics posture, budget behaviour on blocked and aborted requests, and a clean dependency audit and secret scan.", "steps": ["Write the redaction module and route every log through it.", "Test with an error object carrying a message body, a PIN, and an email; assert none", "Confirm metrics are either authenticated or not exposed; remove any unauthenticated", "Decide budget behaviour on gate-blocked and aborted requests; record it in `0005`", "Add dependency audit and secret scan steps to CI with job-level `contents: read`."], "files": [["Create", "src/lib/log/redact.ts"], ["Create", "docs/decisions/0005-budget-on-blocked-requests.md"], ["Modify", "src/lib/quota/limiter.ts"], ["Modify", ".github/workflows/ci.yml"], ["Create", "tests/log/redaction.test.ts"]], "criteria": ["An error carrying message content, a PIN, and an email logs none of them", "No unauthenticated metrics endpoint exists", "Budget behaviour on blocked and aborted requests is recorded in a decision file", "Dependency audit and secret scan run in CI and pass", "`pnpm test` passes with the redaction test included"], "md": "---\nphase: 6\ntitle: \"Operational hardening\"\nstatus: pending\npriority: P2\neffort: \"4h\"\ndependencies: [1, 2]\n---\n\n# Phase 6: Operational hardening\n\n## Overview\n\nThe remaining Phase 7 items from the MVP plan that are neither gates nor features: log\nredaction, the metrics posture, budget behaviour on blocked and aborted requests, and a\nclean dependency audit and secret scan.\n\n## Requirements\n\n- Functional: no message content, PIN, email, or display name appears in any log line,\n  including error paths and stack traces.\n- Functional: metrics are authenticated or absent. There is no third option.\n- Functional: budget behaviour on gate-blocked and aborted requests is decided and\n  written down, not left to whatever the code happens to do.\n- Non-functional: the dependency audit and secret scan run in CI, not by hand.\n\n## Architecture\n\nRedaction belongs at the logging boundary, not at each call site — a call-site\ndiscipline fails the first time someone logs an error object that happens to carry a\nmessage body. A single module that scrubs known-sensitive shapes before anything is\nemitted is the only version that holds under maintenance.\n\nBudget behaviour is a decision, not an implementation detail. A gate-blocked message\nnever reaches a provider, so charging it against the family's daily budget punishes a\nchild for tripping a safety rule — which is precisely backwards for a product whose\npremise is that tripping a rule should be safe. Recommend: gate-blocked requests consume\nthe per-child rate window (they still cost work) but not the family daily budget. Record\nwhichever way it goes.\n\n## Related Code Files\n\n- Create: `src/lib/log/redact.ts`\n- Create: `docs/decisions/0005-budget-on-blocked-requests.md`\n- Modify: `src/lib/quota/limiter.ts` (only if the decision changes behaviour)\n- Modify: `.github/workflows/ci.yml` (audit + secret scan steps)\n- Create: `tests/log/redaction.test.ts`\n\n## Implementation Steps\n\n1. Write the redaction module and route every log through it.\n2. Test with an error object carrying a message body, a PIN, and an email; assert none\n   survive to output.\n3. Confirm metrics are either authenticated or not exposed; remove any unauthenticated\n   endpoint rather than documenting it.\n4. Decide budget behaviour on gate-blocked and aborted requests; record it in `0005`\n   and align the limiter if needed.\n5. Add dependency audit and secret scan steps to CI with job-level `contents: read`.\n\n## Success Criteria\n\n- [ ] An error carrying message content, a PIN, and an email logs none of them\n- [ ] No unauthenticated metrics endpoint exists\n- [ ] Budget behaviour on blocked and aborted requests is recorded in a decision file\n- [ ] Dependency audit and secret scan run in CI and pass\n- [ ] `pnpm test` passes with the redaction test included\n\n## Risk Assessment\n\nRedaction that scrubs by field name misses content nested in an unfamiliar shape — a\nprovider SDK error, a pg error carrying the failing statement. Signal: a test with a\nrealistic nested error object leaks. Response: scrub by shape and by known-sensitive\nvalue where the value is available, and treat the provider error path as the case to\ntest rather than the one to assume.\n", "slug": "phase-06-operational-hardening.md"}, {"n": "7", "title": "Compliance close-out", "status": "blocked", "priority": "P1", "effort": "unknown — external", "deps": "[]", "objective": "G9 and Q-B. Neither is closeable by writing code, and both gate launch. This phase exists so they are tracked as work rather than remembered as caveats.", "steps": ["Obtain DPA and zero-retention terms in writing for the production provider.", "Request Bedrock AgentCore model access in the residency region.", "Make a real inference call through AgentCore and record the result.", "Record the at-rest encryption position as actually provided.", "Get a determination on Q-B for the target markets.", "Only then, flip `productionCleared` and re-run the full gate set."], "files": [["Modify", "docs/decisions/0002-compliance-premises.md"], ["Modify", "src/config/settings.ts"]], "criteria": ["DPA and zero-retention confirmed in writing and recorded in `0002`", "A real AgentCore inference call succeeds in the residency region", "Q-B answered for the target markets", "`PROVIDER_COMPLIANCE` flipped only after the artefacts exist", "Production start-up succeeds, proving the gate passes rather than was bypassed", "G7 re-measured on the cleared provider (Phase 5 is provisional until this)"], "md": "---\nphase: 7\ntitle: \"Compliance close-out\"\nstatus: blocked\npriority: P1\neffort: \"unknown — external\"\ndependencies: []\n---\n\n# Phase 7: Compliance close-out\n\n## Overview\n\nG9 and Q-B. Neither is closeable by writing code, and both gate launch. This phase\nexists so they are tracked as work rather than remembered as caveats.\n\n## Requirements\n\n- Functional: a DPA and zero-retention terms confirmed **in writing** for whichever\n  provider will carry production child data, recorded in `docs/decisions/0002`.\n- Functional: Bedrock AgentCore model access granted, and a real inference call made in\n  the residency region — not an inference profile, per the standing product decision.\n- Functional: `PROVIDER_COMPLIANCE` flipped to `productionCleared: true` only after the\n  artefacts exist, and never before.\n- Functional: Q-B resolved — whether the implemented consent flow clears \"verifiable\n  parental consent\" for the target markets.\n\n## Architecture\n\nThe compliance gate is already expressed in code as the principle rather than as a\nprovider name: `PROVIDER_COMPLIANCE` refuses production start-up while any provider in\nthe active chain is uncleared. That refusal is the gate functioning correctly. Nothing\nin this phase should route around it — flipping the flag is the *last* step, after the\npaperwork, not a way to unblock a deploy.\n\nQ-B is a legal determination. Email-plus-affirmation is what is built; whether that is\n\"verifiable\" under COPPA for the under-13 bands is not an engineering call, and the\nbands `4-7`, `8-11` and `12` all depend on the answer.\n\n## Related Code Files\n\n- Modify: `docs/decisions/0002-compliance-premises.md`\n- Modify: `src/config/settings.ts` (`PROVIDER_COMPLIANCE`, last step only)\n\n## Implementation Steps\n\n1. Obtain DPA and zero-retention terms in writing for the production provider.\n2. Request Bedrock AgentCore model access in the residency region.\n3. Make a real inference call through AgentCore and record the result.\n4. Record the at-rest encryption position as actually provided.\n5. Get a determination on Q-B for the target markets.\n6. Only then, flip `productionCleared` and re-run the full gate set.\n\n## Success Criteria\n\n- [ ] DPA and zero-retention confirmed in writing and recorded in `0002`\n- [ ] A real AgentCore inference call succeeds in the residency region\n- [ ] Q-B answered for the target markets\n- [ ] `PROVIDER_COMPLIANCE` flipped only after the artefacts exist\n- [ ] Production start-up succeeds, proving the gate passes rather than was bypassed\n- [ ] G7 re-measured on the cleared provider (Phase 5 is provisional until this)\n\n## Risk Assessment\n\nThe failure mode is schedule pressure meeting a one-line flag: flipping\n`productionCleared` to ship, intending to do the paperwork after. That converts a\nworking gate into a comment. Signal: a change to `PROVIDER_COMPLIANCE` in a diff whose\n`0002` is untouched. Response: treat the pair as atomic — the flag and the recorded\nartefact move in the same commit or neither moves.\n", "slug": "phase-07-compliance-closeout.md"}], "planMd": "---\ntitle: \"Path to launch\"\ndescription: \"Everything genuinely unbuilt between today's 74% MVP and a Bubbli that can serve a real family.\"\nstatus: pending\npriority: P1\neffort: \"3-5d\"\ntags: [launch, parent-surface, notifications, gates, compliance]\ncreated: 2026-08-26\ncontinues: 260825-2326-bubbli-safeai-mvp\n---\n\n# Path to launch\n\n## Overview\n\nThe MVP plan reports 74% (77/104). That number is misleading in both directions:\na batch of its open checkboxes describe work that is already built and passing, and\nits closed ones hide the fact that **the parent half of a child-safety product cannot\nbe logged into and a critical flag currently notifies nobody**.\n\nThis plan is the honest remainder. Section 0 reconciles the stale bookkeeping with\nevidence; the phases are only work that does not exist yet.\n\n## 0. Reconciliation — MVP items already satisfied\n\nVerified against the code on 2026-08-26. These stay unticked in the MVP plan only\nbecause nobody went back to tick them; they are not open work.\n\n| MVP item | Evidence |\n|---|---|\n| Age bands exactly `4-7`/`8-11`/`12`/`13-15` (V8) | `src/config/settings.ts` `AGE_BANDS`; schema CHECK; all four present in `src/lib/guardrails/rules.ts` |\n| Retention columns support 90d/1y/2y (V5) | `RETENTION_*_DAYS` in settings; `src/lib/retention/jobs.ts` drives all three intervals |\n| Region decision recorded | `docs/decisions/0001-region-and-residency.md` |\n| Rate-limit library + datastore named and provisioned | `docs/decisions/0003-rate-limit-library.md`; Postgres `quota_events` / `family_daily_quota` live |\n| PRD §7.4 at-rest amendment (V1) | PRD §7 describes provider-managed volume encryption |\n| `policy_versions` stores rule bodies; historical resolution | `src/lib/guardrails/policy-store.ts`; `policyVersionId` recorded on each flag |\n| Consent branches on the under-13 boundary (V8) | `src/lib/auth/consent.ts` |\n| No title generation; no model call over unflagged content (V6) | zero hits in `src/lib/ai/` and `src/lib/chat/`; `schema.ts:118` documents the deliberate absence |\n| No `title` field in any DTO or table (V6) | same |\n| `max_severity` never decreases; dismissal does not close a transcript (V7) | `conversations_severity_monotonic` trigger + a test asserting the UPDATE is rejected |\n| Access log renders `delivered` rows only | `src/lib/parent/` projection |\n| **Child login rate-limited per-IP and per-route** (#15) | `checkLoginRate` hashes the IP, enforces per-IP *and* per-family windows, wired in `src/app/api/child/login/route.ts` |\n| G4 — corpus gate | `pnpm corpus:eval` passes: precision gate + per-rule coverage |\n| G8 — no unvalidated config | `no-restricted-properties` on `process.env` in `eslint.config.mjs`; `pnpm lint` clean |\n| G2, G5, G6 | asserted in `tests/pipeline/turn.test.ts`, both ladder directions, audit row pairs, crisis path |\n\n**Net effect:** the remaining scope is smaller than 27 items but contains two holes\nthe percentage never showed.\n\n## Validation decisions (2026-08-26)\n\n| # | Question | Decision |\n|---|----------|----------|\n| L1 | Does the ESLint rule satisfy G1, or is the glob suite still required? | **Both.** Keep the structural rule — it sees RSC pages and Server Actions a route manifest cannot — and build the runtime suite as originally specified. |\n| L2 | What notification transport ships in MVP? | **Resend email first; web push deferred and recorded.** iOS Safari only delivers web push to an installed PWA, so push cannot be the primary channel for a child-safety alert without failing silently for most iPhone parents. |\n| L3 | G7 measured on DeepSeek, which is not cleared for production child data? | **Measure now as an explicitly provisional baseline; re-measurement on Bedrock AgentCore is launch-blocking.** |\n| L4 | Replacement for the raw 36-character family UUID on the child login form? | **Short indexed join code *and* a family-scoped link.** Link for the everyday case, code for a fresh device. |\n\n## Goals\n\n| # | Goal | Priority |\n|---|------|----------|\n| 1 | A parent can sign in and actually reach the dashboard | P1 |\n| 2 | A critical flag reaches a human being | P1 |\n| 3 | G1 proven at runtime, not only structurally | P1 |\n| 4 | A child can sign in without typing a UUID | P2 |\n| 5 | A latency figure exists, honestly labelled | P2 |\n| 6 | No child data leaks through logs or metrics | P2 |\n| 7 | Compliance premises closed or launch consciously deferred | P1 |\n\n## Phases\n\n| # | Phase | Status | Priority |\n|---|-------|--------|----------|\n| 1 | [Parent access](./phase-01-parent-access.md) | Pending | P1 |\n| 2 | [Notification delivery](./phase-02-notification-delivery.md) | Pending | P1 |\n| 3 | [Isolation and coverage gates](./phase-03-isolation-and-coverage-gates.md) | Pending | P1 |\n| 4 | [Child join code](./phase-04-child-join-code.md) | Pending | P2 |\n| 5 | [Latency baseline](./phase-05-latency-baseline.md) | Pending | P2 |\n| 6 | [Operational hardening](./phase-06-operational-hardening.md) | Pending | P2 |\n| 7 | [Compliance close-out](./phase-07-compliance-closeout.md) | Blocked | P1 |\n\n## Success Criteria\n\n- [ ] A parent signs in with email and password and reaches `/parent` with a real session\n- [ ] A `high`/`critical` flag delivers an email to every consented guardian, carrying\n      metadata only — no message content — and writes an audit row per dispatch\n- [ ] G1 runtime suite globs every surface, drives both principal types against seeded\n      `info`/`low` conversations, and fails if any returns content\n- [ ] Every AI-invoking route is quota-covered; a new one without quota fails a test\n- [ ] A child signs in with a short join code, or follows a family link and types only\n      name and PIN\n- [ ] A p50/p95 figure exists, labelled as measured on a non-production provider\n- [ ] No message content, PIN, email or display name appears in any log line\n- [ ] `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm corpus:eval`, `pnpm test:mutation` pass\n- [ ] Dependency audit and secret scan clean\n\n## Launch blockers outside this repo\n\nPhase 7 cannot be closed by writing code. Until `PROVIDER_COMPLIANCE` has a cleared\nprovider, `src/config/settings.ts` refuses to boot in production **by design** — that\nis the gate working, not a bug to route around.\n\n## Open questions\n\n- **Q-B (COPPA verifiable parental consent depth).** Email-plus-affirmation is what is\n  built. Whether that clears \"verifiable\" for the target markets is a legal\n  determination, not an engineering one, and it gates the under-13 bands.\n"}</script>
+<script>
+(function(){
+"use strict";
+var DATA = JSON.parse(document.getElementById('plan-data').textContent);
+var esc = function(s){ return s.replace(/[&<>"']/g, function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+
+// Inline: code, bold, italic, links. Applied AFTER escaping.
+function inline(t){
+  return t
+    .replace(/`([^`]+)`/g,function(m,c){return '<code>'+c+'</code>';})
+    .replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
+    .replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" rel="noopener">$1</a>');
+}
+function cells(row){
+  return row.replace(/^\||\|$/g,'').split('|').map(function(c){return inline(c.trim());});
+}
+function render(md){
+  var fm='', m=md.match(/^---\n([\s\S]*?)\n---\n/);
+  if(m){ fm='<div class="fm">'+esc(m[1])+'</div>'; md=md.slice(m[0].length); }
+  var lines=esc(md).split('\n'), out=[], i=0;
+  while(i<lines.length){
+    var L=lines[i];
+    if(/^```/.test(L)){
+      var buf=[]; i++;
+      while(i<lines.length && !/^```/.test(lines[i])){ buf.push(lines[i]); i++; }
+      i++; out.push('<pre><code>'+buf.join('\n')+'</code></pre>'); continue;
+    }
+    if(/^\|.*\|$/.test(L) && i+1<lines.length && /^\|[\s:|-]+\|$/.test(lines[i+1])){
+      var head=cells(L); i+=2; var rows=[];
+      while(i<lines.length && /^\|.*\|$/.test(lines[i])){ rows.push(cells(lines[i])); i++; }
+      out.push('<div class="scroll"><table><thead><tr>'+
+        head.map(function(h){return '<th>'+h+'</th>';}).join('')+'</tr></thead><tbody>'+
+        rows.map(function(r){return '<tr>'+r.map(function(c){return '<td>'+c+'</td>';}).join('')+'</tr>';}).join('')+
+        '</tbody></table></div>');
+      continue;
+    }
+    var h=L.match(/^(#{1,4})\s+(.*)$/);
+    if(h){ var lv=h[1].length; out.push('<h'+lv+'>'+inline(h[2])+'</h'+lv+'>'); i++; continue; }
+    if(/^(---|\*\*\*)\s*$/.test(L)){ out.push('<hr>'); i++; continue; }
+    if(/^&gt;\s?/.test(L)){
+      var q=[];
+      while(i<lines.length && /^&gt;\s?/.test(lines[i])){ q.push(lines[i].replace(/^&gt;\s?/,'')); i++; }
+      out.push('<blockquote>'+inline(q.join(' '))+'</blockquote>'); continue;
+    }
+    if(/^\s*[-*]\s+/.test(L)){
+      var items=[], cb=false;
+      while(i<lines.length && /^\s*[-*]\s+/.test(lines[i])){
+        var txt=lines[i].replace(/^\s*[-*]\s+/,''), done=false;
+        var c=txt.match(/^\[([ x])\]\s*(.*)$/);
+        if(c){ cb=true; done=c[1]==='x'; txt=c[2]; }
+        items.push('<li'+(done?' class="done"':'')+'>'+inline(txt)+'</li>'); i++;
+      }
+      out.push('<ul'+(cb?' class="cb"':'')+'>'+items.join('')+'</ul>'); continue;
+    }
+    if(/^\s*\d+\.\s+/.test(L)){
+      var oi=[];
+      while(i<lines.length && /^\s*\d+\.\s+/.test(lines[i])){
+        oi.push('<li>'+inline(lines[i].replace(/^\s*\d+\.\s+/,''))+'</li>'); i++;
+      }
+      out.push('<ol>'+oi.join('')+'</ol>'); continue;
+    }
+    if(!L.trim()){ i++; continue; }
+    var p=[];
+    while(i<lines.length && lines[i].trim() && !/^(#{1,4}\s|\s*[-*]\s|\s*\d+\.\s|\||&gt;|```|---)/.test(lines[i])){
+      p.push(lines[i]); i++;
+    }
+    if(p.length) out.push('<p>'+inline(p.join(' '))+'</p>');
+  }
+  return fm+out.join('');
+}
+
+var dlg=document.getElementById('dlg'),
+    body=document.getElementById('dlg-body'),
+    folio=document.getElementById('dlg-folio'),
+    last=null;
+
+function open(n){
+  var ph=DATA.phases.filter(function(p){return String(p.n)===String(n);})[0];
+  if(!ph) return;
+  folio.textContent='Phase '+String(ph.n).padStart(2,'0')+' · '+ph.status;
+  body.innerHTML=render(ph.md);
+  body.scrollTop=0;
+  if(dlg.showModal) dlg.showModal(); else dlg.setAttribute('open','');
+}
+document.querySelectorAll('.phase').forEach(function(el){
+  el.addEventListener('click',function(){ last=el; open(el.dataset.phase); });
+  el.addEventListener('keydown',function(e){
+    if(e.key==='Enter'||e.key===' '){ e.preventDefault(); last=el; open(el.dataset.phase); }
+  });
+});
+function close(){ if(dlg.close) dlg.close(); else dlg.removeAttribute('open'); if(last) last.focus(); }
+document.getElementById('dlg-close').addEventListener('click',close);
+dlg.addEventListener('click',function(e){ if(e.target===dlg) close(); });
+})();
+</script>
+</body>
+</html>
