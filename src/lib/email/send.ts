@@ -29,7 +29,19 @@ export interface Mail {
 }
 
 export interface MailResult {
-  delivered: boolean;
+  /**
+   * The transport ACCEPTED the message. Not a delivery receipt.
+   *
+   * This distinction is not pedantry. Sending through an SMTP relay — SES Mail
+   * Manager, for instance — returns 250 OK and a message id the moment the
+   * relay takes custody, long before any rule set decides what to do with it.
+   * A message can be accepted here and then rejected downstream for SPF or DKIM
+   * failure, and nothing in this return value would change.
+   *
+   * Treat it as "handed off successfully", and look at the provider's own
+   * delivery reporting for anything stronger.
+   */
+  accepted: boolean;
   transport: EmailProvider | 'log';
   messageId?: string;
 }
@@ -113,7 +125,7 @@ async function viaResend(mail: Mail): Promise<MailResult> {
   }
 
   const body = (await res.json().catch(() => null)) as { id?: string } | null;
-  return { delivered: true, transport: 'resend', messageId: body?.id };
+  return { accepted: true, transport: 'resend', messageId: body?.id };
 }
 
 /**
@@ -148,7 +160,7 @@ async function viaSes(mail: Mail): Promise<MailResult> {
       subject: mail.subject,
       text: mail.text,
     });
-    return { delivered: true, transport: 'ses', messageId: info.messageId };
+    return { accepted: true, transport: 'ses', messageId: info.messageId };
   } catch (e) {
     // Status only. An SES rejection quotes the recipient back, and a stack can
     // carry the auth header.
@@ -164,7 +176,7 @@ export async function sendMail(mail: Mail): Promise<MailResult> {
   if (transport === 'ses') return viaSes(mail);
 
   console.info(`\n  [email:dev] to=${mail.to}\n  ${mail.subject}\n  ${mail.text}\n`);
-  return { delivered: true, transport: 'log' };
+  return { accepted: true, transport: 'log' };
 }
 
 /** Prove the active transport works without sending anything. */

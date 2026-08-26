@@ -64,7 +64,11 @@ async function main() {
       'over SMTP and delivered it.',
     ].join('\n'),
   });
-  console.log(`\n  Sent to ${to} via ${result.transport}${result.messageId ? ` (${result.messageId})` : ''}\n`);
+  console.log(`\n  Accepted by ${result.transport}${result.messageId ? ` (${result.messageId})` : ''}`);
+  console.log(`  Recipient: ${to}`);
+  console.log('\n  Note: acceptance is not delivery. A relay takes custody before');
+  console.log('  anything downstream checks SPF, DKIM or a rule set. Confirm in the');
+  console.log("  recipient's inbox, or in the provider's delivery reporting.\n");
 }
 
 main().catch((e) => {
