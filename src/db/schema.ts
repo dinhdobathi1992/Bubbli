@@ -30,11 +30,23 @@ const now = () => timestamp('created_at', { withTimezone: true }).notNull().defa
 
 // ── Tenancy ──────────────────────────────────────────────────────────────────
 
-export const families = pgTable('families', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  name: text('name'),
-  createdAt: now(),
-});
+export const families = pgTable(
+  'families',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: text('name'),
+    /**
+     * Short, human-typable family selector, e.g. `BUBBLI-7K2F`.
+     *
+     * NOT a credential: it selects a namespace so display names need not be
+     * globally unique. The PIN authenticates. Asking a child to type a
+     * 36-character UUID, which is what this replaces, was never workable.
+     */
+    joinCode: text('join_code'),
+    createdAt: now(),
+  },
+  (t) => [uniqueIndex('families_join_code_uq').on(t.joinCode)],
+);
 
 export const parents = pgTable(
   'parents',
@@ -42,7 +54,15 @@ export const parents = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     familyId: uuid('family_id').notNull().references(() => families.id, { onDelete: 'restrict' }),
     email: text('email').notNull(),
-    authProvider: text('auth_provider').notNull().default('password'),
+    /**
+     * The Better Auth user this guardian IS.
+     *
+     * Joining on `email` instead would be a family-takeover primitive: anyone
+     * who knows a guardian's address could register with it and inherit the
+     * family. The link is explicit, and a parent session resolves through it.
+     */
+    authUserId: text('auth_user_id').references(() => authUsers.id, { onDelete: 'set null' }),
+    authProvider: text('auth_provider').notNull().default('email_otp'),
     // Verifiable parental consent. A child cannot authenticate before this is
     // set, and no child data is collected before it (Phase 3, gated on Q-B).
     consentedAt: timestamp('consented_at', { withTimezone: true }),
@@ -50,7 +70,11 @@ export const parents = pgTable(
     notificationPrefs: jsonb('notification_prefs').notNull().default(sql`'{}'::jsonb`),
     createdAt: now(),
   },
-  (t) => [uniqueIndex('parents_email_uq').on(t.email), index('parents_family_idx').on(t.familyId)],
+  (t) => [
+    uniqueIndex('parents_email_uq').on(t.email),
+    uniqueIndex('parents_auth_user_uq').on(t.authUserId),
+    index('parents_family_idx').on(t.familyId),
+  ],
 );
 
 export const children = pgTable(
@@ -362,13 +386,71 @@ export const authAccounts = pgTable(
   (t) => [index('auth_accounts_user_idx').on(t.userId)],
 );
 
-export const authVerifications = pgTable('auth_verifications', {
-  id: text('id').primaryKey(),
-  identifier: text('identifier').notNull(),
-  value: text('value').notNull(),
-  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-});
+export const authVerifications = pgTable(
+  'auth_verifications',
+  {
+    id: text('id').primaryKey(),
+    identifier: text('identifier').notNull(),
+    value: text('value').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  // emailOTP looks up by identifier on every verify; without this it is a scan.
+  (t) => [index('auth_verifications_identifier_idx').on(t.identifier)],
+);
+
+/**
+ * Paired devices.
+ *
+ * A guardian, signed in, issues a short pairing code for one device. The child
+ * enters it once; the device is then remembered and signs in without a PIN
+ * until the pairing expires or the guardian revokes it.
+ *
+ * This is how a child gets passwordless sign-in WITHOUT an email address.
+ * Sending an OTP to a child would mean collecting an email from an under-13 —
+ * COPPA-regulated personal information, contradicting the data-minimisation
+ * commitment in PRD §13 — and would exclude the 4-7 band entirely, since a
+ * five-year-old has no mailbox. Sending it to the parent instead would require
+ * the parent to relay a code every session, so the child could not use Bubbli
+ * while the parent is at work.
+ *
+ * The lifecycle lives in one row: `pairing_code_hash` set and `paired_at` null
+ * means pending; pairing clears the code and issues `device_token_hash`.
+ * Both are stored as SHA-256, so a database read impersonates neither.
+ */
+export const childDevices = pgTable(
+  'child_devices',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    childId: uuid('child_id').notNull().references(() => children.id, { onDelete: 'cascade' }),
+    familyId: uuid('family_id').notNull().references(() => families.id, { onDelete: 'restrict' }),
+    /** Who issued the pairing. A device is always traceable to a guardian. */
+    issuedByParentId: uuid('issued_by_parent_id').references(() => parents.id, {
+      onDelete: 'set null',
+    }),
+    /** Set while pending, cleared once redeemed. Short-lived. */
+    pairingCodeHash: text('pairing_code_hash'),
+    pairingExpiresAt: timestamp('pairing_expires_at', { withTimezone: true }),
+    /** Issued at pairing. Null while pending. */
+    deviceTokenHash: text('device_token_hash'),
+    /** What the parent sees in the dashboard, e.g. "Emma's tablet". */
+    label: text('label'),
+    pairedAt: timestamp('paired_at', { withTimezone: true }),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    revokedReason: text('revoked_reason'),
+    createdAt: now(),
+  },
+  (t) => [
+    index('child_devices_child_idx').on(t.childId),
+    index('child_devices_family_idx').on(t.familyId),
+    // Both lookups are by hash on a hot path.
+    index('child_devices_pairing_idx').on(t.pairingCodeHash),
+    index('child_devices_token_idx').on(t.deviceTokenHash),
+  ],
+);
 
 /**
  * Child sessions. Opaque 256-bit token, stored as a SHA-256 hash so a database

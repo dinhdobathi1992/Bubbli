@@ -9,6 +9,7 @@ import { Pool } from 'pg';
 import { readFileSync, existsSync } from 'fs';
 import { hashPin } from '../src/lib/auth/child-pin';
 import { ensurePolicyVersion } from '../src/lib/guardrails/policy-store';
+import { ensureJoinCode, formatJoinCode } from '../src/lib/auth/join-code';
 
 const url =
   process.env.DATABASE_URL ??
@@ -37,13 +38,17 @@ async function main() {
     [familyId, await hashPin(PIN)],
   );
 
+  const joinCode = await ensureJoinCode(pool, familyId);
+
   console.log('\n  Seeded development family\n');
-  console.log(`  Family code : ${familyId}`);
+  console.log(`  Family code : ${formatJoinCode(joinCode)}`);
   console.log(`  Child name  : Emma`);
   console.log(`  PIN         : ${PIN}`);
   console.log(`  Parent id   : ${p.rows[0].id}`);
   console.log(`  Child id    : ${c.rows[0].id}`);
-  console.log('\n  Sign in at  : http://localhost:3000/login\n');
+  console.log(`\n  Sign in at  : http://localhost:3000/login`);
+  console.log(`  Or directly : http://localhost:3000/login/${formatJoinCode(joinCode)}`);
+  console.log('  Parent      : http://localhost:3000/parent/sign-in (code goes to the server log)\n');
 
   await pool.end();
 }

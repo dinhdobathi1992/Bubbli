@@ -77,10 +77,38 @@ export async function eraseFamily(db: Pool, familyId: string): Promise<{ auditRo
       [familyId],
     );
     await c.query(`delete from child_sessions where family_id = $1`, [familyId]);
+    await c.query(`delete from child_devices where family_id = $1`, [familyId]);
     await c.query(`delete from quota_events where family_id = $1`, [familyId]);
     await c.query(`delete from login_attempts where family_id = $1`, [familyId]);
     await c.query(`delete from children where family_id = $1`, [familyId]);
+
+    // Better Auth's tables are NOT reachable by cascade from families — they
+    // carry no foreign key to it — so erasure has to name them. Without this a
+    // family that exercised its right to deletion would keep its guardians'
+    // email addresses, credentials and live sessions, and the job would still
+    // report success. Sessions go first so an in-flight one cannot resolve
+    // between the two statements.
+    const authUsers = await c.query<{ auth_user_id: string }>(
+      `select auth_user_id from parents where family_id = $1 and auth_user_id is not null`,
+      [familyId],
+    );
+    const authUserIds = authUsers.rows.map((r) => r.auth_user_id);
+    if (authUserIds.length > 0) {
+      await c.query(`delete from auth_sessions where user_id = any($1::text[])`, [authUserIds]);
+      await c.query(`delete from auth_accounts where user_id = any($1::text[])`, [authUserIds]);
+      // Pending sign-in codes are keyed by email, not by user id.
+      await c.query(
+        `delete from auth_verifications
+          where identifier in (select email from parents where family_id = $1)`,
+        [familyId],
+      );
+    }
+
     await c.query(`delete from parents where family_id = $1`, [familyId]);
+
+    if (authUserIds.length > 0) {
+      await c.query(`delete from auth_users where id = any($1::text[])`, [authUserIds]);
+    }
 
     // The erasure step: pseudonyms go, audit rows stay and become unresolvable.
     await c.query(`delete from family_pseudonyms where family_id = $1`, [familyId]);

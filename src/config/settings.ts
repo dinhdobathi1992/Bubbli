@@ -59,6 +59,25 @@ const schema = z.object({
   BEDROCK_AGENT_RUNTIME_ARN: z.string().optional(),
   BEDROCK_MODEL_ID: z.string().optional(),
 
+  // ── Parent authentication ──────────────────────────────────────────────
+  /** Better Auth signing secret. Never logged, never sent to a client. */
+  BETTER_AUTH_SECRET: z.string().min(32).optional(),
+  /** Absolute origin. Also makes notification deep links resolvable in email. */
+  APP_ORIGIN: z.string().url().default('http://localhost:3000'),
+  /** Minutes an emailed sign-in code stays valid. */
+  PARENT_OTP_TTL_MIN: z.coerce.number().int().positive().default(10),
+
+  // ── Email delivery ─────────────────────────────────────────────────────
+  /** Absent in development: codes are written to the server log instead. */
+  RESEND_API_KEY: z.string().min(1).optional(),
+  EMAIL_FROM: z.string().default('Bubbli <no-reply@bubbli.local>'),
+
+  // ── Child device pairing ───────────────────────────────────────────────
+  /** Minutes a parent-issued pairing code stays valid. */
+  DEVICE_PAIRING_TTL_MIN: z.coerce.number().int().positive().default(15),
+  /** Days a paired device may sign a child in without a PIN. */
+  DEVICE_TRUST_DAYS: z.coerce.number().int().positive().default(30),
+
   // ── Safety ─────────────────────────────────────────────────────────────
   SAFETY_ENABLED: z.stringbool().default(true),
   /** Layer 2. Fail-closed when unavailable (Phase 2). */

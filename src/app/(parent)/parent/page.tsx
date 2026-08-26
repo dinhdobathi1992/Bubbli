@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { pool } from '@/lib/db/client';
 import { getSession } from '@/lib/auth/request-session';
 import { projectFlagRow } from '@/lib/parent/dto';
@@ -27,22 +27,11 @@ const SEV_STYLE: Record<string, string> = {
 export default async function ParentDashboard() {
   const session = await getSession();
 
+  // Unauthenticated or a child principal: send them to sign in. The page used
+  // to render a placeholder claiming "the authentication layer exists and is
+  // tested", which was untrue — better-auth had zero imports in src/.
   if (!session || session.principalType !== 'parent') {
-    return (
-      <main className="relative z-10 mx-auto max-w-3xl px-6 py-20">
-        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-subtle">Bubbli</p>
-        <h1 className="mt-4 text-[clamp(1.75rem,4vw,2.5rem)]">Safety dashboard</h1>
-        <div className="mt-8 border-l-2 border-l-line-strong bg-raised px-5 py-4">
-          <p className="text-[15px] text-muted">
-            Parent sign-in is not enabled in this build. The authentication layer exists and is
-            tested; the sign-in screen is scheduled work.
-          </p>
-        </div>
-        <Link href="/" className="mt-8 inline-block text-sm text-muted underline underline-offset-4 hover:text-accent">
-          Back
-        </Link>
-      </main>
-    );
+    redirect('/parent/sign-in');
   }
 
   const r = await pool.query(

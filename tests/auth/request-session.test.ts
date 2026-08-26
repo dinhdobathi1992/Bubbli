@@ -15,7 +15,12 @@ import { Pool } from 'pg';
 import { readFileSync, existsSync } from 'fs';
 
 const jar = vi.hoisted(() => ({ get: vi.fn() }));
-vi.mock('next/headers', () => ({ cookies: async () => jar }));
+// `headers` too: the parent branch asks Better Auth for a session, and mocking
+// only `cookies` leaves it undefined, which throws before the branch is reached.
+vi.mock('next/headers', () => ({
+  cookies: async () => jar,
+  headers: async () => new Headers(),
+}));
 
 import { getSession } from '@/lib/auth/request-session';
 import {
@@ -104,10 +109,19 @@ describe('nothing else resolves to a principal', () => {
 
 describe('principalType is derived, not claimed', () => {
   it('cannot be escalated by a cookie that claims to be a parent', async () => {
-    // A client presenting a parent-looking value gets nothing: there is no
-    // parent store wired yet, and nothing reads a type from the client.
+    // A client presenting a parent-looking value gets nothing. The type comes
+    // from WHICH STORE RESOLVED, never from anything the client sent.
     present(CHILD_SESSION_COOKIE, JSON.stringify({ principalType: 'parent', familyId }));
     expect(await getSession()).toBeNull();
+  });
+
+  it('resolves a child even when a parent session is also presented', async () => {
+    // Order is deliberate: a request carrying both resolves as the CHILD. That
+    // is the safer failure — a child principal can never read another
+    // conversation, whereas a parent principal can read `medium`+ transcripts.
+    present(CHILD_SESSION_COOKIE, token);
+    const s = await getSession();
+    expect(s?.principalType).toBe('child');
   });
 });
 
