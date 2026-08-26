@@ -58,18 +58,20 @@
 @media (prefers-color-scheme: dark) {
   :root {
     /* Warm-tinted near-black, never #0a0a0a. Surfaces elevate by lightening. */
-    --ground: #16130f;
-    --surface: #262119;
-    --surface-raised: #322b21;
-    --surface-sunken: #120f0c;
+    /* Widened deliberately. The previous ramp spanned ~4% lightness end to end,
+       so cards read as flat patches and hairlines vanished into their own fill. */
+    --ground: #141109;
+    --surface: #221d15;
+    --surface-raised: #2e271d;
+    --surface-sunken: #0f0d08;
 
     --ink: #f3ece0;
     --ink-muted: #b3a695;
     --ink-subtle: #857a6a;
     --ink-inverse: #16130f;
 
-    --line: #322b22;
-    --line-strong: #4b4133;
+    --line: #3c3327;
+    --line-strong: #5a4d3b;
 
     /* Lightened so it still clears AA against a dark ground. */
     --accent: #e59078;
@@ -191,6 +193,45 @@ body::before {
     letter-spacing: 0.006em;
     line-height: 1.65;
   }
+}
+
+/**
+ * A warm pool of light.
+ *
+ * "Warm paper and ink" in dark mode is ink on paper UNDER A LAMP — not a void.
+ * With no light source the page reads as absence rather than atmosphere, which
+ * is what made the landing feel like a small card floating in a black room.
+ * Derived from the accent so it themes automatically and stays on-brand;
+ * chroma is low enough that it never competes with content.
+ */
+.hero-light {
+  background:
+    radial-gradient(
+      62% 52% at 26% 34%,
+      color-mix(in oklab, var(--accent) 11%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      48% 44% at 80% 62%,
+      color-mix(in oklab, var(--accent) 6%, transparent),
+      transparent 74%
+    );
+}
+
+/* One entrance, on the hero only. Staggered by depth, not applied per section. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.7s var(--ease-out-quart) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
