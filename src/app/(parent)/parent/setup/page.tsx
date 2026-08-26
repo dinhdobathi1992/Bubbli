@@ -9,7 +9,7 @@
  */
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AGE_BANDS } from '@/config/settings';
+import { AGE_BANDS } from '@/config/vocabulary';
 
 const field =
   'mt-1.5 min-h-12 w-full rounded-xl border border-line bg-surface px-4 text-[16px] text-ink placeholder:text-subtle transition-colors duration-150 hover:border-line-strong focus:border-accent focus:outline-none';

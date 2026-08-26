@@ -6,29 +6,25 @@
  * validation by reading process.env directly, one of which silently disabled a
  * safety check in production.
  */
+import 'server-only';
 import { z } from 'zod';
+import { PROVIDERS, EMAIL_PROVIDERS, type Provider, type EmailProvider } from './vocabulary';
 
-/**
- * Providers the application can route generation through.
- *
- * Deliberately open-ended: DeepSeek and Bedrock (AgentCore) are first-class
- * today, and further layers (litellm, qwen, codex) are expected. Adding one
- * means adding it here and to PROVIDER_COMPLIANCE below, nothing more.
- */
-export const PROVIDERS = ['deepseek', 'bedrock'] as const;
-export type Provider = (typeof PROVIDERS)[number];
+// Re-exported so every existing server-side import keeps working. Client code
+// must import from './vocabulary' directly — `server-only` above makes this
+// module a build error in a browser bundle rather than a runtime crash.
+export {
+  PROVIDERS,
+  EMAIL_PROVIDERS,
+  AGE_BANDS,
+  SEVERITIES,
+  type Provider,
+  type EmailProvider,
+  type AgeBand,
+  type Severity,
+} from './vocabulary';
 
-/** Age bands, split at the COPPA-13 boundary (validation decision V8). */
-export const AGE_BANDS = ['4-7', '8-11', '12', '13-15'] as const;
-export type AgeBand = (typeof AGE_BANDS)[number];
 
-/** Severity ladder. `medium` and above open a transcript to a parent. */
-export const SEVERITIES = ['info', 'low', 'medium', 'high', 'critical'] as const;
-export type Severity = (typeof SEVERITIES)[number];
-
-/** Providers that can carry an email. See EMAIL_COMPLIANCE below. */
-export const EMAIL_PROVIDERS = ['resend', 'ses'] as const;
-export type EmailProvider = (typeof EMAIL_PROVIDERS)[number];
 
 const csv = <T extends readonly [string, ...string[]]>(values: T) =>
   z

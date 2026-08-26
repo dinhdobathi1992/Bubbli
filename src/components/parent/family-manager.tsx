@@ -9,7 +9,7 @@
  */
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AGE_BANDS } from '@/config/settings';
+import { AGE_BANDS } from '@/config/vocabulary';
 
 export interface ChildRow {
   id: string;

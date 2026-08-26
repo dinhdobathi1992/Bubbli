@@ -60,8 +60,6 @@ function sesReady(): boolean {
   return Boolean(settings.SES_SMTP_HOST && settings.SES_SMTP_USER && settings.SES_SMTP_PASSWORD);
 }
 
-const READY: Record<EmailProvider, () => boolean> = { resend: resendReady, ses: sesReady };
-
 /**
  * The first configured transport in the configured order, or the log.
  *
