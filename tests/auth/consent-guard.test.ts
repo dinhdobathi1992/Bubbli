@@ -7,7 +7,7 @@
  * untested constants, and both are load-bearing — the mechanism is the claim
  * made to regulators, and the TTL decides when unconsented children are purged.
  */
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 import { Pool } from 'pg';
 import { readFileSync, existsSync } from 'fs';
 import {
