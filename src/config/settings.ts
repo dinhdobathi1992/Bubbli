@@ -26,11 +26,17 @@ export type AgeBand = (typeof AGE_BANDS)[number];
 export const SEVERITIES = ['info', 'low', 'medium', 'high', 'critical'] as const;
 export type Severity = (typeof SEVERITIES)[number];
 
+/** Providers that can carry an email. See EMAIL_COMPLIANCE below. */
+export const EMAIL_PROVIDERS = ['resend', 'ses'] as const;
+export type EmailProvider = (typeof EMAIL_PROVIDERS)[number];
+
 const csv = <T extends readonly [string, ...string[]]>(values: T) =>
   z
     .string()
     .transform((s) => s.split(',').map((p) => p.trim()).filter(Boolean))
     .pipe(z.array(z.enum(values)).min(1));
+
+const csvOf = csv;
 
 const schema = z.object({
   // ── App ────────────────────────────────────────────────────────────────
@@ -67,7 +73,23 @@ const schema = z.object({
   /** Minutes an emailed sign-in code stays valid. */
   PARENT_OTP_TTL_MIN: z.coerce.number().int().positive().default(10),
 
-  // ── Email delivery — AWS SES over SMTP ─────────────────────────────────
+  // ── Email delivery ─────────────────────────────────────────────────────
+  /**
+   * Which transport to use, first match wins.
+   *
+   * Same shape as AI_PROVIDER_ORDER, and for the same reason: a notification
+   * carries a child's display name and a safety severity, so the transport is a
+   * sub-processor of child data and must be selectable and clearable per
+   * environment rather than hardcoded.
+   */
+  EMAIL_PROVIDER_ORDER: csvOf(EMAIL_PROVIDERS).default(['ses']),
+
+  /** Send-only key. Resend restricts these, so it cannot enumerate domains. */
+  RESEND_API_KEY: z.string().min(1).optional(),
+  /** Overrides EMAIL_FROM when Resend is active — the two verify separately. */
+  RESEND_EMAIL_FROM: z.string().optional(),
+
+  // ── AWS SES over SMTP ──────────────────────────────────────────────────
   /**
    * SES SMTP endpoint. Absent in development: messages go to the server log.
    *
@@ -135,6 +157,30 @@ export const PROVIDER_COMPLIANCE: Record<Provider, { productionCleared: boolean;
  */
 const CLASSIFIER_CLIENT_AVAILABLE = false;
 
+/**
+ * Which EMAIL transports are cleared to carry production child data.
+ *
+ * A notification carries a child's display name and a safety severity, so the
+ * transport is a sub-processor of children's personal data exactly as the model
+ * provider is. The AI gate could not express this — `PROVIDER_COMPLIANCE` is
+ * typed over AI providers and the production check iterated only
+ * `AI_PROVIDER_ORDER` — so an email vendor could receive a child's name while
+ * the gate reported everything cleared. (Red team C5 / F10.)
+ *
+ * Flip a transport to `true` ONLY when a DPA and retention terms are on file for
+ * it, recorded in docs/decisions/0002-compliance-premises.md.
+ */
+export const EMAIL_COMPLIANCE: Record<EmailProvider, { productionCleared: boolean; note: string }> = {
+  resend: {
+    productionCleared: false,
+    note: 'US sub-processor with no DPA on file, and outside the residency decision in 0001. Development and evaluation only.',
+  },
+  ses: {
+    productionCleared: false,
+    note: 'In-region (ap-southeast-1) and likely inside the existing AWS agreement, but the DPA is unconfirmed and the account is still in the SES sandbox.',
+  },
+};
+
 function load() {
   const parsed = schema.safeParse(process.env);
 
@@ -178,6 +224,19 @@ function load() {
     );
     console.error('  Wire a ClassifierClient in src/lib/chat/pipeline.ts before enabling this.');
     process.exit(1);
+  }
+
+  // Same gate, applied to the email transport. Left out originally because
+  // PROVIDER_COMPLIANCE is typed over AI providers only, so a transport
+  // carrying a child's name to a third party was invisible to it.
+  if (s.APP_ENV === 'production') {
+    const unclearedMail = s.EMAIL_PROVIDER_ORDER.filter((p) => !EMAIL_COMPLIANCE[p].productionCleared);
+    if (unclearedMail.length > 0) {
+      console.error('[config] Refusing to start in production. Email transport(s) not cleared for child data:');
+      for (const p of unclearedMail) console.error(`  ${p}: ${EMAIL_COMPLIANCE[p].note}`);
+      console.error('  A notification carries a child display name and a severity.');
+      process.exit(1);
+    }
   }
 
   // PRD §13 gate. Production refuses to start while any provider in the chain

@@ -32,14 +32,20 @@ async function main() {
   const { verifyMailTransport, sendMail } = await import('../src/lib/email/send');
 
   console.log('\n  Email configuration');
-  console.log(`    host      ${settings.SES_SMTP_HOST ?? '(none — will log instead)'}`);
-  console.log(`    port      ${settings.SES_SMTP_PORT}`);
-  console.log(`    user      ${settings.SES_SMTP_USER ? 'set' : 'not set'}`);
-  console.log(`    password  ${settings.SES_SMTP_PASSWORD ? 'set' : 'not set'}`);
-  console.log(`    from      ${settings.EMAIL_FROM}`);
+  console.log(`    order       ${settings.EMAIL_PROVIDER_ORDER.join(' → ')}`);
+  console.log(`    resend      key ${settings.RESEND_API_KEY ? 'set' : 'not set'}`);
+  console.log(`    ses         ${settings.SES_SMTP_HOST ?? '(not set)'}:${settings.SES_SMTP_PORT}`);
+  console.log(`    ses auth    ${settings.SES_SMTP_USER && settings.SES_SMTP_PASSWORD ? 'set' : 'not set'}`);
+  console.log(`    from (ses)  ${settings.EMAIL_FROM}`);
+  console.log(`    from (resend) ${settings.RESEND_EMAIL_FROM ?? settings.EMAIL_FROM}`);
 
   const transport = await verifyMailTransport();
-  console.log(`\n  Transport: ${transport}${transport === 'ses' ? ' — credentials accepted' : ' — development log'}`);
+  const detail = {
+    ses: 'SMTP credentials accepted',
+    resend: 'API key present (a send-only key cannot be verified without sending)',
+    log: 'nothing configured — messages go to the server log',
+  }[transport];
+  console.log(`\n  Active transport: ${transport} — ${detail}`);
 
   const to = process.argv[2];
   if (!to) {
