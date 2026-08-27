@@ -72,11 +72,11 @@ terracotta on a light one. Both are the same hue family, so the brand survives t
 
 ## Success Criteria
 
-- [ ] 28/28 pairs pass in both themes, printed by the script
-- [ ] Surface separation still passes: either a ≥1.2 delta or a visible hairline
-- [ ] No raw hex introduced in any component
-- [ ] Landing, chat, login, pair, parent dashboard and family page all render correctly in both themes
-- [ ] `pnpm typecheck` and `pnpm lint` pass
+- [x] 28/28 pairs pass in both themes, printed by the script
+- [x] Surface separation still passes: either a ≥1.2 delta or a visible hairline
+- [x] No raw hex introduced in any component
+- [x] Landing, chat, login, pair, parent dashboard and family page all render correctly in both themes
+- [x] `pnpm typecheck` and `pnpm lint` pass
 
 ## Risk Assessment
 

@@ -53,11 +53,11 @@ heavier stroke — one optical size, which is ordinary practice, not a compromis
 
 ## Success Criteria
 
-- [ ] The mark renders at every existing call site with no layout shift
+- [x] The mark renders at every existing call site with no layout shift
 - [ ] Legible at 16px; the favicon variant does not read as a filled blob
-- [ ] Inherits `currentColor` in both themes with no second asset
-- [ ] Still meaningful with the wordmark covered — the test the old mark failed
-- [ ] `pnpm lint` passes and no raster asset was added
+- [x] Inherits `currentColor` in both themes with no second asset
+- [x] Still meaningful with the wordmark covered — the test the old mark failed
+- [x] `pnpm lint` passes and no raster asset was added
 
 ## Risk Assessment
 

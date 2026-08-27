@@ -1,7 +1,12 @@
 @import "tailwindcss";
 
 /**
- * Bubbli design tokens.
+ * Bubbli design tokens — Forest.
+ *
+ * Replaced a sepia ramp whose ENTIRE palette spanned 31° of hue: ground, ink,
+ * hairlines and accent were all orange-brown, so nothing separated by hue and
+ * everything read as muddy. Forest puts 137° between the accent and the ground.
+ * Measured at 28/28 WCAG AA pairs across both themes before it was adopted.
  *
  * ONE token layer, TWO registers built on it:
  *   Child  — warm, low-density, soft shapes, generous targets. Must never feel
@@ -20,73 +25,73 @@
 
 :root {
   /* Ground and surfaces */
-  --ground: #fbf7f0;
-  --surface: #fefcf8;
-  --surface-raised: #f4eee3;
-  --surface-sunken: #efe7d9;
+  --ground: #f3f7f4;
+  --surface: #fbfdfb;
+  --surface-raised: #e7eee9;
+  --surface-sunken: #e0e9e3;
 
   /* Ink ramp */
-  --ink: #1f1b16;
-  --ink-muted: #635a4e;
-  --ink-subtle: #8a7f70;
-  --ink-inverse: #fbf7f0;
+  --ink: #101c17;
+  --ink-muted: #4d5f55;
+  --ink-subtle: #75897d;
+  --ink-inverse: #f3f7f4;
 
   /* Hairlines */
-  --line: #e4dac9;
-  --line-strong: #c9bca6;
+  --line: #d3ded6;
+  --line-strong: #b4c5ba;
 
-  /* Accent: warm coral. Used for emphasis, focus and active state only. */
-  --accent: #b34a32;
-  --accent-hover: #963d29;
-  --accent-soft: #f2d8cd;
-  --on-accent: #fffaf5;
+  /* Accent: terracotta. The dark theme's peach, darkened to clear AA on a
+     light ground — same hue family, so the brand survives the switch. */
+  --accent: #a8482b;
+  --accent-hover: #8e3b22;
+  --accent-soft: #f2dbd1;
+  --on-accent: #fdf8f5;
 
   /* Severity. These carry meaning, so they are separate from the accent. */
-  --sev-info: #7a7161;
-  --sev-low: #8a6d3f;
-  --sev-medium: #a4622a;
-  --sev-high: #a8412a;
+  --sev-info: #61756a;
+  --sev-low: #8a6a35;
+  --sev-medium: #a05f2a;
+  --sev-high: #a3412a;
   --sev-critical: #8f2318;
-  --sev-critical-bg: #f8e5e0;
+  --sev-critical-bg: #f6e4de;
 
   /* Focus */
-  --focus: #b34a32;
+  --focus: #a8482b;
 
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Warm-tinted near-black, never #0a0a0a. Surfaces elevate by lightening. */
-    /* Widened deliberately. The previous ramp spanned ~4% lightness end to end,
-       so cards read as flat patches and hairlines vanished into their own fill. */
-    --ground: #141109;
-    --surface: #221d15;
-    --surface-raised: #2e271d;
-    --surface-sunken: #0f0d08;
+    /* Deep green-black. Surfaces elevate by lightening within the same hue. */
+    --ground: #0d1512;
+    --surface: #16211d;
+    --surface-raised: #1e2a25;
+    --surface-sunken: #090f0d;
 
-    --ink: #f3ece0;
-    --ink-muted: #b3a695;
-    --ink-subtle: #857a6a;
-    --ink-inverse: #16130f;
+    --ink: #e8efe9;
+    --ink-muted: #9ab0a4;
+    --ink-subtle: #6d8176;
+    --ink-inverse: #0d1512;
 
-    --line: #3c3327;
-    --line-strong: #5a4d3b;
+    --line: #25342e;
+    --line-strong: #3c5147;
 
-    /* Lightened so it still clears AA against a dark ground. */
-    --accent: #e59078;
-    --accent-hover: #f0a68f;
-    --accent-soft: #45291f;
-    --on-accent: #1a1109;
+    /* Peach. 137° of hue from the ground — the separation the previous
+       palette lacked, which is why everything read as muddy sepia. */
+    --accent: #f0a882;
+    --accent-hover: #f5bb9a;
+    --accent-soft: #3a2b21;
+    --on-accent: #12211a;
 
-    --sev-info: #a89c88;
-    --sev-low: #cfa76a;
+    --sev-info: #8fa89a;
+    --sev-low: #d3ab6c;
     --sev-medium: #e0955c;
     --sev-high: #ef8a70;
     --sev-critical: #ff9b85;
-    --sev-critical-bg: #3a1d17;
+    --sev-critical-bg: #331d18;
 
-    --focus: #e59078;
+    --focus: #f0a882;
 
     color-scheme: dark;
   }
@@ -198,23 +203,26 @@ body::before {
 /**
  * A warm pool of light.
  *
- * "Warm paper and ink" in dark mode is ink on paper UNDER A LAMP — not a void.
  * With no light source the page reads as absence rather than atmosphere, which
  * is what made the landing feel like a small card floating in a black room.
- * Derived from the accent so it themes automatically and stays on-brand;
- * chroma is low enough that it never competes with content.
+ *
+ * Mostly a LIFT OF THE SURFACE, not a wash of the accent. At the strength this
+ * carried on the old sepia ground, peach over green renders as brown — which
+ * re-introduces exactly the muddiness the Forest palette exists to escape. The
+ * accent is now a 5% hint; the body of the light is the raised surface, so it
+ * reads as a clearing rather than a lamp.
  */
 .hero-light {
   background:
     radial-gradient(
       62% 52% at 26% 34%,
-      color-mix(in oklab, var(--accent) 11%, transparent),
+      color-mix(in oklab, var(--accent) 5%, transparent),
       transparent 72%
     ),
     radial-gradient(
-      48% 44% at 80% 62%,
-      color-mix(in oklab, var(--accent) 6%, transparent),
-      transparent 74%
+      54% 48% at 78% 60%,
+      color-mix(in oklab, var(--surface-raised) 55%, transparent),
+      transparent 76%
     );
 }
 
