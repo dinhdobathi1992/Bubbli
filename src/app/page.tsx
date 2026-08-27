@@ -1,19 +1,23 @@
 import Link from 'next/link';
 import { BubbliMark } from '@/components/bubbli-mark';
+import { Doors } from '@/components/landing/doors';
+import { Transcript } from '@/components/landing/transcript';
 
 /**
- * Landing.
+ * Landing — "The Margin".
  *
- * The visual motif is the product's actual idea, not decoration: a dashed rule
- * with the child's world above it and what a parent sees below. It is the same
- * device used on the parent dashboard, so the brand and the mechanism are the
- * same shape. Swap the product name and the motif stops making sense — which is
- * the test of whether a concept exists at all.
+ * The page this replaced was a ROUTER, not a pitch: it opened with "I'm a child
+ * / I'm a parent" and assumed the visitor already knew what Bubbli was. The
+ * sharpest sentence the product owns — visibility into unsafe interactions
+ * WITHOUT exposing benign conversations (PRD §1) — appeared nowhere on it.
  *
- * The page is RAILED — a hairline top and bottom — because the composition
- * previously floated in the middle of the viewport with dead margin on all four
- * sides. Rails turn that emptiness into deliberate negative space by giving it
- * edges to be measured against.
+ * A landing page converts, and the converting audience is the parent: they
+ * decide, they consent, and under COPPA they must. So the page argues to them,
+ * and a returning child gets a quiet door rather than half the hero.
+ *
+ * The argument is a demonstration. A transcript runs down the centre and the
+ * safety layer narrates each turn in the margin. Nothing is claimed that is not
+ * shown happening — and nothing shown is real: see the note in transcript.tsx.
  */
 export default function Home() {
   return (
@@ -21,97 +25,66 @@ export default function Home() {
       <div aria-hidden="true" className="hero-light pointer-events-none absolute inset-0 z-0" />
 
       <header className="relative z-10 border-b border-line">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-4">
           <span className="flex items-center gap-2.5">
             <BubbliMark size={22} className="text-accent" />
             <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted">
               Bubbli
             </span>
           </span>
-          <Link
-            href="/safety"
-            className="text-[13px] text-muted underline decoration-line underline-offset-4 transition-colors duration-150 hover:text-accent hover:decoration-accent"
-          >
-            How Bubbli keeps you safe
-          </Link>
+          <Doors />
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto grid w-full max-w-6xl flex-1 items-center gap-14 px-6 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-24">
-        <div className="rise">
-          <h1 className="text-[clamp(2.5rem,6vw,4.25rem)] leading-[1.04] tracking-[-0.028em]">
-            A place to be curious,
+      <main className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-6 py-16">
+        {/* No measure on this wrapper. A `ch` limit is computed against the BODY
+            font size, so putting one here squeezed a 60px display face into a
+            501px column and broke the headline across four lines with the
+            italic split. The measure belongs on the prose below, and the
+            headline is broken where it should break by an explicit <br />. */}
+        <div>
+          <h1 className="text-[clamp(2.25rem,5.5vw,3.75rem)] leading-[1.05] tracking-[-0.025em]">
+            Your child can ask anything.
             <br />
-            <span className="italic text-accent">safely.</span>
+            You&apos;ll only see <span className="italic text-accent">what matters.</span>
           </h1>
-
-          <p className="mt-6 max-w-[46ch] text-[19px] leading-[1.6] text-muted">
-            Ask anything. A safety helper checks every message, and a grown-up is told only if
-            something could really hurt you.
+          <p className="mt-6 max-w-[48ch] text-[19px] leading-[1.6] text-muted">
+            Bubbli answers like a patient teacher. A safety layer reads every message — and tells
+            you only when something could genuinely hurt them.
           </p>
 
-          <div className="mt-10 flex flex-wrap gap-3">
+          <div className="mt-9 flex flex-wrap items-center gap-4">
             <Link
-              href="/login"
+              href="/parent/sign-in"
               className="inline-flex min-h-14 items-center rounded-2xl bg-accent px-7 text-[17px] font-medium text-on-accent transition-all duration-150 ease-[var(--ease-spring)] hover:-translate-y-0.5 hover:bg-accent-hover active:translate-y-0 active:scale-[0.98]"
             >
-              I&apos;m a child
+              Start free — it&apos;s in beta
             </Link>
-            <Link
-              href="/parent"
-              className="inline-flex min-h-14 items-center rounded-2xl border border-line-strong bg-surface px-7 text-[17px] text-ink transition-all duration-150 ease-[var(--ease-spring)] hover:-translate-y-0.5 hover:border-ink active:translate-y-0 active:scale-[0.98]"
-            >
-              I&apos;m a parent
-            </Link>
+            <span className="text-[14px] text-subtle">
+              No card. Your child never needs an email address.
+            </span>
           </div>
         </div>
 
-        {/* The gate, drawn. Above it is the child's; below it is what a parent
-            is shown. The dashed rule spans the full card edge to edge, so it
-            reads as a DIVISION of the object rather than a labelled row inside it. */}
-        <figure className="rise overflow-hidden rounded-3xl border border-line bg-surface [animation-delay:120ms]">
-          <div className="px-7 pt-7">
-            <figcaption className="font-mono text-[10px] uppercase tracking-[0.18em] text-subtle">
-              What a parent sees
-            </figcaption>
+        <Transcript />
 
-            <div className="mt-6 space-y-2" aria-hidden="true">
-              <div className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-accent-soft px-4 py-2.5 text-[14px] text-ink">
-                Why is the sky blue?
-              </div>
-              <div className="w-fit max-w-[90%] rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-2.5 text-[14px] text-ink">
-                Blue light scatters most in the air.
-              </div>
-            </div>
-
-            <p className="mt-4 pb-7 text-[13px] text-subtle">Ordinary chats stay private.</p>
-          </div>
-
-          <div className="flex items-center gap-3 border-y border-dashed border-accent/45 bg-accent-soft/25 px-7 py-2.5">
-            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-accent">
-              The gate
-            </span>
-            <span className="h-px flex-1 bg-accent/30" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-subtle">
-              medium and above
-            </span>
-          </div>
-
-          <div className="px-7 py-7">
-            <div className="border-l-2 border-l-critical bg-critical-bg px-4 py-3.5">
-              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-critical">
-                Critical
-              </p>
-              <p className="mt-1.5 text-[14px] leading-relaxed text-ink">
-                A grown-up is told, and your child is shown where to get help.
-              </p>
-            </div>
-          </div>
-        </figure>
+        <div className="mt-12 flex flex-wrap items-center justify-between gap-6 border-t border-line pt-8">
+          <p className="max-w-[42ch] font-[family-name:var(--font-display)] text-[19px] leading-snug">
+            Three messages. One reached a parent.
+            <br />
+            That ratio <span className="italic text-accent">is</span> the product.
+          </p>
+          <Link
+            href="/safety"
+            className="text-[14px] text-muted underline decoration-line underline-offset-4 transition-colors duration-150 hover:text-accent hover:decoration-accent"
+          >
+            How Bubbli keeps a child safe
+          </Link>
+        </div>
       </main>
 
       <footer className="relative z-10 border-t border-line">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-5 text-[12px] text-subtle">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-6 py-5 text-[12px] text-subtle">
           <span>A safety helper reads messages. Ordinary conversations stay private.</span>
           <span className="font-mono uppercase tracking-[0.16em]">Built for ages 4&ndash;15</span>
         </div>

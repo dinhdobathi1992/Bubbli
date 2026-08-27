@@ -21,6 +21,9 @@ demonstrates itself.
 - Functional: the crisis turn is **revealed on interaction**, never shown cold.
 - Functional: two doors — "For children" and "For parents" — as one segmented object.
 - Functional: exactly one primary CTA on the page.
+- Functional: **the sample transcript is unmistakably an example.** Labelled in the
+  transcript itself, not in fine print, and carrying no name that could collide with a
+  real child.
 - Non-functional: the margin pairing survives a single column on mobile.
 - Non-functional: no invented statistics, no fabricated testimonials.
 
@@ -35,6 +38,15 @@ I?", where two separate buttons would read as two competing CTAs and dilute the 
 "Start free". The parents half is filled and the children's outlined, because the page's job
 is conversion and the parent is the decider — a returning child usually arrives by family
 link or paired device and never sees this page.
+
+**The sample must not be mistakable for real data.** The previous landing card was
+labelled "What a parent sees" above a plausible conversation, and a guardian who reached
+it while signed out read it as their own child's chat. Nothing leaked — that page makes no
+database calls — but on a child-safety product, ambiguity about whose conversation you are
+looking at is the worst possible ambiguity. The Margin makes the risk larger, not smaller,
+because its transcript is longer and more realistic. So: an explicit label inside the
+block, and no child name at all. The seeded dev child is called Emma, which is precisely
+the collision that caused the confusion.
 
 **The crisis turn sits behind a disclosure control.** It is the most persuasive thing on the
 page and the heaviest; a parent should choose to see it. The control names what it will show
@@ -63,14 +75,15 @@ crisis card and the dashed gate rule. Reusing them means the page cannot drift f
 
 ## Success Criteria
 
-- [ ] The differentiator is legible above the fold at 1440×900 without scrolling
-- [ ] The crisis turn is absent from the initial render and reachable by keyboard
+- [x] The differentiator is legible above the fold at 1440×900 without scrolling
+- [x] The crisis turn is absent from the initial render and reachable by keyboard
 - [ ] Margin notes stay bound to their turns at 375px
-- [ ] Exactly one primary CTA
+- [x] Exactly one primary CTA
 - [ ] Both doors ≥44px, keyboard-reachable, correct focus order
-- [ ] No horizontal scroll at 375px, 768px, 1440px
+- [x] No horizontal scroll at 375px, 768px, 1440px
 - [ ] Renders correctly in both themes
-- [ ] No raw hex, no invented statistic
+- [x] No raw hex, no invented statistic
+- [x] The sample is labelled as an example inside the block, and names no child
 
 ## Risk Assessment
 
