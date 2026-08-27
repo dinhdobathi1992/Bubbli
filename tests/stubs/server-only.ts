@@ -1,10 +1,10 @@
 /**
- * No-op stand-in for the `server-only` package.
+ * `server-only` throws unless a React Server Component bundler resolves it. It
+ * exists to turn a BROWSER import of settings.ts into a compile error — the
+ * failure that shipped a crash to /parent/setup.
  *
- * That package throws unless a React Server Component bundler resolves it. Its
- * job is to turn a browser import of `src/config/settings.ts` into a BUILD
- * error — the failure that shipped a crash to /parent/setup. Tests run in node
- * with no browser bundle, so the guard has nothing to protect there and the
- * real module would just break the suite.
+ * A maintenance script is neither a browser nor an RSC, so scripts/tsconfig.json
+ * maps it to this stub, exactly as the test suite does. Stubbing it there rather
+ * than in the root config keeps the guard intact where it actually matters.
  */
 export {};

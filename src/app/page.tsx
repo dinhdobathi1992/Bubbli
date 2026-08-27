@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { BubbliMark } from '@/components/bubbli-mark';
 import { Doors } from '@/components/landing/doors';
 import { Transcript } from '@/components/landing/transcript';
+import { Pricing } from '@/components/landing/pricing';
 
 /**
  * Landing — "The Margin".
@@ -81,6 +82,7 @@ export default function Home() {
             How Bubbli keeps a child safe
           </Link>
         </div>
+        <Pricing />
       </main>
 
       <footer className="relative z-10 border-t border-line">

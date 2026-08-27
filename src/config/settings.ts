@@ -97,6 +97,15 @@ const schema = z.object({
   SES_SMTP_PORT: z.coerce.number().int().positive().default(587),
   SES_SMTP_USER: z.string().min(1).optional(),
   SES_SMTP_PASSWORD: z.string().min(1).optional(),
+  /**
+   * Where a self-hosting enquiry is delivered.
+   *
+   * FIXED. The address a visitor types is never the recipient — a form that
+   * emails an arbitrary address is an open relay, and this one sends from a
+   * verified identity whose sending reputation is worth protecting.
+   */
+  ENQUIRY_TO: z.string().default('info@dinhdobathi.com'),
+
   /** Must be an identity SES has verified, or every send is rejected. */
   EMAIL_FROM: z.string().default('Bubbli <no-reply@bubbli.local>'),
 

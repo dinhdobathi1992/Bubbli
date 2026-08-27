@@ -15,8 +15,8 @@
     "corpus:eval": "tsx corpus/eval.ts",
     "test:unit": "vitest run tests/guardrails",
     "test:mutation": "stryker run",
-    "seed:dev": "tsx scripts/seed-dev.ts",
-    "email:verify": "tsx scripts/verify-email.ts"
+    "seed:dev": "tsx --tsconfig scripts/tsconfig.json scripts/seed-dev.ts",
+    "email:verify": "tsx --tsconfig scripts/tsconfig.json scripts/verify-email.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.1.0",
