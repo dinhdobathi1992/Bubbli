@@ -15,7 +15,7 @@ import { z } from 'zod';
 import { pool } from '@/lib/db/client';
 import { settings } from '@/config/settings';
 import { sendMail } from '@/lib/email/send';
-import { checkLoginRate, recordLoginAttempt } from '@/lib/auth/login-rate-limit';
+import { checkEnquiryRate, recordLoginAttempt } from '@/lib/auth/login-rate-limit';
 
 /**
  * Every field carries its own message for the MISSING case as well as the
@@ -45,7 +45,10 @@ const Enquiry = z.object({
 export async function POST(req: Request) {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1';
 
-  const rate = await checkLoginRate(pool, ip, null);
+  // NOT checkLoginRate: that counts failures only, and every successful
+  // enquiry sends a message from a verified identity. The successes are the
+  // thing to limit.
+  const rate = await checkEnquiryRate(pool, ip);
   if (!rate.allowed) {
     return NextResponse.json(
       { error: 'Too many messages from here just now. Please try again shortly.' },

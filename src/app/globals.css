@@ -47,12 +47,19 @@
   --accent-soft: #f2dbd1;
   --on-accent: #fdf8f5;
 
-  /* Severity. These carry meaning, so they are separate from the accent. */
-  --sev-info: #61756a;
-  --sev-low: #8a6a35;
-  --sev-medium: #a05f2a;
-  --sev-high: #a3412a;
-  --sev-critical: #8f2318;
+  /* Severity.
+   *
+   * Separate from the accent, because they carry meaning. Each step moves in
+   * BOTH hue and luminance so the ladder survives greyscale and colour-blind
+   * vision — the first Forest ramp had `medium` and `high` at 1.01:1 luminance
+   * and `high` and `critical` 1° apart in hue, which is indistinguishable at a
+   * glance on a dashboard someone reads when they are worried. Meaning never
+   * rests on colour alone regardless: every tier is rendered with its name. */
+  --sev-info: #5c7268;
+  --sev-low: #9a7a22;
+  --sev-medium: #b35c14;
+  --sev-high: #a03318;
+  --sev-critical: #7a0d06;
   --sev-critical-bg: #f6e4de;
 
   /* Focus */
@@ -85,10 +92,10 @@
     --on-accent: #12211a;
 
     --sev-info: #8fa89a;
-    --sev-low: #d3ab6c;
-    --sev-medium: #e0955c;
-    --sev-high: #ef8a70;
-    --sev-critical: #ff9b85;
+    --sev-low: #ecc76b;
+    --sev-medium: #f0a04a;
+    --sev-high: #d95f45;
+    --sev-critical: #ff8a7a;
     --sev-critical-bg: #331d18;
 
     --focus: #f0a882;

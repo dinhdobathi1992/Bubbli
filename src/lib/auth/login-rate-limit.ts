@@ -67,6 +67,38 @@ export async function checkLoginRate(
   return { allowed: true };
 }
 
+/** An enquiry is not a login, so it gets its own ceiling and its own window. */
+export const ENQUIRY_MAX_PER_WINDOW = 5;
+export const ENQUIRY_WINDOW_MS = 60 * 60 * 1000;
+
+/**
+ * Throttle the public enquiry form.
+ *
+ * `checkLoginRate` counts only `succeeded = false`, because a successful sign-in
+ * is not evidence of abuse. An enquiry is the opposite: every SUCCESSFUL
+ * submission sends a message from an SES-verified identity, so the successes are
+ * exactly what has to be counted. Using the login limiter here silently applied
+ * no limit whatsoever — the form was wide open.
+ *
+ * Shares `login_attempts` and its IP hashing rather than adding a second table:
+ * same data, same retention sweep, same privacy posture.
+ */
+export async function checkEnquiryRate(
+  db: Pool | PoolClient,
+  ip: string,
+): Promise<RateLimitVerdict> {
+  const r = await db.query<{ n: string }>(
+    `select count(*) as n from login_attempts
+      where ip_hash = $1 and identifier = 'enquiry'
+        and created_at > now() - ($2 || ' milliseconds')::interval`,
+    [hashIp(ip), ENQUIRY_WINDOW_MS],
+  );
+  if (Number(r.rows[0].n) >= ENQUIRY_MAX_PER_WINDOW) {
+    return { allowed: false, reason: 'ip', retryAfterMs: ENQUIRY_WINDOW_MS };
+  }
+  return { allowed: true };
+}
+
 export async function recordLoginAttempt(
   db: Pool | PoolClient,
   ip: string,

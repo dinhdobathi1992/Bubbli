@@ -77,7 +77,10 @@ export default function Home() {
           </p>
           <Link
             href="/safety"
-            className="text-[14px] text-muted underline decoration-line underline-offset-4 transition-colors duration-150 hover:text-accent hover:decoration-accent"
+            /* Standalone, so it needs a real touch target. An inline link
+               inside a sentence is the exception to the 44px rule; this is not
+               inside one. */
+            className="inline-flex min-h-11 items-center text-[14px] text-muted underline decoration-line underline-offset-4 transition-colors duration-150 hover:text-accent hover:decoration-accent"
           >
             How Bubbli keeps a child safe
           </Link>

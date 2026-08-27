@@ -1,9 +1,14 @@
 /**
  * Bubbli's mark — the gate.
  *
- * A world, and the line beneath it: the child's space sits above a dashed rule,
+ * A world, and the line through it: the child's space sits above a dashed rule,
  * which is the same device used on the landing page and the parent dashboard.
  * The mark, the product and the mechanism are one shape.
+ *
+ * The rule OVERSHOOTS the circle on both sides, and that is load-bearing. When
+ * it stopped at the circle's edge the whole thing read as a face — ring, nose,
+ * mouth — which is not the idea and is faintly comic on a safety product. Only
+ * rendering it at 16px next to alternatives made that visible.
  *
  * It replaced two plain circles that meant "bubbles" and nothing more — cover
  * the wordmark and that one could have belonged to a spa. This one still says
@@ -23,15 +28,15 @@ export function BubbliMark({ size = 24, className }: { size?: number; className?
       aria-hidden="true"
       className={className}
     >
-      <circle cx="12" cy="12" r="8.4" stroke="currentColor" strokeWidth="1.75" />
+      <circle cx="12" cy="12" r="7.6" stroke="currentColor" strokeWidth="1.75" />
       <path
-        d="M4.4 14.4H19.6"
+        d="M1.4 14.6H22.6"
         stroke="currentColor"
         strokeWidth="1.75"
         strokeLinecap="round"
         strokeDasharray="2.6 2.4"
       />
-      <circle cx="12" cy="8.6" r="1.9" fill="currentColor" />
+      <circle cx="12" cy="9" r="2" fill="currentColor" />
     </svg>
   );
 }
@@ -54,9 +59,9 @@ export function BubbliMarkSmall({ size = 16, className }: { size?: number; class
       aria-hidden="true"
       className={className}
     >
-      <circle cx="12" cy="12" r="8.2" stroke="currentColor" strokeWidth="2.2" />
-      <path d="M4.6 14.4H19.4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-      <circle cx="12" cy="8.4" r="2.1" fill="currentColor" />
+      <circle cx="12" cy="12" r="7.6" stroke="currentColor" strokeWidth="2.2" />
+      <path d="M1.4 14.6H22.6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+      <circle cx="12" cy="9" r="2" fill="currentColor" />
     </svg>
   );
 }

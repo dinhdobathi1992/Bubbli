@@ -55,14 +55,14 @@ itself. Alongside it, two brand changes that were diagnosed rather than felt.
 
 ## Success Criteria
 
-- [ ] Every colour pair passes WCAG AA in **both** themes — measured, not asserted
-- [ ] No component contains a raw hex value
-- [ ] The landing page states the differentiator above the fold
-- [ ] The crisis example is reachable but not shown cold
-- [ ] The two doors are ≥44px and keyboard-reachable
-- [ ] A submitted enquiry arrives at `info@dinhdobathi.com`
-- [ ] The mark is legible at 16px, including its favicon variant
-- [ ] `pnpm typecheck`, `lint`, `test`, `corpus:eval`, `test:mutation` and the drift gate all pass
+- [x] Every colour pair passes WCAG AA in **both** themes — measured, not asserted
+- [x] No component contains a raw hex value
+- [x] The landing page states the differentiator above the fold
+- [x] The crisis example is reachable but not shown cold
+- [x] The two doors are ≥44px and keyboard-reachable
+- [x] A submitted enquiry arrives at `info@dinhdobathi.com`
+- [x] The mark is legible at 16px, including its favicon variant
+- [x] `pnpm typecheck`, `lint`, `test`, `corpus:eval`, `test:mutation` and the drift gate all pass
 
 ## Out of scope
 

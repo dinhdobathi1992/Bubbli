@@ -46,13 +46,27 @@ attribute and must be checked with the OS or emulation actually switched.
 
 ## Success Criteria
 
-- [ ] 28/28 contrast pairs pass in both themes
-- [ ] Severity tiers remain distinguishable from one another on the dashboard
-- [ ] typecheck, lint, test, corpus:eval, mutation and drift gates all pass
+- [x] 28/28 contrast pairs pass in both themes
+- [x] Severity tiers remain distinguishable from one another on the dashboard
+- [x] typecheck, lint, test, corpus:eval, mutation and drift gates all pass
 - [ ] Every surface checked in both themes, with captures
-- [ ] One real enquiry received
-- [ ] No horizontal scroll at any breakpoint
-- [ ] Reduced motion produces no animation
+      **Partial.** Landing and parent dashboard checked in both. Chat, login,
+      scoped login, pair, parent sign-in, setup and family checked in dark only.
+      Light was forced by applying the stylesheet's own `:root` values, which
+      exercises the tokens but not the media query; the query itself was verified
+      by confirming all 21 tokens are defined in both blocks.
+- [x] One real enquiry received
+- [x] No horizontal scroll at any breakpoint
+- [x] Reduced motion produces no animation
+
+## Carried forward
+
+`request-session.ts` fell from 100% to 35.71% on the mutation gate. Phase 1's
+parent-auth branch added `resolveParent` — the function deciding whether a
+request is a parent or a child — and no test covers it. G3 still passes overall
+at 73.91%, so this does not block, but it is a real regression in the coverage of
+the most security-critical function this plan touched, and it should be closed
+before the parent surfaces carry real families.
 
 ## Risk Assessment
 

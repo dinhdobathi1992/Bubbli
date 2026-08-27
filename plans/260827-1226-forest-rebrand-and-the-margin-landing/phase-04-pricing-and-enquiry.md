@@ -57,11 +57,11 @@ must ship as *"designed to run entirely inside your infrastructure"* until it do
 
 - [x] A submitted enquiry arrives at `info@dinhdobathi.com` with the sender's details in the body
 - [x] The recipient cannot be influenced by anything in the request
-- [ ] Repeated submissions from one IP are throttled
+- [x] Repeated submissions from one IP are throttled
 - [x] A transport failure surfaces to the sender rather than silently succeeding
 - [x] Validation errors appear beside their field, with a recovery path
 - [x] The self-host card claims only what is currently true
-- [ ] Every control ≥44px; the form is keyboard-completable
+- [x] Every control ≥44px; the form is keyboard-completable
 
 ## Risk Assessment
 

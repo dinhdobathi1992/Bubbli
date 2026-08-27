@@ -21,9 +21,9 @@ export default function Icon() {
         }}
       >
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="8.2" stroke="#f0a882" strokeWidth="2.2" />
-          <path d="M4.6 14.4H19.4" stroke="#f0a882" strokeWidth="2.2" strokeLinecap="round" />
-          <circle cx="12" cy="8.4" r="2.1" fill="#f0a882" />
+          <circle cx="12" cy="12" r="7.6" stroke="#f0a882" strokeWidth="2.2" />
+          <path d="M1.4 14.6H22.6" stroke="#f0a882" strokeWidth="2.2" strokeLinecap="round" />
+          <circle cx="12" cy="9" r="2" fill="#f0a882" />
         </svg>
       </div>
     ),

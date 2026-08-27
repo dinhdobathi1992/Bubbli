@@ -77,11 +77,11 @@ crisis card and the dashed gate rule. Reusing them means the page cannot drift f
 
 - [x] The differentiator is legible above the fold at 1440×900 without scrolling
 - [x] The crisis turn is absent from the initial render and reachable by keyboard
-- [ ] Margin notes stay bound to their turns at 375px
+- [x] Margin notes stay bound to their turns at 375px
 - [x] Exactly one primary CTA
-- [ ] Both doors ≥44px, keyboard-reachable, correct focus order
+- [x] Both doors ≥44px, keyboard-reachable, correct focus order
 - [x] No horizontal scroll at 375px, 768px, 1440px
-- [ ] Renders correctly in both themes
+- [x] Renders correctly in both themes
 - [x] No raw hex, no invented statistic
 - [x] The sample is labelled as an example inside the block, and names no child
 
