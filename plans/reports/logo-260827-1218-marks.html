@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bubbli — logo marks</title>
+<style>
+:root{
+  --paper:#f7f3ec;--pink:#1b1712;--pline:#ded4c4;--pmute:#6b6053;--pred:#b8232c;
+  --g:#0d1512;--sf:#16211d;--i:#e8efe9;--mu:#9ab0a4;--su:#6d8176;--a:#f0a882;--ln:#25342e;--oa:#12211a;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:"Avenir Next","Segoe UI","Helvetica Neue",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--pink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--serif);line-height:1.14;margin:0;text-wrap:balance}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--pred);margin:0 0 12px}
+.lede{font-size:19px;color:var(--pmute);max-width:64ch}
+header.cover{padding:70px 0 40px;border-bottom:1px solid var(--pline)}
+header.cover h1{font-size:clamp(2.2rem,5vw,3.4rem);letter-spacing:-.02em}
+header.cover h1 em{font-style:italic;color:var(--pred)}
+section{padding:48px 0;border-bottom:1px solid var(--pline)}
+section>h2{font-size:clamp(1.4rem,3vw,1.95rem);margin-bottom:8px}
+.sub{color:var(--pmute);max-width:70ch;margin:0 0 26px}
+.badge{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;border:1px solid var(--pred);color:var(--pred);padding:3px 8px}
+.pick{background:var(--pred);color:var(--paper)}
+
+.marks{display:grid;gap:22px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.mark{border:1px solid var(--pline);background:#fffdf9}
+.mtop{padding:26px;display:flex;align-items:center;justify-content:center;gap:26px;
+  background:var(--g);color:var(--a);border-bottom:1px solid var(--pline);min-height:132px}
+.mtop .sm{color:var(--i)}
+.mbody{padding:18px 20px 20px}
+.mbody h4{font-size:1.05rem;display:flex;align-items:baseline;gap:9px}
+.mbody .idea{font-family:var(--serif);font-style:italic;color:var(--pmute);font-size:14.5px;margin:3px 0 9px}
+.mbody p{font-size:13.5px;color:var(--pmute);margin:0}
+.sizes{display:flex;align-items:center;gap:14px;padding:12px 20px;border-top:1px solid var(--pline);background:#f2ece1}
+.sizes span{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--pmute)}
+.lock{display:flex;align-items:center;gap:9px;padding:11px 20px;border-top:1px solid var(--pline);
+  background:var(--g)}
+.lock .wm{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--mu)}
+
+.verdict{margin-top:22px;border-left:2px solid var(--pred);padding:2px 0 2px 18px;max-width:76ch;color:var(--pmute)}
+.verdict b{color:var(--pink)}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+.scroll{overflow-x:auto}
+th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--pmute);font-weight:400;border-bottom:1px solid var(--pline);padding:0 14px 10px 0}
+td{padding:11px 14px 11px 0;border-bottom:1px solid #e8e0d1;vertical-align:top}
+footer{padding:46px 0 74px;color:var(--pmute);font-size:14px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="cover">
+  <p class="eyebrow">Bubbli · Logo exploration · 2026-08-27</p>
+  <h1>Six marks.<br><em>One has an idea.</em></h1>
+  <p class="lede" style="margin-top:18px">
+    Shown in Forest, at working sizes, as a favicon and in a rail lockup. All single-path
+    <code>currentColor</code> SVG — they theme automatically and need no asset pipeline.
+  </p>
+</header>
+
+<section>
+  <p class="eyebrow">The brief</p>
+  <h2>What the current mark does and doesn't do.</h2>
+  <p class="sub">
+    Two circles, one filled. It reads as <em>bubbles</em> — pleasant, on-name, and that is all it
+    says. Cover the wordmark and it could belong to a soap brand, a spa, or a fizzy drink. A mark
+    that carried the product's actual idea — <b>a private space with a gate that opens only when it
+    matters</b> — would be doing real work.
+  </p>
+  <div class="scroll"><table>
+    <thead><tr><th>Requirement</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Legible at 16px</td><td>It's a favicon and an avatar beside every assistant message.</td></tr>
+      <tr><td>Single colour, <code>currentColor</code></td><td>Themes automatically; no second asset for dark.</td></tr>
+      <tr><td>Warm enough for a child, sober enough for a parent</td><td>The same mark appears above a crisis card and on a safety dashboard.</td></tr>
+      <tr><td>Says something once the wordmark is covered</td><td>Otherwise it's decoration, not identity.</td></tr>
+      <tr><td>No emoji, no gradient, no illustration</td><td>Project rule, and a hand-drawn scene reads worse than none.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <p class="eyebrow">The candidates</p>
+  <h2>Six directions.</h2>
+  <p class="sub">Large is 40px, small is 20px. Both are the same path — no separate optical sizes yet.</p>
+
+  <div class="marks">
+
+    <!-- 1 — Rising (current) -->
+    <div class="mark">
+      <div class="mtop">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none"><circle cx="10" cy="14" r="6.5" stroke="currentColor" stroke-width="1.75"/><circle cx="18.5" cy="6" r="2.75" fill="currentColor"/></svg>
+        <svg class="sm" width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="10" cy="14" r="6.5" stroke="currentColor" stroke-width="1.75"/><circle cx="18.5" cy="6" r="2.75" fill="currentColor"/></svg>
+      </div>
+      <div class="mbody">
+        <h4>1 · Rising <span class="badge">current</span></h4>
+        <p class="idea">“Bubbles.”</p>
+        <p>Friendly and on-name. Says nothing about safety, privacy or care — cover the wordmark and it's a spa.</p>
+      </div>
+      <div class="sizes">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="10" cy="14" r="6.5" stroke="#1b1712" stroke-width="1.75"/><circle cx="18.5" cy="6" r="2.75" fill="#1b1712"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="10" cy="14" r="6.5" stroke="#1b1712" stroke-width="1.75"/><circle cx="18.5" cy="6" r="2.75" fill="#1b1712"/></svg>
+        <span>16 · 24 px</span>
+      </div>
+      <div class="lock"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><circle cx="10" cy="14" r="6.5" stroke="#f0a882" stroke-width="1.75"/><circle cx="18.5" cy="6" r="2.75" fill="#f0a882"/></svg><span class="wm">Bubbli</span></div>
+    </div>
+
+    <!-- 2 — The Gate -->
+    <div class="mark">
+      <div class="mtop">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="8.4" stroke="currentColor" stroke-width="1.75"/>
+          <path d="M4.4 14.4 H19.6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-dasharray="2.6 2.4"/>
+          <circle cx="12" cy="8.6" r="1.9" fill="currentColor"/>
+        </svg>
+        <svg class="sm" width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="8.4" stroke="currentColor" stroke-width="1.75"/>
+          <path d="M4.4 14.4 H19.6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-dasharray="2.6 2.4"/>
+          <circle cx="12" cy="8.6" r="1.9" fill="currentColor"/>
+        </svg>
+      </div>
+      <div class="mbody">
+        <h4>2 · The Gate <span class="badge pick">Recommended</span></h4>
+        <p class="idea">“A world, and the line beneath it.”</p>
+        <p>The child's space sits above a dashed rule — the same device already used on the landing page and the parent dashboard. The mark, the product and the mechanism become one shape.</p>
+      </div>
+      <div class="sizes">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.4" stroke="#1b1712" stroke-width="2"/><path d="M4.4 14.4 H19.6" stroke="#1b1712" stroke-width="2" stroke-linecap="round" stroke-dasharray="2.6 2.4"/><circle cx="12" cy="8.6" r="1.9" fill="#1b1712"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.4" stroke="#1b1712" stroke-width="1.75"/><path d="M4.4 14.4 H19.6" stroke="#1b1712" stroke-width="1.75" stroke-linecap="round" stroke-dasharray="2.6 2.4"/><circle cx="12" cy="8.6" r="1.9" fill="#1b1712"/></svg>
+        <span>16 · 24 px</span>
+      </div>
+      <div class="lock"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.4" stroke="#f0a882" stroke-width="1.75"/><path d="M4.4 14.4 H19.6" stroke="#f0a882" stroke-width="1.75" stroke-linecap="round" stroke-dasharray="2.6 2.4"/><circle cx="12" cy="8.6" r="1.9" fill="#f0a882"/></svg><span class="wm">Bubbli</span></div>
+    </div>
+
+    <!-- 3 — Held -->
+    <div class="mark">
+      <div class="mtop">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none">
+          <path d="M20.2 11.4a8.4 8.4 0 1 1-3.1-6.1" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+          <circle cx="12" cy="12.6" r="3.5" fill="currentColor"/>
+        </svg>
+        <svg class="sm" width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M20.2 11.4a8.4 8.4 0 1 1-3.1-6.1" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+          <circle cx="12" cy="12.6" r="3.5" fill="currentColor"/>
+        </svg>
+      </div>
+      <div class="mbody">
+        <h4>3 · Held</h4>
+        <p class="idea">“Something small, inside something that isn't closed.”</p>
+        <p>An open arc around a solid centre. Care without enclosure — the gap matters, because a child who feels sealed in feels surveilled.</p>
+      </div>
+      <div class="sizes">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20.2 11.4a8.4 8.4 0 1 1-3.1-6.1" stroke="#1b1712" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12.6" r="3.5" fill="#1b1712"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M20.2 11.4a8.4 8.4 0 1 1-3.1-6.1" stroke="#1b1712" stroke-width="1.75" stroke-linecap="round"/><circle cx="12" cy="12.6" r="3.5" fill="#1b1712"/></svg>
+        <span>16 · 24 px</span>
+      </div>
+      <div class="lock"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M20.2 11.4a8.4 8.4 0 1 1-3.1-6.1" stroke="#f0a882" stroke-width="1.75" stroke-linecap="round"/><circle cx="12" cy="12.6" r="3.5" fill="#f0a882"/></svg><span class="wm">Bubbli</span></div>
+    </div>
+
+    <!-- 4 — Two Rooms -->
+    <div class="mark">
+      <div class="mtop">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none">
+          <rect x="3.6" y="3.6" width="16.8" height="16.8" rx="5.6" stroke="currentColor" stroke-width="1.75"/>
+          <path d="M3.6 13.6 H20.4" stroke="currentColor" stroke-width="1.75"/>
+          <circle cx="9" cy="8.6" r="1.7" fill="currentColor"/>
+          <circle cx="14.6" cy="8.6" r="1.7" fill="currentColor" opacity=".45"/>
+        </svg>
+        <svg class="sm" width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <rect x="3.6" y="3.6" width="16.8" height="16.8" rx="5.6" stroke="currentColor" stroke-width="1.75"/>
+          <path d="M3.6 13.6 H20.4" stroke="currentColor" stroke-width="1.75"/>
+          <circle cx="9" cy="8.6" r="1.7" fill="currentColor"/>
+          <circle cx="14.6" cy="8.6" r="1.7" fill="currentColor" opacity=".45"/>
+        </svg>
+      </div>
+      <div class="mbody">
+        <h4>4 · Two Rooms</h4>
+        <p class="idea">“Above the line, theirs. Below, yours.”</p>
+        <p>The most literal reading of the mechanism. Clear at large sizes, but the divider and two dots crowd badly at 16px.</p>
+      </div>
+      <div class="sizes">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3.6" y="3.6" width="16.8" height="16.8" rx="5.6" stroke="#1b1712" stroke-width="2"/><path d="M3.6 13.6 H20.4" stroke="#1b1712" stroke-width="2"/><circle cx="9" cy="8.6" r="1.7" fill="#1b1712"/><circle cx="14.6" cy="8.6" r="1.7" fill="#1b1712" opacity=".45"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3.6" y="3.6" width="16.8" height="16.8" rx="5.6" stroke="#1b1712" stroke-width="1.75"/><path d="M3.6 13.6 H20.4" stroke="#1b1712" stroke-width="1.75"/><circle cx="9" cy="8.6" r="1.7" fill="#1b1712"/><circle cx="14.6" cy="8.6" r="1.7" fill="#1b1712" opacity=".45"/></svg>
+        <span>16 · 24 px — crowds</span>
+      </div>
+      <div class="lock"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><rect x="3.6" y="3.6" width="16.8" height="16.8" rx="5.6" stroke="#f0a882" stroke-width="1.75"/><path d="M3.6 13.6 H20.4" stroke="#f0a882" stroke-width="1.75"/><circle cx="9" cy="8.6" r="1.7" fill="#f0a882"/><circle cx="14.6" cy="8.6" r="1.7" fill="#f0a882" opacity=".45"/></svg><span class="wm">Bubbli</span></div>
+    </div>
+
+    <!-- 5 — Shelter -->
+    <div class="mark">
+      <div class="mtop">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none">
+          <path d="M3.8 14.8a8.2 8.2 0 0 1 16.4 0" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+          <circle cx="12" cy="15.6" r="3.2" fill="currentColor"/>
+        </svg>
+        <svg class="sm" width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M3.8 14.8a8.2 8.2 0 0 1 16.4 0" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+          <circle cx="12" cy="15.6" r="3.2" fill="currentColor"/>
+        </svg>
+      </div>
+      <div class="mbody">
+        <h4>5 · Shelter</h4>
+        <p class="idea">“A roof, not a cage.”</p>
+        <p>Warmest of the six and the easiest to read tiny. But an arch over a dot is a common shape — it risks looking like a generic insurance or umbrella logo.</p>
+      </div>
+      <div class="sizes">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3.8 14.8a8.2 8.2 0 0 1 16.4 0" stroke="#1b1712" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="15.6" r="3.2" fill="#1b1712"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3.8 14.8a8.2 8.2 0 0 1 16.4 0" stroke="#1b1712" stroke-width="1.75" stroke-linecap="round"/><circle cx="12" cy="15.6" r="3.2" fill="#1b1712"/></svg>
+        <span>16 · 24 px</span>
+      </div>
+      <div class="lock"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M3.8 14.8a8.2 8.2 0 0 1 16.4 0" stroke="#f0a882" stroke-width="1.75" stroke-linecap="round"/><circle cx="12" cy="15.6" r="3.2" fill="#f0a882"/></svg><span class="wm">Bubbli</span></div>
+    </div>
+
+    <!-- 6 — Speaking -->
+    <div class="mark">
+      <div class="mtop">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none">
+          <path d="M12 3.8c4.7 0 8.4 3.3 8.4 7.5S16.7 18.8 12 18.8a10 10 0 0 1-2.3-.26L5.4 20.4l1.2-3.4a7.2 7.2 0 0 1-3-5.7C3.6 7.1 7.3 3.8 12 3.8Z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+          <circle cx="12" cy="11.3" r="2.1" fill="currentColor"/>
+        </svg>
+        <svg class="sm" width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M12 3.8c4.7 0 8.4 3.3 8.4 7.5S16.7 18.8 12 18.8a10 10 0 0 1-2.3-.26L5.4 20.4l1.2-3.4a7.2 7.2 0 0 1-3-5.7C3.6 7.1 7.3 3.8 12 3.8Z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+          <circle cx="12" cy="11.3" r="2.1" fill="currentColor"/>
+        </svg>
+      </div>
+      <div class="mbody">
+        <h4>6 · Speaking</h4>
+        <p class="idea">“A conversation with something at the centre of it.”</p>
+        <p>Instantly readable as chat. That's the weakness: it says “messaging app”, which is the category Bubbli is trying not to be mistaken for.</p>
+      </div>
+      <div class="sizes">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3.8c4.7 0 8.4 3.3 8.4 7.5S16.7 18.8 12 18.8a10 10 0 0 1-2.3-.26L5.4 20.4l1.2-3.4a7.2 7.2 0 0 1-3-5.7C3.6 7.1 7.3 3.8 12 3.8Z" stroke="#1b1712" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="11.3" r="2.1" fill="#1b1712"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 3.8c4.7 0 8.4 3.3 8.4 7.5S16.7 18.8 12 18.8a10 10 0 0 1-2.3-.26L5.4 20.4l1.2-3.4a7.2 7.2 0 0 1-3-5.7C3.6 7.1 7.3 3.8 12 3.8Z" stroke="#1b1712" stroke-width="1.75" stroke-linejoin="round"/><circle cx="12" cy="11.3" r="2.1" fill="#1b1712"/></svg>
+        <span>16 · 24 px</span>
+      </div>
+      <div class="lock"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 3.8c4.7 0 8.4 3.3 8.4 7.5S16.7 18.8 12 18.8a10 10 0 0 1-2.3-.26L5.4 20.4l1.2-3.4a7.2 7.2 0 0 1-3-5.7C3.6 7.1 7.3 3.8 12 3.8Z" stroke="#f0a882" stroke-width="1.75" stroke-linejoin="round"/><circle cx="12" cy="11.3" r="2.1" fill="#f0a882"/></svg><span class="wm">Bubbli</span></div>
+    </div>
+
+  </div>
+
+  <div class="verdict">
+    <b>Why The Gate.</b> It's the only one whose form comes from the product rather than from the
+    name. The dashed rule already appears on the landing page and on the parent dashboard, so the
+    logo stops being decoration and becomes the same sentence the product keeps saying: <em>there is
+    a line, and most of what your child says stays above it.</em> Cover the wordmark and it still
+    means something — the test the current mark fails.
+    <br><br>
+    <b>Runner-up: Held.</b> Warmer, and the deliberate gap in the arc is a real idea — care that
+    isn't enclosure. Choose it if “gate” feels too much like a barrier for a children's product.
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">In place</p>
+  <h2>The Gate, where it will actually live.</h2>
+  <div style="display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+    <div style="background:var(--g);border:1px solid var(--pline);padding:16px">
+      <p style="font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--su);margin:0 0 12px">Beside an assistant reply</p>
+      <div style="display:flex;gap:11px;align-items:flex-start">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex:none;margin-top:2px"><circle cx="12" cy="12" r="8.4" stroke="#f0a882" stroke-width="1.75"/><path d="M4.4 14.4 H19.6" stroke="#f0a882" stroke-width="1.75" stroke-linecap="round" stroke-dasharray="2.6 2.4"/><circle cx="12" cy="8.6" r="1.9" fill="#f0a882"/></svg>
+        <div style="background:var(--sf);border:1px solid var(--ln);border-radius:15px;border-bottom-left-radius:5px;padding:9px 13px;font-size:13px;color:var(--i);line-height:1.5">Sunlight is made of lots of colours, and blue bounces around the air the most.</div>
+      </div>
+    </div>
+    <div style="background:var(--g);border:1px solid var(--pline);padding:16px">
+      <p style="font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--su);margin:0 0 12px">Browser tab</p>
+      <div style="display:flex;align-items:center;gap:8px;background:var(--sf);border:1px solid var(--ln);border-radius:8px 8px 0 0;padding:8px 12px;max-width:230px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="flex:none"><circle cx="12" cy="12" r="8.4" stroke="#f0a882" stroke-width="2"/><path d="M4.4 14.4 H19.6" stroke="#f0a882" stroke-width="2" stroke-linecap="round" stroke-dasharray="2.6 2.4"/><circle cx="12" cy="8.6" r="1.9" fill="#f0a882"/></svg>
+        <span style="font-size:12px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Bubbli — a safe place to ask</span>
+      </div>
+    </div>
+    <div style="background:var(--g);border:1px solid var(--pline);padding:16px;display:flex;align-items:center;justify-content:center;gap:16px">
+      <div style="text-align:center">
+        <div style="width:62px;height:62px;border-radius:15px;background:var(--a);display:grid;place-items:center;margin:0 auto">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.4" stroke="#12211a" stroke-width="1.9"/><path d="M4.4 14.4 H19.6" stroke="#12211a" stroke-width="1.9" stroke-linecap="round" stroke-dasharray="2.6 2.4"/><circle cx="12" cy="8.6" r="1.9" fill="#12211a"/></svg>
+        </div>
+        <p style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--su);margin:9px 0 0">App icon</p>
+      </div>
+      <div style="text-align:center">
+        <div style="width:62px;height:62px;border-radius:15px;background:var(--sf);border:1px solid var(--ln);display:grid;place-items:center;margin:0 auto">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.4" stroke="#f0a882" stroke-width="1.9"/><path d="M4.4 14.4 H19.6" stroke="#f0a882" stroke-width="1.9" stroke-linecap="round" stroke-dasharray="2.6 2.4"/><circle cx="12" cy="8.6" r="1.9" fill="#f0a882"/></svg>
+        </div>
+        <p style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--su);margin:9px 0 0">Reversed</p>
+      </div>
+    </div>
+  </div>
+  <div class="verdict">
+    <b>One honest caveat.</b> The dashes are the risk. At 16px they can blur into a solid rule on a
+    low-DPI screen, which quietly loses the idea. Fix is a favicon-specific variant with a solid
+    line and slightly heavier stroke — same shape, one optical size, which is normal practice.
+  </div>
+</section>
+
+<footer>
+  <h2 style="font-size:1.25rem;color:var(--pink);margin-bottom:10px">Confirmed so far</h2>
+  <ul style="max-width:72ch;padding-left:20px">
+    <li><b>The app follows the landing</b> — whole token layer re-cut, both themes.</li>
+    <li><b>Self-host enquiry is a real form</b>, not a mailto.</li>
+    <li><b>Crisis example revealed on interaction</b>, not shown cold.</li>
+    <li><b>Pricing:</b> free beta for everyone; self-hosted with custom guardrails behind a conversation.</li>
+  </ul>
+  <h2 style="font-size:1.05rem;color:var(--pink);margin:26px 0 9px">Still needed from you</h2>
+  <ul style="max-width:72ch;padding-left:20px">
+    <li><b>The palette.</b> You said the colour needs rework but haven't picked one — Forest is
+      shown throughout here, and Paper, Slate and Midnight are still live options.</li>
+    <li><b>The mark.</b> The Gate, or Held.</li>
+    <li><b>Where does the enquiry form deliver?</b> It needs a mailbox — the SES-verified address,
+      or somewhere else.</li>
+  </ul>
+</footer>
+
+</div>
+</body>
+</html>

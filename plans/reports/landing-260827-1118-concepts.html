@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bubbli — landing page concepts</title>
+<style>
+:root{
+  --ground:#141109; --surface:#221d15; --raised:#2e271d;
+  --ink:#f3ece0; --muted:#b3a695; --subtle:#857a6a;
+  --accent:#e59078; --accent-hover:#f0a68f; --accent-soft:#45291f; --on-accent:#1a1109;
+  --line:#3c3327; --line-strong:#5a4d3b;
+  --info:#a89c88; --low:#cfa76a; --medium:#e0955c; --high:#ef8a70;
+  --critical:#ff9b85; --critical-bg:#3a1d17;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:"Avenir Next","Segoe UI","Helvetica Neue",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --paper:#f7f3ec; --paper-ink:#1b1712; --paper-line:#ded4c4; --paper-muted:#6b6053;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--paper-ink);font-family:var(--sans);
+  font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--serif);line-height:1.15;margin:0;text-wrap:balance}
+p{text-wrap:pretty}
+code{font-family:var(--mono);font-size:.85em;background:#ece5d8;padding:.1em .35em}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:#b8232c;margin:0 0 12px}
+.lede{font-size:19px;color:var(--paper-muted);max-width:64ch}
+
+header.cover{padding:80px 0 48px;border-bottom:1px solid var(--paper-line)}
+header.cover h1{font-size:clamp(2.4rem,6vw,4rem);letter-spacing:-.02em}
+header.cover h1 em{font-style:italic;color:#b8232c}
+.meta{display:flex;flex-wrap:wrap;gap:24px;margin-top:28px;font-family:var(--mono);
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--paper-muted)}
+
+section{padding:56px 0;border-bottom:1px solid var(--paper-line)}
+section>h2{font-size:clamp(1.5rem,3.2vw,2.1rem);margin-bottom:8px}
+.sub{color:var(--paper-muted);max-width:68ch;margin:0 0 28px}
+
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+.scroll{overflow-x:auto}
+th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--paper-muted);font-weight:400;border-bottom:1px solid var(--paper-line);padding:0 14px 10px 0}
+td{padding:11px 14px 11px 0;border-bottom:1px solid #e8e0d1;vertical-align:top}
+.yes{color:#2c6b3f;font-weight:600}
+.no{color:#b8232c;font-weight:600}
+
+/* ── concept blocks ─────────────────────────────────────────── */
+.concept{padding:56px 0;border-bottom:1px solid var(--paper-line)}
+.chead{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+.badge{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  border:1px solid #b8232c;color:#b8232c;padding:4px 9px}
+.pick{background:#b8232c;color:var(--paper)}
+.concept h3{font-size:1.9rem}
+.tagline{font-family:var(--serif);font-style:italic;font-size:1.15rem;color:var(--paper-muted);margin:4px 0 20px}
+
+/* the dark mock canvas — real product tokens */
+.mock{background:var(--ground);color:var(--ink);font-family:var(--sans);
+  border:1px solid var(--paper-line);overflow:hidden}
+.mock ::selection{background:var(--accent-soft)}
+.chrome{display:flex;align-items:center;gap:7px;padding:10px 14px;background:#0f0c07;border-bottom:1px solid var(--line)}
+.dot{width:10px;height:10px;border-radius:50%;background:#332b21}
+.addr{margin-left:10px;font-family:var(--mono);font-size:10.5px;color:var(--subtle)}
+.m-rail{display:flex;align-items:center;justify-content:space-between;padding:13px 26px;border-bottom:1px solid var(--line)}
+.m-brand{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:10px;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.m-nav{display:flex;gap:18px;font-size:12px;color:var(--muted)}
+.m-cta{font-size:12px;color:var(--on-accent);background:var(--accent);padding:7px 14px;border-radius:8px}
+.m-body{padding:44px 26px}
+.m-h1{font-family:var(--serif);font-size:clamp(1.7rem,3.4vw,2.9rem);line-height:1.06;letter-spacing:-.02em}
+.m-h1 em{font-style:italic;color:var(--accent)}
+.m-p{font-size:15px;color:var(--muted);max-width:46ch;margin:14px 0 0;line-height:1.6}
+.m-btnrow{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap}
+.m-btn{background:var(--accent);color:var(--on-accent);padding:12px 20px;border-radius:12px;font-size:14px;font-weight:500}
+.m-btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line-strong)}
+.m-micro{font-size:11.5px;color:var(--subtle);margin-top:14px}
+.m-label{font-family:var(--mono);font-size:9.5px;letter-spacing:.17em;text-transform:uppercase;color:var(--subtle)}
+
+/* gate device */
+.gate{display:flex;align-items:center;gap:12px;padding:9px 0}
+.gate .rule{flex:1;border-top:1px dashed color-mix(in oklab, var(--accent) 55%, transparent)}
+.gate .m-label{color:var(--accent)}
+
+.bubble{border-radius:16px;padding:10px 14px;font-size:13.5px;line-height:1.5;max-width:82%}
+.bubble.kid{background:var(--accent-soft);color:var(--ink);margin-left:auto;border-bottom-right-radius:5px}
+.bubble.ai{background:var(--raised);border:1px solid var(--line);border-bottom-left-radius:5px}
+
+.sev{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+  padding:3px 7px;border:1px solid currentColor;border-radius:3px}
+.s-info{color:var(--info)} .s-low{color:var(--low)} .s-med{color:var(--medium)}
+.s-high{color:var(--high)} .s-crit{color:var(--critical)}
+
+/* annotations */
+.ann{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:9px;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.ann li{padding-left:27px;position:relative;font-size:13.5px;color:var(--paper-muted)}
+.ann .n{position:absolute;left:0;top:1px;font-family:var(--mono);font-size:9px;color:#b8232c;
+  border:1px solid #b8232c;width:18px;height:18px;display:grid;place-items:center}
+.ann b{color:var(--paper-ink)}
+.verdict{margin-top:22px;border-left:2px solid #b8232c;padding:2px 0 2px 18px;max-width:74ch}
+.verdict b{color:var(--paper-ink)}
+
+footer{padding:52px 0 80px;color:var(--paper-muted);font-size:14px}
+@media (max-width:720px){
+  .m-body{padding:30px 18px}
+  .split{grid-template-columns:1fr !important}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="cover">
+  <p class="eyebrow">Bubbli · Landing page concepts · 2026-08-27</p>
+  <h1>Three ways to say<br><em>the same true thing.</em></h1>
+  <p class="lede" style="margin-top:20px">
+    Proposals only — nothing is built. Pick a direction (or parts of several) and the
+    implementation plan comes after.
+  </p>
+  <div class="meta">
+    <span>Concepts · 3</span>
+    <span>Design tokens · the ones already shipped</span>
+    <span>Status · awaiting your pick</span>
+  </div>
+</header>
+
+<section>
+  <p class="eyebrow">The finding that shaped all three</p>
+  <h2>Today's landing is a router, not a pitch.</h2>
+  <p class="sub">
+    It opens with <em>“I'm a child / I'm a parent”</em>, which only works for someone who already
+    knows what Bubbli is. A landing page has to convert, and the converting audience is the
+    <b>parent</b>: they decide, they consent (COPPA requires it), they pay. The child is the user,
+    not the buyer.
+  </p>
+  <p class="sub">
+    Meanwhile the sharpest sentence you own is in <code>PRD.md §1</code> and appears nowhere on the
+    page: <b>visibility into unsafe interactions — without exposing benign conversations.</b> That
+    clause is the entire answer to “why not just let them use ChatGPT?”, and every concept below
+    leads with it.
+  </p>
+  <div class="scroll"><table>
+    <thead><tr><th>What a cold visitor needs</th><th>Today</th><th>All three concepts</th></tr></thead>
+    <tbody>
+      <tr><td>What is this?</td><td class="no">Implied only</td><td class="yes">First screen</td></tr>
+      <tr><td>Why not ChatGPT with a filter?</td><td class="no">Never answered</td><td class="yes">The severity ladder, shown</td></tr>
+      <tr><td>Will you spy on my child?</td><td class="no">One line, below the fold</td><td class="yes">The privacy promise is the hero</td></tr>
+      <tr><td>What does it cost / how do I start?</td><td class="no">Absent</td><td class="yes">One primary CTA</td></tr>
+      <tr><td>My kid already uses it — let me in</td><td class="yes">Equal billing</td><td class="yes">Quiet, in the rail</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <p class="eyebrow">What the design database said</p>
+  <h2>Taken: two things. Rejected: the rest, with reasons.</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Recommendation</th><th>Verdict</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Claymorphism — tactile, squish, spring press</td><td class="yes">Taken, partly</td>
+        <td>Right instinct for the child surface. Already in the product as spring easing and press-scale. Not applied to the parent register.</td></tr>
+      <tr><td>“Trust &amp; Authority” section order: mission → proof → solution → CTA</td><td class="yes">Taken</td>
+        <td>A sound spine for a trust-led page. All three concepts follow it loosely.</td></tr>
+      <tr><td>Comic Neue + Baloo 2, Messenger blue <code>#2563EB</code></td><td class="no">Rejected</td>
+        <td>Comic Neue on a child-safety instrument reads as a toy. It would also discard the shipped token layer, measured at 40/40 WCAG pairs, and add a Google Fonts network dependency the app deliberately avoids.</td></tr>
+      <tr><td>“Marketplace / Directory” — search bar as the CTA</td><td class="no">Rejected</td>
+        <td>Wrong product model entirely. Nobody searches a directory here.</td></tr>
+      <tr><td>Navy/grey corporate, “Contact Sales”</td><td class="no">Rejected</td>
+        <td>Every landing pattern in the database is B2B-shaped. This is a consumer product bought by a worried parent.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="verdict">
+    <b>Read this as a catalogue, not a verdict.</b> It has no pattern for “consumer product where
+    trust is the conversion driver and the buyer isn't the user”, so it reached for the nearest
+    B2B shape. The concepts below are built from your PRD, not from it.
+  </div>
+</section>
+
+<!-- ═══ CONCEPT A ═══ -->
+<div class="concept">
+  <div class="chead"><span class="badge">Concept A</span><h3>The Ladder</h3></div>
+  <p class="tagline">“Show them the mechanism. It is more reassuring than any promise.”</p>
+  <p class="sub">
+    The severity ladder becomes the page. A visitor scrolls down through the tiers — ordinary chat
+    stays private, a worry gets recorded, something serious reaches you — and understands the
+    product without a feature list. Evolution of what you have, lowest risk.
+  </p>
+
+  <div class="mock">
+    <div class="chrome"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="addr">bubbli.app</span></div>
+    <div class="m-rail">
+      <span class="m-brand"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10" cy="14" r="6.5" stroke="#e59078" stroke-width="1.75"/><circle cx="18.5" cy="6" r="2.75" fill="#e59078"/></svg>Bubbli</span>
+      <span class="m-nav"><span>How it works</span><span>Safety</span><span>Pricing</span><span style="color:var(--subtle)">Child sign-in</span></span>
+      <span class="m-cta">Start free</span>
+    </div>
+    <div class="m-body">
+      <div style="max-width:52ch">
+        <h2 class="m-h1">Your child can ask<br>anything. You'll only see<br><em>what matters.</em></h2>
+        <p class="m-p">Bubbli answers like a patient teacher. A safety layer reads every message —
+          and tells you only when something could genuinely hurt them.</p>
+        <div class="m-btnrow"><span class="m-btn">Start free — no card</span><span class="m-btn ghost">See what I'd be shown</span></div>
+        <p class="m-micro">Ordinary conversations stay private. Always.</p>
+      </div>
+
+      <div style="margin-top:40px;border-top:1px solid var(--line);padding-top:26px">
+        <p class="m-label" style="margin:0 0 16px">The ladder — every message lands on exactly one rung</p>
+
+        <div style="display:grid;gap:11px">
+          <div style="display:flex;gap:14px;align-items:flex-start;padding:13px 15px;background:var(--surface);border:1px solid var(--line);border-radius:11px">
+            <span class="sev s-info">Ordinary</span>
+            <div><div style="font-size:13.5px">“Why is the sky blue?”</div>
+              <div style="font-size:12px;color:var(--subtle);margin-top:3px">Answered. Never shown to you. Not logged as a concern.</div></div>
+          </div>
+          <div style="display:flex;gap:14px;align-items:flex-start;padding:13px 15px;background:var(--surface);border:1px solid var(--line);border-radius:11px">
+            <span class="sev s-low">Recorded</span>
+            <div><div style="font-size:13.5px">A question about bodies, or a rude word</div>
+              <div style="font-size:12px;color:var(--subtle);margin-top:3px">You see <b style="color:var(--muted)">that it happened</b> — not the words. Start the conversation yourself.</div></div>
+          </div>
+          <div class="gate"><span class="m-label">The gate</span><span class="rule"></span><span class="m-label" style="color:var(--subtle)">above here, you can read it</span></div>
+          <div style="display:flex;gap:14px;align-items:flex-start;padding:13px 15px;background:var(--surface);border:1px solid var(--line);border-radius:11px">
+            <span class="sev s-med">Open</span>
+            <div><div style="font-size:13.5px">Something repeated, or something worrying</div>
+              <div style="font-size:12px;color:var(--subtle);margin-top:3px">The transcript opens to you. Every time you open one, it's recorded.</div></div>
+          </div>
+          <div style="display:flex;gap:14px;align-items:flex-start;padding:13px 15px;background:var(--critical-bg);border-left:2px solid var(--critical);border-radius:0 11px 11px 0">
+            <span class="sev s-crit">Urgent</span>
+            <div><div style="font-size:13.5px">Self-harm, or someone trying to reach them</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:3px">You're emailed straight away — and your child is shown where to get help, before anything else happens.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ul class="ann">
+    <li><span class="n">1</span><b>The headline is the differentiator</b>, not a mood. “Ask anything / you'll only see what matters” is the PRD sentence in a parent's words.</li>
+    <li><span class="n">2</span><b>The gate keeps its dashed rule</b> — the one device already in the product and on the dashboard. Brand and mechanism stay the same shape.</li>
+    <li><span class="n">3</span><b>Child sign-in demoted to the rail.</b> Returning children mostly arrive by family link or paired device; they don't need half the hero.</li>
+    <li><span class="n">4</span><b>Severity colours are the shipped tokens</b>, so the page teaches the same colour language the dashboard uses.</li>
+    <li><span class="n">5</span><b>Crisis rung reads calm, not alarming.</b> A parent scanning this is already anxious; the tier that matters most shouldn't shout.</li>
+  </ul>
+  <div class="verdict"><b>Risk:</b> closest to what exists, so it's the least differentiated. If a competitor screenshots it, the idea is legible in one glance — which is both the strength and the exposure.</div>
+</div>
+
+<!-- ═══ CONCEPT B ═══ -->
+<div class="concept">
+  <div class="chead"><span class="badge">Concept B</span><h3>Two Truths</h3></div>
+  <p class="tagline">“One product, two experiences — held side by side the whole way down.”</p>
+  <p class="sub">
+    The page splits permanently. Left is what your child lives; right is what you're shown. The
+    argument lands through structure rather than copy, and the asymmetry <em>is</em> the promise:
+    the left column is always fuller than the right.
+  </p>
+
+  <div class="mock">
+    <div class="chrome"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="addr">bubbli.app</span></div>
+    <div class="m-rail">
+      <span class="m-brand"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10" cy="14" r="6.5" stroke="#e59078" stroke-width="1.75"/><circle cx="18.5" cy="6" r="2.75" fill="#e59078"/></svg>Bubbli</span>
+      <span class="m-nav"><span>How it works</span><span>Safety</span><span>Pricing</span><span style="color:var(--subtle)">Child sign-in</span></span>
+      <span class="m-cta">Start free</span>
+    </div>
+    <div class="m-body">
+      <div style="text-align:center;max-width:44ch;margin:0 auto 34px">
+        <h2 class="m-h1">Two experiences.<br><em>One honest promise.</em></h2>
+        <p class="m-p" style="margin-left:auto;margin-right:auto">Your child gets a companion.
+          You get the truth about what needs you — and nothing that doesn't.</p>
+      </div>
+
+      <div class="split" style="display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden">
+        <div style="padding:22px;border-right:1px solid var(--line)">
+          <p class="m-label" style="margin:0 0 15px;color:var(--accent)">What your child sees</p>
+          <div style="display:grid;gap:8px">
+            <div class="bubble kid">Why is the sky blue?</div>
+            <div class="bubble ai">Sunlight is made of many colours, and blue bounces around the air the most…</div>
+            <div class="bubble kid">Tell me more!</div>
+            <div class="bubble ai">At sunset the light travels further, so the reds get through instead…</div>
+          </div>
+          <p style="font-size:12px;color:var(--subtle);margin-top:15px">A patient teacher who never gets bored of “why”.</p>
+        </div>
+        <div style="padding:22px;background:#191509">
+          <p class="m-label" style="margin:0 0 15px">What you see</p>
+          <div style="border:1px dashed var(--line-strong);border-radius:11px;padding:26px 16px;text-align:center">
+            <p style="font-family:var(--serif);font-size:19px;margin:0">Nothing.</p>
+            <p style="font-size:12.5px;color:var(--subtle);margin:7px 0 0">This one was ordinary, so it stays theirs.</p>
+          </div>
+          <p style="font-size:12px;color:var(--subtle);margin-top:15px">You'll hear from us when it counts — not before.</p>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px;overflow:hidden;margin-top:-1px">
+        <div style="padding:22px;border-right:1px solid var(--line)">
+          <div class="bubble kid" style="margin-bottom:8px">i don't want to be here anymore</div>
+          <div class="bubble ai" style="border-color:var(--critical);background:var(--critical-bg)">
+            <span class="m-label" style="color:var(--critical);display:block;margin-bottom:5px">Please read this</span>
+            Thank you for telling me. That took courage… You can call or text 988, any time.</div>
+        </div>
+        <div style="padding:22px;background:#191509">
+          <div style="border-left:2px solid var(--critical);background:var(--critical-bg);padding:13px 15px;border-radius:0 9px 9px 0">
+            <span class="sev s-crit">Urgent</span>
+            <p style="font-size:13.5px;margin:8px 0 0">Emma, 14 minutes ago</p>
+            <p style="font-size:12.5px;color:var(--muted);margin:5px 0 0">Emailed to you immediately. Transcript open.</p>
+          </div>
+          <p style="font-size:12px;color:var(--subtle);margin-top:15px">The only kind of message that reaches you unasked.</p>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:30px">
+        <span class="m-btn">Start free — no card</span>
+        <p class="m-micro">Two minutes to set up. Your child needs no email address.</p>
+      </div>
+    </div>
+  </div>
+
+  <ul class="ann">
+    <li><span class="n">1</span><b>“Nothing.” is the strongest word on the page.</b> Most competitors sell a fuller dashboard; you're selling an emptier one, and this frames that as the feature.</li>
+    <li><span class="n">2</span><b>The second row earns the first.</b> Having just shown restraint, the crisis row proves restraint isn't absence.</li>
+    <li><span class="n">3</span><b>Structure carries the argument</b> — a parent who reads no copy still gets it from the shape.</li>
+    <li><span class="n">4</span><b>“Your child needs no email address”</b> pre-empts the objection a privacy-minded parent raises first, and it's true because of device pairing.</li>
+    <li><span class="n">5</span><b>Collapses to stacked pairs on mobile</b>, left then right, so the contrast survives one column.</li>
+  </ul>
+  <div class="verdict"><b>Risk:</b> a rigid split is demanding to art-direct all the way down, and every future section must come in pairs or the device breaks.</div>
+</div>
+
+<!-- ═══ CONCEPT C ═══ -->
+<div class="concept">
+  <div class="chead"><span class="badge pick">Concept C</span><span class="badge">Recommended</span><h3>The Margin</h3></div>
+  <p class="tagline">“The page is a real conversation, annotated in the margin by the safety layer.”</p>
+  <p class="sub">
+    A single scrolling transcript down the centre. In the margin, the safety layer narrates what it
+    did at each turn — <em>passed</em>, <em>recorded</em>, <em>opened</em>, <em>escalated</em>. The
+    product demonstrates itself. Nothing is claimed that isn't shown happening.
+  </p>
+
+  <div class="mock">
+    <div class="chrome"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="addr">bubbli.app</span></div>
+    <div class="m-rail">
+      <span class="m-brand"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10" cy="14" r="6.5" stroke="#e59078" stroke-width="1.75"/><circle cx="18.5" cy="6" r="2.75" fill="#e59078"/></svg>Bubbli</span>
+      <span class="m-nav"><span>How it works</span><span>Safety</span><span>Pricing</span><span style="color:var(--subtle)">Child sign-in</span></span>
+      <span class="m-cta">Start free</span>
+    </div>
+    <div class="m-body">
+      <div style="max-width:50ch;margin-bottom:34px">
+        <h2 class="m-h1">Watch it work.<br><em>Then decide.</em></h2>
+        <p class="m-p">One afternoon with Bubbli, exactly as it happens — and exactly what
+          reaches a parent. Nothing here is a mock-up of a promise.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:26px;align-items:start">
+        <div style="display:grid;gap:9px">
+          <div class="bubble kid">Why is the sky blue?</div>
+          <div class="bubble ai">Sunlight is made of lots of colours, and blue bounces around in the air the most — a bit like a ping-pong ball in a crowd.</div>
+          <div class="bubble kid" style="margin-top:14px">what is sexx</div>
+          <div class="bubble ai">That's a good question to ask a grown-up you trust — a parent, or a teacher. They'll give you the best answer. Is there something else you're curious about?</div>
+          <div class="bubble kid" style="margin-top:14px">i don't want to be here anymore</div>
+          <div class="bubble ai" style="border-color:var(--critical);background:var(--critical-bg)">
+            <span class="m-label" style="color:var(--critical);display:block;margin-bottom:5px">Please read this</span>
+            Thank you for telling me. That took courage, and what you're feeling really matters. Please talk to a grown-up you trust right now. You can call or text <b>988</b>, any time.</div>
+        </div>
+
+        <div style="display:grid;gap:9px;font-size:12px;padding-top:2px">
+          <div style="border-left:1px solid var(--line);padding:9px 0 9px 13px">
+            <span class="sev s-info">Passed</span>
+            <p style="margin:7px 0 0;color:var(--subtle);line-height:1.5">Ordinary curiosity. Never shown to a parent.</p>
+          </div>
+          <div style="border-left:1px solid var(--low);padding:9px 0 9px 13px;margin-top:56px">
+            <span class="sev s-low">Recorded</span>
+            <p style="margin:7px 0 0;color:var(--subtle);line-height:1.5">You'd see <b style="color:var(--muted)">that this came up</b> — not the words. Yours to raise, gently.</p>
+          </div>
+          <div style="border-left:2px solid var(--critical);padding:9px 0 9px 13px;margin-top:30px">
+            <span class="sev s-crit">You're told now</span>
+            <p style="margin:7px 0 0;color:var(--muted);line-height:1.5">Emailed within seconds. Transcript open. Help shown to them <b style="color:var(--ink)">before</b> anything was saved.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:34px;border-top:1px solid var(--line);padding-top:24px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap">
+        <p style="font-family:var(--serif);font-size:17px;margin:0;max-width:40ch">
+          Three messages. One reached you. That ratio <em style="color:var(--accent)">is</em> the product.</p>
+        <span class="m-btn">Start free — no card</span>
+      </div>
+    </div>
+  </div>
+
+  <ul class="ann">
+    <li><span class="n">1</span><b>Demonstration beats assertion.</b> Every rival claims “safe AI for kids”. This shows the machinery deciding, turn by turn, which is very hard to copy credibly.</li>
+    <li><span class="n">2</span><b>The middle turn is the brave one.</b> Showing a real awkward question — the exact miss you caught in testing — signals you've thought about the messy case, not just the demo case.</li>
+    <li><span class="n">3</span><b>The margin is where the trust is built.</b> A parent reads the left column as their child and the right as themselves, in one pass.</li>
+    <li><span class="n">4</span><b>“Three messages. One reached you.”</b> gives a parent a number to hold, without inventing a statistic.</li>
+    <li><span class="n">5</span><b>On mobile the margin note follows each turn inline</b>, so the pairing survives a single column.</li>
+    <li><span class="n">6</span><b>Reuses real components</b> — bubbles, mark, severity chips, crisis card already exist. Cheapest of the three to build well.</li>
+  </ul>
+  <div class="verdict">
+    <b>Why I'd pick this one:</b> it's the only concept that can't be written by a competitor who
+    hasn't built the mechanism. A and B describe a promise; C shows a system making decisions,
+    including an uncomfortable one. <b>Risk:</b> the crisis example is heavy for a landing page — it
+    may need a softer default with the serious turn revealed on interaction.
+  </div>
+</div>
+
+<section>
+  <h2>What all three share</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Decision</th><th>Rationale</th></tr></thead>
+    <tbody>
+      <tr><td>One primary CTA: <b>Start free — no card</b></td><td>A worried parent converts on “try it”, not “contact sales”. One primary action per view.</td></tr>
+      <tr><td>Child sign-in lives in the rail</td><td>Returning children arrive by family link or paired device. It's navigation, not conversion.</td></tr>
+      <tr><td>Existing token layer, unchanged</td><td>40/40 WCAG pairs already measured in both themes. No new palette, no Google Fonts dependency.</td></tr>
+      <tr><td>Real product components</td><td>Bubbles, Bubbli mark, severity chips, gate rule and crisis card all exist. Lower build cost, and the page cannot drift from the app.</td></tr>
+      <tr><td>No invented statistics</td><td>No “trusted by 10,000 families”. You don't have them yet, and a fabricated number on a child-safety product is the worst possible trade.</td></tr>
+      <tr><td>Light theme still required</td><td>Mocks are dark because the tokens are strongest there. Both themes are first-class and would ship together.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<footer>
+  <h2 style="font-size:1.4rem;color:var(--paper-ink);margin-bottom:12px">If you want to go ahead</h2>
+  <p style="max-width:70ch">Tell me which concept — or which parts. Then the implementation plan
+    covers the page itself, a light-theme pass, the mobile collapse for whichever pairing device
+    the chosen concept uses, and the copy. Nothing here is committed to code.</p>
+  <h2 style="font-size:1.1rem;color:var(--paper-ink);margin:30px 0 10px">Open questions</h2>
+  <ul style="max-width:70ch;padding-left:20px">
+    <li><b>Is there pricing?</b> All three show “Start free — no card”. If Bubbli is paid, the hero
+      and the CTA both change, and a pricing section is needed.</li>
+    <li><b>How heavy should the crisis example be?</b> Concept C is deliberately unflinching. That
+      may be exactly right, or may need the serious turn behind an interaction.</li>
+    <li><b>Is the child-facing entry needed on the marketing page at all</b>, or should
+      <code>bubbli.app</code> be purely the parent pitch with children arriving only by family link?</li>
+  </ul>
+</footer>
+
+</div>
+</body>
+</html>
