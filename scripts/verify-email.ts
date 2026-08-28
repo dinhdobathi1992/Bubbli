@@ -9,23 +9,11 @@
  * message in somebody's inbox. Note that while SES is in sandbox the only
  * deliverable recipients are verified identities.
  */
-import { readFileSync, existsSync } from 'fs';
+import { loadEnv } from '../src/config/load-env';
 
-// Same loader the test bootstrap uses: exercise the REAL validated config
-// rather than a hand-built stub.
-if (existsSync('.env.local')) {
-  for (const line of readFileSync('.env.local', 'utf8').split('\n')) {
-    const t = line.trim();
-    if (!t || t.startsWith('#') || !t.includes('=')) continue;
-    const i = t.indexOf('=');
-    const key = t.slice(0, i).trim();
-    let val = t.slice(i + 1).trim();
-    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
-      val = val.slice(1, -1);
-    }
-    if (!(key in process.env)) process.env[key] = val;
-  }
-}
+// Same loader the app and the test bootstrap use, so this script can never
+// disagree with production about whether the credentials work.
+loadEnv();
 
 async function main() {
   const { settings } = await import('../src/config/settings');

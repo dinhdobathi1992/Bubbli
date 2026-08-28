@@ -15,8 +15,15 @@ const config = [
     // check in production.
     files: ['src/**/*.{ts,tsx}'],
     // NODE_ENV is a build-time constant, not runtime configuration, and cookie
-    // prefixes must key off it before settings.ts is even loaded.
-    ignores: ['src/config/settings.ts', 'src/lib/auth/child-session.ts', 'src/lib/db/client.ts'],
+    // prefixes must key off it before settings.ts is even loaded. load-env.ts is
+    // the module that POPULATES process.env for non-Next entry points, so it
+    // necessarily runs before there is anything for settings.ts to validate.
+    ignores: [
+      'src/config/settings.ts',
+      'src/config/load-env.ts',
+      'src/lib/auth/child-session.ts',
+      'src/lib/db/client.ts',
+    ],
     rules: {
       'no-restricted-properties': [
         'error',

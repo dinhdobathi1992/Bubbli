@@ -5,19 +5,11 @@
  * config rather than a hand-built stub. The config module deliberately exits
  * when a provider in the chain has no credentials — that guard should hold in
  * tests too, not be bypassed by them.
+ *
+ * The loader is shared with the scripts rather than reimplemented here. The
+ * hand-rolled version this replaces did not expand `\$`, so the suite ran
+ * against a corrupted SES password; see `src/config/load-env.ts`.
  */
-import { readFileSync, existsSync } from 'fs';
+import { loadEnv } from '@/config/load-env';
 
-if (existsSync('.env.local')) {
-  for (const line of readFileSync('.env.local', 'utf8').split('\n')) {
-    const t = line.trim();
-    if (!t || t.startsWith('#') || !t.includes('=')) continue;
-    const i = t.indexOf('=');
-    const key = t.slice(0, i).trim();
-    let val = t.slice(i + 1).trim();
-    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
-      val = val.slice(1, -1);
-    }
-    if (!(key in process.env)) process.env[key] = val;
-  }
-}
+loadEnv();
