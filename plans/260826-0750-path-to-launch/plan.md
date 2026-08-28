@@ -82,18 +82,29 @@ the percentage never showed.
 
 ## Success Criteria
 
-- [ ] A parent signs in with email and password and reaches `/parent` with a real session
-- [ ] A `high`/`critical` flag delivers an email to every consented guardian, carrying
-      metadata only — no message content — and writes an audit row per dispatch
-- [ ] G1 runtime suite globs every surface, drives both principal types against seeded
-      `info`/`low` conversations, and fails if any returns content
-- [ ] Every AI-invoking route is quota-covered; a new one without quota fails a test
-- [ ] A child signs in with a short join code, or follows a family link and types only
+- [x] A parent signs in and reaches `/parent` with a real session. **Amended:** email
+      **OTP**, not email and password — there is no password to forget, reset or leak, and
+      receiving the code re-proves mailbox control on every sign-in, which is what makes
+      `parents.auth_user_id` safe to trust as the guardian link
+- [x] A `high`/`critical` flag delivers an email to every consented guardian, carrying
+      metadata only — no message content — and writes an audit row per dispatch **attempt**,
+      carrying `delivered` or `failed` rather than the outcome that was hoped for
+- [x] G1 runtime suite globs every surface, drives both principal types against seeded
+      `info`/`low` conversations, and fails if any returns content — **and fails if a surface
+      could not be driven at all.** The first version passed vacuously on 11 of 21 server
+      surfaces; see phase 3
+- [x] Every AI-invoking route is quota-covered; a new one without quota fails a test.
+      Discovery follows `await import()` and covers pages and Server Actions, not only
+      route handlers
+- [x] A child signs in with a short join code, or follows a family link and types only
       name and PIN
-- [ ] A p50/p95 figure exists, labelled as measured on a non-production provider
-- [ ] No message content, PIN, email or display name appears in any log line
-- [ ] `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm corpus:eval`, `pnpm test:mutation` pass
-- [ ] Dependency audit and secret scan clean
+- [ ] A p50/p95 figure exists, labelled as measured on a non-production provider *(phase 5)*
+- [ ] No message content, PIN, email or display name appears in any log line *(phase 6.
+      Partially advanced: provider error text now has the recipient removed before it can
+      reach a log. The dev/preview log fallback still writes a guardian address and a
+      child's display name to stdout — `src/lib/email/send.ts`, gated to non-production)*
+- [x] `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm corpus:eval`, `pnpm test:mutation` pass
+- [ ] Dependency audit and secret scan clean *(phase 6 — neither runs in CI yet)*
 
 ## Launch blockers outside this repo
 
