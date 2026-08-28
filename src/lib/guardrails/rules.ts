@@ -85,6 +85,63 @@ const SEX_OK = [
 const SEX_TOPIC =
   /\bsex\b|\bsexx+\b|\bseggs\b|\bsexual\s+(intercourse|activity)\b|\bmaking\s+love\b|\bhow\s+are\s+babies\s+made\b|\blose\s+my\s+virginity\b/i;
 
+/**
+ * Violence against a person, assembled from three parts rather than spelled out
+ * as whole phrases.
+ *
+ * The rule this replaces listed four verbs and one sentence shape, and `kill`
+ * was not among the verbs. `how to kill a man` — about as plain as a violence
+ * request gets — reached the model with nothing recorded, and so did seven of
+ * the ten commonest phrasings. Enumerating sentences does not scale; the parts
+ * do.
+ *
+ * The TARGET is what keeps precision. A child asking `how to kill the boss in
+ * minecraft` or `how to kill weeds` names something that is not a person, so it
+ * never matches — which is why the target list is closed and specific rather
+ * than `.{0,20}`.
+ */
+const HARM_REQUEST =
+  /\b(how\s+(to|do\s+i|can\s+i|would\s+i)|best\s+way\s+to|ways?\s+to|i\s+want\s+to|i\s+wanna|help\s+me|teach\s+me\s+(to|how\s+to)|tell\s+me\s+how\s+to)\b/;
+
+const HARM_VERB =
+  /\b(kill|murder|hurt|harm|stab|shoot|strangle|choke|poison|drown|suffocate|beat\s+up|attack|torture)\b/;
+
+/** Person-shaped objects only. A boss, a level, a weed and a germ are not here. */
+const HARM_OBJECT =
+  /\b(someone|somebody|a\s+person|people|a\s+man|a\s+woman|a\s+guy|a\s+girl|a\s+boy|a\s+kid|a\s+child|a\s+baby|him|her|them|my\s+(mum|mom|mother|dad|father|brother|sister|teacher|friend|classmate|neighbou?r))\b/;
+
+/** REQUEST … VERB … OBJECT, with room for filler between the parts. */
+const VIOLENCE_REQUEST = new RegExp(
+  `${HARM_REQUEST.source}[^\\n]{0,12}?${HARM_VERB.source}[^\\n]{0,16}?${HARM_OBJECT.source}`,
+  'i',
+);
+
+/**
+ * Play, sport and fiction, where the same words are ordinary.
+ *
+ * `him` and `her` are in the object list, so `how to kill him` matches — and in
+ * a game that is a false positive. This is what buys it back.
+ */
+const VIOLENCE_PLAY_OK = [
+  /\b(game|gaming|minecraft|roblox|fortnite|zombie|boss|level|npc|respawn|xbox|playstation|nintendo)\b/i,
+  /\b(chess|checkers|basketball|football|soccer|hockey|paintball|dodgeball)\b/i,
+  /\b(in\s+my\s+(story|book|novel)|for\s+my\s+(story|book|essay))\b/i,
+];
+
+/**
+ * Asking to obtain something, as opposed to asking what it is.
+ *
+ * "what is cannabis" is a question a curriculum answers. "how to buy weed" is
+ * not. The frame is what separates them, and it is shared so that a phrasing
+ * added here reaches every rule that acquires something.
+ */
+const ACQUIRE_REQUEST =
+  /\b(how\s+(to|do\s+i|can\s+i)|where\s+(to|can\s+i|do\s+i)|best\s+way\s+to|ways?\s+to|help\s+me|i\s+want\s+to|i\s+wanna)\b[^\n]{0,14}?\b(get|buy|find|make|build|craft|score|order|obtain)\b/;
+
+/** Protected groups, as whole phrases: "black holes" and "black bears" are not people. */
+const HATE_GROUP =
+  /\b(black|white|asian|arab|jewish|muslim|christian|hindu|mexican|chinese|indian|african|gay|lesbian|trans(gender)?|disabled|immigrant)\s+(people|kids|children|men|women|folks?)\b|\b(jews|muslims|christians|immigrants|gays|lesbians|foreigners)\b/;
+
 /** Third-person and historical death, and figurative idiom. */
 const DEATH_IDIOM_OK = [
   /\bdying\s+to\s+(know|see|hear|find|try)\b/i,
@@ -306,11 +363,19 @@ const inappropriate: Rule[] = [
     category: 'inappropriate_request',
     direction: 'input',
     severity: 'high',
-    pattern:
-      /\b(torture|gory|gruesome)\b|\bhow\s+(do|can)\s+i\s+(hurt|attack|stab|shoot)\s+(someone|somebody|him|her|them)\b|\bmake\s+a\s+weapon\b|\bbuy\s+a\s+(knife|gun)\b/i,
-    exclude: [/\bmedieval\b/i, /\bhistory\b/i, /\bbattle\s+of\b/i],
+    pattern: new RegExp(
+      `\\b(torture|gory|gruesome)\\b|${VIOLENCE_REQUEST.source}|\\bmake\\s+a\\s+weapon\\b|\\bbuy\\s+a\\s+(knife|gun)\\b`,
+      'i',
+    ),
+    exclude: [
+      /\bmedieval\b/i,
+      /\bhistory\b/i,
+      /\bbattle\s+of\b/i,
+      ...VIOLENCE_PLAY_OK,
+      ...DEATH_IDIOM_OK,
+    ],
     enabled: true,
-    note: 'Violence request. Excludes historical weapon questions.',
+    note: 'Violence request against a person. Excludes games, sport, fiction, history and idiom.',
   },
   {
     id: 'inap.violence.story',
@@ -326,21 +391,70 @@ const inappropriate: Rule[] = [
     category: 'inappropriate_request',
     direction: 'input',
     severity: 'high',
-    pattern: /\b(how\s+to\s+)?make\s+a\s+(bomb|explosive|molotov|weapon\s+that)\b|\bhow\s+do\s+i\s+make\s+.{0,12}\bbomb\b/i,
-    exclude: [/\bbath\s+bomb\b/i, /\bbomb\s+(calorimeter|cyclone)\b/i, /\bphotobomb/i],
+    pattern: new RegExp(
+      `${ACQUIRE_REQUEST.source}[^\\n]{0,10}?\\b(bomb|explosive|molotov|gun|firearm|rifle|pistol|silencer|weapon)\\b` +
+        `|\\b(how\\s+to\\s+)?make\\s+a\\s+(bomb|explosive|molotov|gun|weapon\\s+that)\\b`,
+      'i',
+    ),
+    exclude: [
+      /\bbath\s+bomb\b/i,
+      /\bbomb\s+(calorimeter|cyclone)\b/i,
+      /\bphotobomb/i,
+      // Toys and tools share the word, and so does every sandbox game.
+      /\b(nerf|water|glue|foam|toy|potato|squirt)\s+gun\b/i,
+      /\b(minecraft|roblox|fortnite|game|lego|papercraft|origami)\b/i,
+    ],
     enabled: true,
-    note: 'Explosive or weapon construction. Excludes bath bombs and bomb calorimeters.',
+    note: 'Explosive or firearm construction. Excludes bath bombs, calorimeters, toy guns and games.',
   },
   {
     id: 'inap.substance',
     category: 'inappropriate_request',
     direction: 'input',
     severity: 'high',
-    pattern:
-      /\b(get\s+high|get\s+drunk|vape|vaping)\b|\bwhat\s+drugs\b|\bhow\s+much\s+(vodka|beer|alcohol|wine)\b/i,
-    exclude: [/\bdrugs\s+(do|does)\s+doctors\b/i, /\bprescription\s+drugs\b/i],
+    pattern: new RegExp(
+      `\\b(get\\s+high|get\\s+drunk|vape|vaping)\\b|\\bwhat\\s+drugs\\b|\\bhow\\s+much\\s+(vodka|beer|alcohol|wine)\\b` +
+        `|${ACQUIRE_REQUEST.source}[^\\n]{0,10}?\\b(drugs|weed|cannabis|marijuana|cocaine|meth|heroin|ecstasy|mdma|ketamine|vape|alcohol|beer|vodka)\\b`,
+      'i',
+    ),
+    exclude: [
+      /\bdrugs\s+(do|does)\s+doctors\b/i,
+      /\bprescription\s+drugs\b/i,
+      // Pharmacology is curriculum; so is the war on drugs.
+      /\b(medicine|medicines|pharmacy|pharmacist|antibiotic|asthma|inhaler|doctor|hospital)\b/i,
+      /\b(war\s+on\s+drugs|drug\s+(policy|education|awareness))\b/i,
+    ],
     enabled: true,
-    note: 'Substance use. Excludes medical framing.',
+    note: 'Substance use or acquisition. Excludes medical framing, pharmacology and drug education.',
+  },
+  {
+    id: 'inap.hate',
+    category: 'inappropriate_request',
+    direction: 'input',
+    severity: 'high',
+    pattern: new RegExp(
+      `\\b(i\\s+)?hate\\b[^\\n]{0,10}?${HATE_GROUP.source}` +
+        `|\\bwhy\\s+are\\b[^\\n]{0,4}?${HATE_GROUP.source}[^\\n]{0,12}?\\b(bad|evil|stupid|dirty|ugly|criminals?|terrorists?)\\b` +
+        `|${HATE_GROUP.source}[^\\n]{0,12}?\\b(should\\s+die|are\\s+subhuman|dont\\s+belong|do\\s+not\\s+belong)\\b`,
+      'i',
+    ),
+    exclude: [
+      // Asking ABOUT prejudice is the curriculum, not the offence.
+      /\b(racism|racist|discrimination|prejudice|civil\s+rights|apartheid|holocaust|segregation|history|why\s+do\s+(some\s+)?people)\b/i,
+    ],
+    enabled: true,
+    note: 'Hatred aimed at a protected group. Excludes lessons about racism and civil rights.',
+  },
+  {
+    id: 'inap.bully',
+    category: 'inappropriate_request',
+    direction: 'input',
+    severity: 'high',
+    pattern:
+      /\b(how\s+(to|do\s+i|can\s+i)|best\s+way\s+to|ways?\s+to|help\s+me|teach\s+me\s+how\s+to)\b[^\n]{0,12}?\b(bully|humiliate|embarrass|threaten|blackmail|spread\s+rumou?rs\s+about)\b/i,
+    exclude: [/\b(stop|stand\s+up\s+to|deal\s+with|report|prevent)\b/i],
+    enabled: true,
+    note: 'Asking how to bully. Excludes asking how to STOP or report bullying.',
   },
 ];
 
