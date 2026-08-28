@@ -78,6 +78,15 @@ than through a gateway rests on an unverified premise.
 | DeepSeek | Receives message content at inference time | Not cleared, development only |
 | AWS | Planned inference | Pending |
 | Vercel | Planned hosting | Not yet provisioned |
+| Resend / AWS SES | Carry guardian alerts and sign-in codes | Gated by `EMAIL_COMPLIANCE` in `src/config/settings.ts`; **neither DPA reviewed** |
+
+A mail transport is a sub-processor of children's data, not plumbing. A guardian
+alert carries a child's display name and a safety severity, and it lands in the
+provider's sending logs, the guardian's mail host, and a lock-screen preview —
+three places outside our audit boundary. That is precisely why the alert carries
+no message content ([0006](0006-notification-transport.md)) and why
+`EMAIL_COMPLIANCE` refuses a production start on an uncleared transport, exactly
+as `PROVIDER_COMPLIANCE` does for inference.
 
 **Q-H remains open:** the plan rejected a hosted auth service because it would
 place children's identity data with an additional sub-processor. The same test
@@ -91,6 +100,8 @@ Same test, opposite outcome, no recorded rationale.
 - [ ] Amend PRD §7.4 to describe at-rest encryption accurately
 - [ ] Obtain Bedrock model access and record a real inference call in the residency region
 - [ ] Obtain DPA and zero-retention terms for the production provider, in writing
+- [ ] Obtain DPA terms for the production **email** transport, and record its retention
+      of message metadata — sending logs outlive the notification
 - [ ] Review and record the database host's sub-processor position (Q-H)
 - [ ] Decide the production data region (see `0001-region-and-residency.md`)
 - [ ] Answer Q-B: verifiable parental consent depth for under-13

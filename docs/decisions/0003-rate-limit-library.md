@@ -39,6 +39,35 @@ children's request metadata and a second residency decision, to avoid roughly
 thirty lines of SQL. As the review itself put it: a small fully-tested
 implementation is defensible; discovering the constraint on day 24 is not.
 
+## What the shared table must not be reused for
+
+`login_attempts` now carries four kinds of counter — child logins, family
+lockout, enquiry submissions, and parent sign-in codes — separated only by the
+`identifier` column. One table, one retention sweep, one privacy posture; that
+part has held.
+
+The constraint the design did not state, and which was proven exploitable:
+
+**A namespace an attacker can write into is not a namespace.** `/api/child/login`
+records the caller-supplied display name verbatim as `identifier`, so anyone
+could POST a name that impersonated the reserved `parent-otp:` prefix. Because
+the parent-code ceiling counted rows by prefix alone, ten anonymous requests
+could deny sign-in codes to every guardian behind an IP — an unauthenticated
+request switching off the alert path for a household.
+
+So any counter sharing this table must be separated by something the caller
+cannot supply. Today that is `succeeded = true`, which no failed login can
+forge. A future counter has three options and the first is preferred:
+
+1. its own column, not a string prefix;
+2. a discriminator the caller cannot write;
+3. its own table.
+
+The related trap, from the enquiry form: `checkLoginRate` counts only
+`succeeded = false`. A counter whose events are recorded as successes and read
+through it is limited by nothing at all, and reads as though it were limited.
+Match the predicate to what the counter is protecting against.
+
 ## Mandatory tests (Phase 7)
 
 - Request N allowed, request N+1 refused, **at the real route**

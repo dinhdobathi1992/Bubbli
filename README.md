@@ -54,9 +54,14 @@ pnpm test:mutation                          # G3: are the tests worth anything
 ```
 
 `pnpm lint` is not only style. Custom ESLint rules enforce structure the type
-system cannot: only two named modules may read `messages.content`, and
-`process.env` is banned outside the config layer. A lint failure there is a
-design violation, not a formatting nit.
+system cannot: only the audited modules named in `eslint-rules/no-direct-message-query.js`
+may read `messages.content`, and `process.env` is banned outside the config
+layer. A lint failure there is a design violation, not a formatting nit.
+
+That rule is half of release gate G1. The other half is `tests/isolation/`,
+which drives every surface with each principal type and asserts what actually
+comes back — a static rule cannot see what a request returns, and a runtime
+suite cannot see a surface its glob misses.
 
 `pnpm corpus:eval` gates **precision** (a false positive blocks a child's
 homework) and reports recall without gating it. Both numbers are only as honest
@@ -70,6 +75,7 @@ for what happened when the corpus shared a rule's blind spot.
 | `src/lib/guardrails/` | The rule table, normalizer, engine and classifier seam |
 | `src/lib/chat/` | The turn pipeline, and a child's own read path |
 | `src/lib/authz/` | Every principal assertion. Denials carry 404 by default |
+| `src/lib/notify/` | Guardian alerts. Metadata only — see [ADR 0006](docs/decisions/0006-notification-transport.md) |
 | `src/lib/auth/` | Parent OTP, child PIN and device pairing, session handling |
 | `src/config/` | Zod-validated settings; the only place `process.env` is read |
 | `corpus/heldout/` | The cases G4 grades against |
