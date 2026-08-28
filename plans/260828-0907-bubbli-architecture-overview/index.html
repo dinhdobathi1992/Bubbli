@@ -1,0 +1,1077 @@
+<title>Bubbli Under the Hood</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Be+Vietnam+Pro:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<style>
+/* ─────────────────────────────────────────────────────────────────────────
+   Tokens.
+
+   Lifted from src/app/globals.css, the product's own Forest layer, rather
+   than invented for this page. Ground and accent sit 137 degrees apart in
+   hue; the severity ramp moves in both hue and luminance at every step so
+   the ladder survives greyscale and colour-blind vision.
+
+   Light is the bare :root. Dark redefines TOKENS ONLY, guarded so an
+   explicit light choice beats a dark OS, and again under [data-theme]
+   so the toggle wins in both directions.
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  --ground: #f3f7f4;
+  --surface: #fbfdfb;
+  --raised: #e7eee9;
+  --sunken: #e0e9e3;
+
+  --ink: #101c17;
+  --muted: #4d5f55;
+  --subtle: #75897d;
+
+  --line: #d3ded6;
+  --line-strong: #b4c5ba;
+
+  --accent: #a8482b;
+  --accent-soft: #f2dbd1;
+  --on-accent: #fdf8f5;
+
+  --sev-info: #5c7268;
+  --sev-low: #9a7a22;
+  --sev-medium: #b35c14;
+  --sev-high: #a03318;
+  --sev-critical: #7a0d06;
+
+  --focus: #a8482b;
+
+  --font-display: "Literata", "Iowan Old Style", Palatino, Georgia, serif;
+  --font-sans: "Be Vietnam Pro", "Avenir Next", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --s1: 4px;  --s2: 8px;  --s3: 12px; --s4: 16px;
+  --s6: 24px; --s8: 32px; --s12: 48px; --s16: 64px; --s24: 96px;
+
+  --r-sm: 4px; --r-md: 8px;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0d1512;
+    --surface: #16211d;
+    --raised: #1e2a25;
+    --sunken: #090f0d;
+
+    --ink: #e8efe9;
+    --muted: #9ab0a4;
+    --subtle: #7d9187;
+
+    --line: #25342e;
+    --line-strong: #3c5147;
+
+    --accent: #f0a882;
+    --accent-soft: #3a2b21;
+    --on-accent: #12211a;
+
+    --sev-info: #8fa89a;
+    --sev-low: #ecc76b;
+    --sev-medium: #f0a04a;
+    /* #de6a51, not the guardian register's #d95f45. That value measures
+       4.47:1 on this surface, marginally under AA, and it is recorded as
+       such in globals.css. Here severity names ARE rendered as text on a
+       surface, so the corrected value is the only safe one. */
+    --sev-high: #de6a51;
+    --sev-critical: #ff8a7a;
+
+    --focus: #f0a882;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #0d1512;
+  --surface: #16211d;
+  --raised: #1e2a25;
+  --sunken: #090f0d;
+
+  --ink: #e8efe9;
+  --muted: #9ab0a4;
+  --subtle: #7d9187;
+
+  --line: #25342e;
+  --line-strong: #3c5147;
+
+  --accent: #f0a882;
+  --accent-soft: #3a2b21;
+  --on-accent: #12211a;
+
+  --sev-info: #8fa89a;
+  --sev-low: #ecc76b;
+  --sev-medium: #f0a04a;
+  --sev-high: #de6a51;
+  --sev-critical: #ff8a7a;
+
+  --focus: #f0a882;
+  color-scheme: dark;
+}
+
+/* ── Base ───────────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: clamp(15px, 0.4vw + 14px, 17px);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.14;
+  text-wrap: balance;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+p { text-wrap: pretty; margin: 0; }
+
+code, .mono { font-family: var(--font-mono); font-size: 0.86em; }
+
+a { color: var(--accent); text-underline-offset: 3px; }
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+.wrap {
+  width: min(1180px, 100% - var(--s12));
+  margin-inline: auto;
+}
+
+section {
+  min-height: 100svh;
+  display: grid;
+  align-content: center;
+  padding-block: var(--s24);
+  border-top: 1px solid var(--line);
+}
+section:first-of-type { border-top: 0; }
+
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: var(--s4);
+}
+
+.lede {
+  color: var(--muted);
+  max-width: 62ch;
+  font-size: clamp(16px, 0.5vw + 15px, 19px);
+}
+
+/* ── Controls ───────────────────────────────────────────────────────────── */
+.controls {
+  position: fixed;
+  top: var(--s4);
+  right: var(--s4);
+  z-index: 50;
+  display: flex;
+  gap: var(--s2);
+  background: color-mix(in oklab, var(--surface) 88%, transparent);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: var(--s1);
+  backdrop-filter: blur(8px);
+}
+
+.controls button {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--r-sm);
+  padding: var(--s2) var(--s3);
+  cursor: pointer;
+  min-height: 32px;
+  position: relative;
+  transition: color 160ms var(--ease), background 160ms var(--ease),
+              transform 160ms var(--ease);
+}
+.controls button::before { content: ""; position: absolute; inset: -6px; }
+.controls button:hover { color: var(--ink); background: var(--raised); transform: translateY(-1px); }
+.controls button:active { transform: translateY(1px); }
+.controls button[aria-pressed="true"] {
+  color: var(--on-accent);
+  background: var(--accent);
+}
+.sep { width: 1px; background: var(--line); margin-block: var(--s1); }
+
+/* ── Bilingual ──────────────────────────────────────────────────────────── */
+[data-vi] { display: none; }
+:root[data-bubbli-lang="vi"] [data-vi] { display: revert; }
+:root[data-bubbli-lang="vi"] [data-en] { display: none; }
+
+/* ── Hero: split, never centred ─────────────────────────────────────────── */
+#hero .wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: var(--s16);
+  align-items: center;
+}
+
+.mark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s3);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: var(--s8);
+}
+.mark svg { display: block; }
+
+#hero h1 {
+  font-size: clamp(2.15rem, 2.5vw + 0.9rem, 3.35rem);
+  margin-bottom: var(--s6);
+}
+#hero h1 em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.hero-note {
+  margin-top: var(--s8);
+  padding-top: var(--s6);
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s8);
+}
+.hero-note div { min-width: 0; }
+.hero-note dt {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: var(--s1);
+}
+.hero-note dd {
+  margin: 0;
+  font-size: 15px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── The ladder: the one memorable element ──────────────────────────────── */
+.ladder {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  padding: var(--s6);
+}
+.ladder-cap {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: var(--s4);
+}
+.rung {
+  display: grid;
+  grid-template-columns: 12px 84px 1fr;
+  align-items: center;
+  gap: var(--s3);
+  padding-block: var(--s3);
+}
+.dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--c);
+}
+.rung-name {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--c);
+  font-weight: 500;
+}
+.rung-what { font-size: 13.5px; color: var(--muted); }
+
+/* Below the gate, a child's words are recorded and not readable. The bars
+   ARE the redaction: this is the product's central promise, drawn. */
+.redact {
+  display: flex;
+  gap: var(--s1);
+  align-items: center;
+}
+.redact i {
+  height: 8px;
+  border-radius: 2px;
+  background: var(--line-strong);
+  opacity: 0.75;
+}
+
+.gate {
+  display: grid;
+  grid-template-columns: 12px 1fr;
+  gap: var(--s3);
+  align-items: center;
+  margin-block: var(--s3);
+}
+.gate-line {
+  border-top: 2px dashed var(--accent);
+  position: relative;
+}
+.gate-label {
+  position: absolute;
+  top: -8px;
+  left: 0;
+  background: var(--surface);
+  padding-right: var(--s3);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* ── Pipeline: a real ordered sequence, so numbers are honest ───────────── */
+.steps {
+  display: grid;
+  gap: 0;
+  margin-top: var(--s12);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface);
+}
+.step {
+  display: grid;
+  grid-template-columns: 44px minmax(150px, 200px) 1fr minmax(0, 1.25fr);
+  gap: var(--s4);
+  align-items: baseline;
+  padding: var(--s4) var(--s6);
+  border-top: 1px solid var(--line);
+}
+.step:first-child { border-top: 0; }
+.step-n {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.step-name { font-weight: 600; font-size: 15px; }
+.step-name .tx {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  display: block;
+  font-weight: 500;
+  margin-top: 2px;
+}
+.step-what { font-size: 14px; color: var(--ink); }
+.step-why { font-size: 13.5px; color: var(--muted); }
+
+/* ── Database: grouped clusters, not a bento of filler ──────────────────── */
+.db {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: var(--s16);
+  margin-top: var(--s12);
+  align-items: start;
+}
+.clusters { display: grid; gap: var(--s6); }
+.cluster-h {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: var(--s3);
+}
+.chips { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.chip {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: var(--s1) var(--s2);
+  border-radius: var(--r-sm);
+  background: var(--raised);
+  color: var(--ink);
+  white-space: nowrap;
+}
+.chip.key {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.invariants { display: grid; gap: var(--s6); }
+.inv { display: grid; gap: var(--s1); }
+.inv-h {
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+}
+.inv-h span {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+}
+.inv p { font-size: 13.5px; color: var(--muted); }
+
+/* ── Application: two principals, then the module map ───────────────────── */
+.principals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s6);
+  margin-top: var(--s12);
+}
+.principal {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: var(--s6);
+  background: var(--surface);
+}
+.principal h3 { font-size: 20px; margin-bottom: var(--s2); }
+.principal .how { font-size: 14px; color: var(--muted); margin-bottom: var(--s4); }
+.principal ul { margin: 0; padding-left: 1.1em; font-size: 13.5px; color: var(--muted); }
+.principal li { margin-bottom: var(--s1); }
+
+.order {
+  margin-top: var(--s6);
+  border: 1px solid var(--accent);
+  border-radius: var(--r-md);
+  padding: var(--s4) var(--s6);
+  background: var(--accent-soft);
+}
+.order p { font-size: 14px; color: var(--ink); }
+.order strong { color: var(--accent); }
+
+.modules {
+  margin-top: var(--s12);
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+.modules th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 400;
+  padding-bottom: var(--s2);
+  border-bottom: 1px solid var(--line);
+}
+.modules td { padding-block: var(--s2); border-bottom: 1px solid var(--line); vertical-align: top; }
+.modules td:first-child { font-family: var(--font-mono); font-size: 12.5px; color: var(--accent); white-space: nowrap; padding-right: var(--s6); }
+.modules td:last-child { color: var(--muted); }
+.scroll-x { overflow-x: auto; }
+
+/* ── Gates: a paired comparison, the shape of the argument ──────────────── */
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin-top: var(--s12);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface);
+}
+.pair > div { padding: var(--s6); }
+.pair > div + div { border-left: 1px solid var(--line); }
+.pair h3 { font-size: 18px; margin-bottom: var(--s1); }
+.pair .src { font-family: var(--font-mono); font-size: 11.5px; color: var(--accent); margin-bottom: var(--s4); display: block; }
+.pair dl { margin: 0; display: grid; gap: var(--s3); }
+.pair dt { font-size: 11px; font-family: var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.pair dd { margin: 0; font-size: 14px; color: var(--ink); }
+
+.verdict {
+  margin-top: var(--s6);
+  font-size: 15px;
+  color: var(--ink);
+  max-width: 72ch;
+}
+.verdict strong { color: var(--accent); }
+
+.gate-list { display: grid; gap: var(--s4); margin-top: var(--s8); }
+.gl { display: grid; grid-template-columns: minmax(140px, 200px) 1fr; gap: var(--s6); font-size: 14px; align-items: baseline; }
+.gl code { color: var(--accent); }
+.gl p { color: var(--muted); font-size: 13.5px; }
+
+/* ── Footer ─────────────────────────────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--line);
+  padding-block: var(--s12);
+  font-size: 13px;
+  color: var(--muted);
+}
+footer h2 { font-size: 14px; font-family: var(--font-sans); font-weight: 600; color: var(--muted); margin-bottom: var(--s3); }
+footer ul { margin: 0; padding-left: 1.1em; display: grid; gap: var(--s1); }
+footer a { color: var(--muted); }
+footer a:hover { color: var(--accent); }
+
+/* ── Motion: restrained, and optional ───────────────────────────────────── */
+.rise { opacity: 1; transform: none; }
+/* Hidden ONLY once script has confirmed it is running, so a page with no JS,
+   or a headless renderer, still ships every section visible. */
+.js .rise { opacity: 0; transform: translateY(14px); }
+.js .rise.in {
+  opacity: 1;
+  transform: none;
+  transition: opacity 520ms var(--ease), transform 520ms var(--ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rise, .js .rise, .js .rise.in { opacity: 1; transform: none; transition: none; }
+  * { scroll-behavior: auto !important; }
+}
+
+/* ── Narrow and portrait: compose, do not shrink ────────────────────────── */
+@media (max-width: 960px) {
+  .wrap { width: min(1180px, 100% - var(--s8)); }
+  #hero .wrap, .db, .principals, .pair { grid-template-columns: minmax(0, 1fr); gap: var(--s12); }
+  .pair > div + div { border-left: 0; border-top: 1px solid var(--line); }
+  .step { grid-template-columns: 32px 1fr; gap: var(--s2) var(--s3); }
+  .step-what, .step-why { grid-column: 2; }
+  .gl { grid-template-columns: minmax(0, 1fr); gap: var(--s1); }
+  section { padding-block: var(--s16); }
+}
+@media (max-width: 560px) {
+  .controls button { padding: var(--s2); font-size: 10px; letter-spacing: 0.06em; }
+  .rung { grid-template-columns: 10px 66px 1fr; }
+  .hero-note { gap: var(--s6); }
+}
+</style>
+
+<script>document.documentElement.classList.add("js");</script>
+
+<div class="controls" role="group" aria-label="Page settings">
+  <button type="button" data-lang-btn="en" aria-pressed="true">EN</button>
+  <button type="button" data-lang-btn="vi" aria-pressed="false">VI</button>
+  <div class="sep" aria-hidden="true"></div>
+  <button type="button" data-theme-btn="system" aria-pressed="true">Auto</button>
+  <button type="button" data-theme-btn="light" aria-pressed="false">Light</button>
+  <button type="button" data-theme-btn="dark" aria-pressed="false">Dark</button>
+</div>
+
+<main>
+
+<!-- ── 1. Hero ─────────────────────────────────────────────────────────── -->
+<section id="hero">
+  <div class="wrap">
+    <div>
+      <div class="mark">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <path d="M2 13V6.2C2 5.5 2.5 5 3.2 5H14.8c.7 0 1.2.5 1.2 1.2V13" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M2 9.6h5.4M10.6 9.6H16" stroke="currentColor" stroke-width="1.4"/>
+        </svg>
+        Bubbli
+      </div>
+
+      <h1>
+        <span data-en>A guardian is told something happened. Not <em>what</em>.</span>
+        <span data-vi>Phụ huynh biết có chuyện. Không biết <em>chuyện gì</em>.</span>
+      </h1>
+
+      <p class="lede">
+        <span data-en>A parent who can read every conversation holds a surveillance tool,
+        and a child who knows it will never ask the question that matters. Bubbli holds
+        the middle. Below the gate, what a child says is recorded and stays unreadable.</span>
+        <span data-vi>Một phụ huynh đọc được mọi cuộc trò chuyện đang nắm một công cụ giám sát,
+        và một đứa trẻ biết điều đó sẽ không bao giờ hỏi câu hỏi thật sự quan trọng. Bubbli giữ ở
+        giữa. Dưới ngưỡng, điều đứa trẻ nói được ghi lại và vẫn không thể đọc.</span>
+      </p>
+
+      <dl class="hero-note">
+        <div>
+          <dt data-en>Ages served</dt><dt data-vi>Độ tuổi</dt>
+          <dd>4&ndash;7 · 8&ndash;11 · 12 · 13&ndash;15</dd>
+        </div>
+        <div>
+          <dt data-en>Tables</dt><dt data-vi>Số bảng</dt>
+          <dd>21</dd>
+        </div>
+        <div>
+          <dt data-en>Request surfaces</dt><dt data-vi>Bề mặt yêu cầu</dt>
+          <dd>24</dd>
+        </div>
+        <div>
+          <dt data-en>Gate constant</dt><dt data-vi>Hằng số ngưỡng</dt>
+          <dd class="mono">medium</dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="ladder rise">
+      <div class="ladder-cap">
+        <span data-en>Severity ladder</span>
+        <span data-vi>Thang mức độ</span>
+      </div>
+
+      <div class="rung" style="--c: var(--sev-critical)">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="rung-name">critical</span>
+        <span class="rung-what" data-en>Readable. A guardian is emailed.</span>
+        <span class="rung-what" data-vi>Đọc được. Phụ huynh nhận email.</span>
+      </div>
+      <div class="rung" style="--c: var(--sev-high)">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="rung-name">high</span>
+        <span class="rung-what" data-en>Readable. A guardian is emailed.</span>
+        <span class="rung-what" data-vi>Đọc được. Phụ huynh nhận email.</span>
+      </div>
+      <div class="rung" style="--c: var(--sev-medium)">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="rung-name">medium</span>
+        <span class="rung-what" data-en>Readable. The conversation opens.</span>
+        <span class="rung-what" data-vi>Đọc được. Cuộc trò chuyện được mở.</span>
+      </div>
+
+      <div class="gate" aria-hidden="true">
+        <span></span>
+        <span class="gate-line"><span class="gate-label">visibility gate</span></span>
+      </div>
+
+      <div class="rung" style="--c: var(--sev-low)">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="rung-name">low</span>
+        <span class="redact" aria-hidden="true">
+          <i style="width:38px"></i><i style="width:64px"></i><i style="width:26px"></i><i style="width:50px"></i>
+        </span>
+      </div>
+      <div class="rung" style="--c: var(--sev-info)">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="rung-name">info</span>
+        <span class="redact" aria-hidden="true">
+          <i style="width:52px"></i><i style="width:30px"></i><i style="width:58px"></i>
+        </span>
+      </div>
+
+      <p style="margin-top:var(--s4); font-size:12.5px; color:var(--muted)">
+        <span data-en>Below the line the flag is recorded and the content is not shown.
+        <code>VISIBILITY_GATE</code> is one constant in <code>src/lib/authz/index.ts</code>.</span>
+        <span data-vi>Dưới đường kẻ, cờ vẫn được ghi lại nhưng nội dung không hiển thị.
+        <code>VISIBILITY_GATE</code> là một hằng số trong <code>src/lib/authz/index.ts</code>.</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 2. The turn ─────────────────────────────────────────────────────── -->
+<section id="turn">
+  <div class="wrap">
+    <p class="kicker">src/lib/chat/pipeline.ts</p>
+    <h2 style="font-size: clamp(1.9rem, 2.4vw + 1rem, 3rem)">
+      <span data-en>Every message takes the same path, and the order is the design</span>
+      <span data-vi>Mọi tin nhắn đi cùng một đường, và thứ tự chính là thiết kế</span>
+    </h2>
+    <p class="lede" style="margin-top: var(--s4)">
+      <span data-en>Both directions are graded. The model's reply is checked too, because
+      the case where the assistant itself is the hazard is the one nobody plans for.</span>
+      <span data-vi>Cả hai chiều đều được chấm. Câu trả lời của mô hình cũng được kiểm tra,
+      vì trường hợp chính trợ lý là mối nguy là điều không ai lường trước.</span>
+    </p>
+
+    <div class="steps rise">
+      <div class="step">
+        <span class="step-n">01</span>
+        <span class="step-name" data-en>Idempotency</span>
+        <span class="step-name" data-vi>Chống lặp</span>
+        <span class="step-what" data-en>A retry is recognised.</span>
+        <span class="step-what" data-vi>Nhận diện lần thử lại.</span>
+        <span class="step-why" data-en>Generation holds a request open for seconds. A retry must not double-flag or fire a second crisis notification.</span>
+        <span class="step-why" data-vi>Việc sinh câu trả lời giữ yêu cầu mở trong nhiều giây. Một lần thử lại không được gắn cờ hai lần hay gửi cảnh báo khủng hoảng lần hai.</span>
+      </div>
+      <div class="step">
+        <span class="step-n">02</span>
+        <span class="step-name" data-en>Input gate</span>
+        <span class="step-name" data-vi>Cổng đầu vào</span>
+        <span class="step-what" data-en>Rules first, classifier second.</span>
+        <span class="step-what" data-vi>Luật trước, bộ phân loại sau.</span>
+        <span class="step-why" data-en>A linear-time rule table matched on the raw, normalized and de-obfuscated forms of the message. Rules that can collide with schoolwork carry explicit exclusions.</span>
+        <span class="step-why" data-vi>Bảng luật chạy tuyến tính, so khớp trên dạng thô, dạng chuẩn hoá và dạng đã gỡ nguỵ trang. Luật nào có thể va vào bài vở đều mang ngoại lệ tường minh.</span>
+      </div>
+      <div class="step">
+        <span class="step-n">03</span>
+        <span class="step-name" data-en>Crisis copy</span>
+        <span class="step-name" data-vi>Nội dung khủng hoảng</span>
+        <span class="step-what" data-en>Composed before any write.</span>
+        <span class="step-what" data-vi>Soạn trước mọi thao tác ghi.</span>
+        <span class="step-why" data-en>So that no later failure can lose it. The crisis line lives in exactly one module.</span>
+        <span class="step-why" data-vi>Để không một lỗi nào sau đó có thể làm mất nó. Số điện thoại khẩn cấp nằm ở đúng một nơi.</span>
+      </div>
+      <div class="step">
+        <span class="step-n">04</span>
+        <span class="step-name">TX<span class="tx">transaction 1</span></span>
+        <span class="step-what" data-en>The child's message is persisted.</span>
+        <span class="step-what" data-vi>Tin nhắn của trẻ được lưu.</span>
+        <span class="step-why" data-en>Stored even when blocked, so nothing is silently discarded.</span>
+        <span class="step-why" data-vi>Vẫn lưu kể cả khi bị chặn, để không có gì bị âm thầm bỏ đi.</span>
+      </div>
+      <div class="step">
+        <span class="step-n">05</span>
+        <span class="step-name">TX<span class="tx">transaction 2</span></span>
+        <span class="step-what" data-en>Guardrail result, flag and severity, atomically.</span>
+        <span class="step-what" data-vi>Kết quả kiểm duyệt, cờ và mức độ, trong một giao dịch.</span>
+        <span class="step-why" data-en>A flag and the severity it implies must never be able to disagree.</span>
+        <span class="step-why" data-vi>Một cờ và mức độ mà nó hàm ý không bao giờ được phép mâu thuẫn.</span>
+      </div>
+      <div class="step">
+        <span class="step-n">06</span>
+        <span class="step-name" data-en>Output gate</span>
+        <span class="step-name" data-vi>Cổng đầu ra</span>
+        <span class="step-what" data-en>The reply is graded too.</span>
+        <span class="step-what" data-vi>Câu trả lời cũng được chấm.</span>
+        <span class="step-why" data-en>Previously only the input gate notified, so when the model produced the harmful content the child saw crisis copy and no guardian was ever told.</span>
+        <span class="step-why" data-vi>Trước đây chỉ cổng đầu vào gửi cảnh báo, nên khi chính mô hình tạo ra nội dung có hại, đứa trẻ thấy nội dung khủng hoảng còn phụ huynh không hề được báo.</span>
+      </div>
+      <div class="step">
+        <span class="step-n">07</span>
+        <span class="step-name" data-en>Notify</span>
+        <span class="step-name" data-vi>Thông báo</span>
+        <span class="step-what" data-en>Downstream of the response, never in front of it.</span>
+        <span class="step-what" data-vi>Nằm sau câu trả lời, không bao giờ chắn trước.</span>
+        <span class="step-why" data-en>A dead provider must never cost a child their reply. Every dispatch attempt writes an audit row carrying what happened, not what was hoped for.</span>
+        <span class="step-why" data-vi>Một nhà cung cấp chết không được làm đứa trẻ mất câu trả lời. Mỗi lần gửi đều ghi một dòng kiểm toán về điều đã thực sự xảy ra.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 3. Database ─────────────────────────────────────────────────────── -->
+<section id="database">
+  <div class="wrap">
+    <h2 style="font-size: clamp(1.9rem, 2.4vw + 1rem, 3rem)">
+      <span data-en>Twenty-one tables, and the rules the database refuses to break</span>
+      <span data-vi>Hai mươi mốt bảng, và những quy tắc cơ sở dữ liệu từ chối phá vỡ</span>
+    </h2>
+    <p class="lede" style="margin-top: var(--s4)">
+      <span data-en>PostgreSQL, one datastore, no second store and no extra sub-processor.
+      The interesting part is not the table list. It is what the schema will not let you do.</span>
+      <span data-vi>PostgreSQL, một kho dữ liệu duy nhất, không kho thứ hai và không bên xử lý phụ nào thêm.
+      Điều đáng chú ý không phải danh sách bảng, mà là những gì lược đồ không cho phép bạn làm.</span>
+    </p>
+
+    <div class="db">
+      <div class="clusters rise">
+        <div>
+          <div class="cluster-h" data-en>Family and identity</div>
+          <div class="cluster-h" data-vi>Gia đình và danh tính</div>
+          <div class="chips"><span class="chip">families</span><span class="chip">parents</span><span class="chip">children</span></div>
+        </div>
+        <div>
+          <div class="cluster-h" data-en>Two principals, kept apart</div>
+          <div class="cluster-h" data-vi>Hai loại chủ thể, tách biệt</div>
+          <div class="chips">
+            <span class="chip">auth_users</span><span class="chip">auth_sessions</span><span class="chip">auth_accounts</span><span class="chip">auth_verifications</span>
+            <span class="chip">child_sessions</span><span class="chip">child_devices</span><span class="chip key">login_attempts</span>
+          </div>
+        </div>
+        <div>
+          <div class="cluster-h" data-en>Conversation</div>
+          <div class="cluster-h" data-vi>Trò chuyện</div>
+          <div class="chips"><span class="chip">conversations</span><span class="chip">messages</span><span class="chip">message_feedback</span></div>
+        </div>
+        <div>
+          <div class="cluster-h" data-en>Safety</div>
+          <div class="cluster-h" data-vi>An toàn</div>
+          <div class="chips"><span class="chip">policy_versions</span><span class="chip">guardrail_results</span><span class="chip">flags</span><span class="chip">ai_provider_attempts</span></div>
+        </div>
+        <div>
+          <div class="cluster-h" data-en>Oversight</div>
+          <div class="cluster-h" data-vi>Giám sát</div>
+          <div class="chips"><span class="chip key">audit_events</span><span class="chip">family_pseudonyms</span></div>
+        </div>
+        <div>
+          <div class="cluster-h" data-en>Budget</div>
+          <div class="cluster-h" data-vi>Hạn mức</div>
+          <div class="chips"><span class="chip">quota_events</span><span class="chip">family_daily_quota</span></div>
+        </div>
+      </div>
+
+      <div class="invariants rise">
+        <div class="inv">
+          <div class="inv-h"><span>01</span><span data-en>The audit log is append-only</span><span data-vi>Nhật ký kiểm toán chỉ ghi thêm</span></div>
+          <p data-en>Two triggers reject <code>UPDATE</code> and <code>TRUNCATE</code> outright. Not a convention, a refusal.</p>
+          <p data-vi>Hai trigger từ chối thẳng <code>UPDATE</code> và <code>TRUNCATE</code>. Không phải quy ước, mà là từ chối.</p>
+        </div>
+        <div class="inv">
+          <div class="inv-h"><span>02</span><span data-en>Severity may only rise</span><span data-vi>Mức độ chỉ có thể tăng</span></div>
+          <p data-en>Lowering or clearing <code>max_severity</code> raises an exception. Dismissing a flag does not close a transcript.</p>
+          <p data-vi>Hạ hoặc xoá <code>max_severity</code> sẽ ném lỗi. Bỏ qua một cờ không đóng lại bản ghi trò chuyện.</p>
+        </div>
+        <div class="inv">
+          <div class="inv-h"><span>03</span><span data-en>Audit rows name pseudonyms, not people</span><span data-vi>Dòng kiểm toán ghi bí danh, không ghi người</span></div>
+          <p data-en>Every actor and subject resolves through <code>family_pseudonyms</code> before it is written down.</p>
+          <p data-vi>Mọi tác nhân và đối tượng đều đi qua <code>family_pseudonyms</code> trước khi được ghi.</p>
+        </div>
+        <div class="inv">
+          <div class="inv-h"><span>04</span><span data-en>One column is deliberately not a foreign key</span><span data-vi>Một cột cố tình không phải khoá ngoại</span></div>
+          <p data-en>An attacker probing family codes has to be recorded and throttled. A foreign key on <code>login_attempts</code> made those exact attempts throw instead.</p>
+          <p data-vi>Kẻ tấn công dò mã gia đình phải được ghi lại và chặn. Một khoá ngoại trên <code>login_attempts</code> lại khiến chính những lần đó ném lỗi.</p>
+        </div>
+        <div class="inv">
+          <div class="inv-h"><span>05</span><span data-en>There is no title column anywhere</span><span data-vi>Không có cột tiêu đề ở bất cứ đâu</span></div>
+          <p data-en>Generating one would mean a model call over content nobody flagged. The absence is the feature.</p>
+          <p data-vi>Tạo ra nó nghĩa là gọi mô hình trên nội dung chưa hề bị gắn cờ. Sự vắng mặt chính là tính năng.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 4. Application ──────────────────────────────────────────────────── -->
+<section id="application">
+  <div class="wrap">
+    <p class="kicker">src/app</p>
+    <h2 style="font-size: clamp(1.9rem, 2.4vw + 1rem, 3rem)">
+      <span data-en>Twenty-four surfaces, and two kinds of person</span>
+      <span data-vi>Hai mươi bốn bề mặt, và hai loại người dùng</span>
+    </h2>
+
+    <div class="principals rise">
+      <div class="principal">
+        <h3 data-en>A child</h3>
+        <h3 data-vi>Đứa trẻ</h3>
+        <p class="how" data-en>A family code plus a PIN, or a device a guardian already paired.</p>
+        <p class="how" data-vi>Mã gia đình cùng mã PIN, hoặc thiết bị mà phụ huynh đã ghép sẵn.</p>
+        <ul>
+          <li data-en>Eight characters, no <code>I</code>, <code>O</code>, <code>0</code> or <code>1</code>, so it survives being read aloud</li>
+          <li data-vi>Tám ký tự, không có <code>I</code>, <code>O</code>, <code>0</code> hay <code>1</code>, để đọc to vẫn đúng</li>
+          <li data-en>Sessions live in their own table, never in Better Auth</li>
+          <li data-vi>Phiên nằm ở bảng riêng, không nằm trong Better Auth</li>
+          <li data-en>May always read what they themselves wrote, at any severity</li>
+          <li data-vi>Luôn được đọc lại điều chính mình đã viết, ở mọi mức độ</li>
+        </ul>
+      </div>
+      <div class="principal">
+        <h3 data-en>A guardian</h3>
+        <h3 data-vi>Phụ huynh</h3>
+        <p class="how" data-en>An emailed code. There is no password anywhere in the product.</p>
+        <p class="how" data-vi>Một mã gửi qua email. Không có mật khẩu nào trong sản phẩm.</p>
+        <ul>
+          <li data-en>Nothing to forget, reset, or leak</li>
+          <li data-vi>Không có gì để quên, đặt lại hay rò rỉ</li>
+          <li data-en>Receiving the code re-proves control of the mailbox every time</li>
+          <li data-vi>Nhận được mã tức là chứng minh lại quyền kiểm soát hộp thư mỗi lần</li>
+          <li data-en>Linked by an explicit id, never by a matching email string</li>
+          <li data-vi>Liên kết bằng một id tường minh, không bao giờ bằng chuỗi email trùng khớp</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="order rise">
+      <p data-en>The child store is asked <strong>first</strong>. A request carrying both resolves
+      as the child, which is the safer failure: a child can never read another conversation,
+      while a guardian can read anything at <code>medium</code> or above. The principal type is
+      derived from which store answered, never read from anything the client sent.</p>
+      <p data-vi>Kho phiên của trẻ được hỏi <strong>trước</strong>. Một yêu cầu mang cả hai sẽ
+      được coi là trẻ em, và đó là hướng hỏng an toàn hơn: một đứa trẻ không bao giờ đọc được cuộc
+      trò chuyện của người khác, còn phụ huynh thì đọc được mọi thứ từ <code>medium</code> trở lên.
+      Loại chủ thể được suy ra từ kho nào đã trả lời, không bao giờ đọc từ dữ liệu client gửi lên.</p>
+    </div>
+
+    <div class="scroll-x">
+      <table class="modules">
+        <thead>
+          <tr>
+            <th>Module</th>
+            <th><span data-en>Owns</span><span data-vi>Chịu trách nhiệm</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>src/lib/guardrails/</td><td><span data-en>Rule table, normalizer, engine, classifier seam</span><span data-vi>Bảng luật, bộ chuẩn hoá, engine, khớp nối bộ phân loại</span></td></tr>
+          <tr><td>src/lib/chat/</td><td><span data-en>The turn pipeline, the history window, a child's own read path</span><span data-vi>Đường ống một lượt, cửa sổ lịch sử, đường đọc riêng của trẻ</span></td></tr>
+          <tr><td>src/lib/authz/</td><td><span data-en>Every principal assertion. Denials answer 404 by default</span><span data-vi>Mọi khẳng định về chủ thể. Từ chối trả về 404 theo mặc định</span></td></tr>
+          <tr><td>src/lib/auth/</td><td><span data-en>Guardian codes, child PIN, device pairing, sessions, rate limits</span><span data-vi>Mã phụ huynh, PIN của trẻ, ghép thiết bị, phiên, giới hạn tần suất</span></td></tr>
+          <tr><td>src/lib/notify/</td><td><span data-en>Guardian alerts, carrying metadata and nothing else</span><span data-vi>Cảnh báo cho phụ huynh, chỉ mang siêu dữ liệu</span></td></tr>
+          <tr><td>src/lib/parent/</td><td><span data-en>The guardian projection, and the audited transcript read</span><span data-vi>Phép chiếu phía phụ huynh, và lượt đọc bản ghi có kiểm toán</span></td></tr>
+          <tr><td>src/lib/quota/</td><td><span data-en>Per-child window and per-family daily ceiling</span><span data-vi>Cửa sổ theo trẻ và trần theo ngày của gia đình</span></td></tr>
+          <tr><td>src/config/</td><td><span data-en>Zod-validated settings. The only place <code>process.env</code> is read</span><span data-vi>Cấu hình kiểm định bằng Zod. Nơi duy nhất đọc <code>process.env</code></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ── 5. Gates ────────────────────────────────────────────────────────── -->
+<section id="gates">
+  <div class="wrap">
+    <h2 style="font-size: clamp(1.9rem, 2.4vw + 1rem, 3rem)">
+      <span data-en>The safety claims are enforced by machines, and the important one twice</span>
+      <span data-vi>Các tuyên bố an toàn được máy móc ép buộc, và điều quan trọng nhất được ép hai lần</span>
+    </h2>
+    <p class="lede" style="margin-top: var(--s4)">
+      <span data-en>Isolation is proven two ways, because the two mechanisms have different blind spots
+      and neither one covers the other.</span>
+      <span data-vi>Tính cô lập được chứng minh bằng hai cách, vì hai cơ chế có điểm mù khác nhau
+      và không cơ chế nào bao trùm cơ chế kia.</span>
+    </p>
+
+    <div class="pair rise">
+      <div>
+        <h3 data-en>A lint rule</h3>
+        <h3 data-vi>Một luật lint</h3>
+        <code class="src">eslint-rules/no-direct-message-query.js</code>
+        <dl>
+          <dt data-en>Proves</dt><dt data-vi>Chứng minh</dt>
+          <dd data-en>Who may read a message's content at all.</dd>
+          <dd data-vi>Ai được phép đọc nội dung tin nhắn.</dd>
+          <dt data-en>Sees</dt><dt data-vi>Nhìn thấy</dt>
+          <dd data-en>Every file, including pages and server actions no route list can enumerate.</dd>
+          <dd data-vi>Mọi tệp, kể cả trang và server action mà không danh sách route nào liệt kê được.</dd>
+          <dt data-en>Blind to</dt><dt data-vi>Điểm mù</dt>
+          <dd data-en>A leak travelling onward through a module it has already allowed.</dd>
+          <dd data-vi>Rò rỉ đi tiếp qua một module mà nó đã cho phép.</dd>
+        </dl>
+      </div>
+      <div>
+        <h3 data-en>A runtime suite</h3>
+        <h3 data-vi>Một bộ kiểm thử thời gian chạy</h3>
+        <code class="src">tests/isolation/</code>
+        <dl>
+          <dt data-en>Proves</dt><dt data-vi>Chứng minh</dt>
+          <dd data-en>What a real request actually returns.</dd>
+          <dd data-vi>Điều một yêu cầu thật sự trả về.</dd>
+          <dt data-en>Sees</dt><dt data-vi>Nhìn thấy</dt>
+          <dd data-en>Every surface driven with each kind of principal, against conversations flagged below the gate.</dd>
+          <dd data-vi>Mọi bề mặt được lái thử với từng loại chủ thể, trên các cuộc trò chuyện bị gắn cờ dưới ngưỡng.</dd>
+          <dt data-en>Blind to</dt><dt data-vi>Điểm mù</dt>
+          <dd data-en>A surface its glob never finds.</dd>
+          <dd data-vi>Bề mặt mà glob của nó không tìm ra.</dd>
+        </dl>
+      </div>
+    </div>
+
+    <p class="verdict rise">
+      <span data-en>That suite treats a surface it could not drive as a <strong>failure</strong>,
+      never a skip. A surface that falls over before it reaches the database produces no evidence
+      of a leak, and no evidence must never be allowed to read as safe.</span>
+      <span data-vi>Bộ kiểm thử đó coi một bề mặt không lái thử được là <strong>lỗi</strong>,
+      không bao giờ là bỏ qua. Một bề mặt gục trước khi chạm tới cơ sở dữ liệu không sinh ra bằng
+      chứng rò rỉ nào, và việc không có bằng chứng không bao giờ được phép hiểu là an toàn.</span>
+    </p>
+
+    <div class="gate-list rise">
+      <div class="gl">
+        <code>pnpm test:mutation</code>
+        <p data-en>Deletes each guard and checks the tests go red, on every CI run. A one-time manual check decays at the next refactor.</p>
+        <p data-vi>Xoá từng lớp bảo vệ và kiểm tra xem test có đỏ không, ở mỗi lần chạy CI. Một lần kiểm tra thủ công sẽ mục đi sau lần tái cấu trúc kế tiếp.</p>
+      </div>
+      <div class="gl">
+        <code>pnpm corpus:eval</code>
+        <p data-en>Gates precision against held-out cases and reports recall without gating it. A false positive blocks a child's homework.</p>
+        <p data-vi>Chốt độ chính xác trên tập kiểm tra tách riêng và báo cáo độ bao phủ mà không chốt. Một cảnh báo sai sẽ chặn bài tập của đứa trẻ.</p>
+      </div>
+      <div class="gl">
+        <code>tests/routes/</code>
+        <p data-en>Walks the module graph to find which routes can reach a model, and fails any that skips the budget check. There is no allow-list to forget.</p>
+        <p data-vi>Duyệt đồ thị module để tìm route nào chạm tới mô hình, và báo lỗi route nào bỏ qua kiểm tra hạn mức. Không có danh sách cho phép nào để quên cập nhật.</p>
+      </div>
+      <div class="gl">
+        <code>src/config/settings.ts</code>
+        <p data-en>Validated at startup. A missing or malformed value stops the process instead of quietly degrading it.</p>
+        <p data-vi>Kiểm định lúc khởi động. Một giá trị thiếu hoặc sai định dạng sẽ dừng tiến trình thay vì âm thầm làm nó tệ đi.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <h2 data-en>Sources</h2>
+    <h2 data-vi>Nguồn</h2>
+    <ul>
+      <li><span data-en>Structure read from the repository: <code>src/db/schema.ts</code>, <code>drizzle/</code>, <code>src/lib/chat/pipeline.ts</code>, <code>src/lib/authz/index.ts</code>, <code>src/lib/auth/request-session.ts</code>, <code>eslint-rules/</code>, <code>tests/</code>.</span><span data-vi>Cấu trúc đọc từ kho mã: <code>src/db/schema.ts</code>, <code>drizzle/</code>, <code>src/lib/chat/pipeline.ts</code>, <code>src/lib/authz/index.ts</code>, <code>src/lib/auth/request-session.ts</code>, <code>eslint-rules/</code>, <code>tests/</code>.</span></li>
+      <li><span data-en>Palette and severity ramp taken from the product's own token layer, <code>src/app/globals.css</code>.</span><span data-vi>Bảng màu và thang mức độ lấy từ chính lớp token của sản phẩm, <code>src/app/globals.css</code>.</span></li>
+      <li><span data-en>Web push is deferred as an alert channel because iOS Safari delivers it only to a site installed to the Home Screen, on iOS 16.4 or later:</span><span data-vi>Web push bị hoãn làm kênh cảnh báo vì iOS Safari chỉ gửi cho trang đã được cài vào Màn hình chính, từ iOS 16.4 trở lên:</span>
+        <a href="https://documentation.onesignal.com/docs/en/web-push-for-ios">OneSignal</a>,
+        <a href="https://www.magicbell.com/blog/pwa-ios-limitations-safari-support-complete-guide">MagicBell</a>,
+        <a href="https://pushalert.co/documentation/ios-web-push">PushAlert</a>.
+      </li>
+    </ul>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+
+  /* Language. Default English; both languages ship in the DOM so the page
+     is complete without script. */
+  function setLang(lang) {
+    root.setAttribute('data-bubbli-lang', lang);
+    document.querySelectorAll('[data-lang-btn]').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.langBtn === lang));
+    });
+    root.lang = lang;
+    try { localStorage.setItem('bubbli-lang', lang); } catch (e) {}
+  }
+
+  /* Theme, three states. "system" removes the stamp so prefers-color-scheme
+     decides, which is what most viewers actually see. */
+  function setTheme(mode) {
+    if (mode === 'system') root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme', mode);
+    document.querySelectorAll('[data-theme-btn]').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.themeBtn === mode));
+    });
+    try { localStorage.setItem('bubbli-theme', mode); } catch (e) {}
+  }
+
+  document.querySelectorAll('[data-lang-btn]').forEach(function (b) {
+    b.addEventListener('click', function () { setLang(b.dataset.langBtn); });
+  });
+  document.querySelectorAll('[data-theme-btn]').forEach(function (b) {
+    b.addEventListener('click', function () { setTheme(b.dataset.themeBtn); });
+  });
+
+  var storedLang = 'en', storedTheme = 'system';
+  try {
+    storedLang = localStorage.getItem('bubbli-lang') || 'en';
+    storedTheme = localStorage.getItem('bubbli-theme') || 'system';
+  } catch (e) {}
+  setLang(storedLang);
+  setTheme(storedTheme);
+
+  /* Reveal. Content is visible by default in CSS when script is absent;
+     this only adds the transition for viewers who get it. */
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var targets = document.querySelectorAll('.rise');
+  if (reduce || !('IntersectionObserver' in window)) {
+    targets.forEach(function (el) { el.classList.add('in'); });
+  } else {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.05 });
+    targets.forEach(function (el) { io.observe(el); });
+  }
+})();
+</script>
