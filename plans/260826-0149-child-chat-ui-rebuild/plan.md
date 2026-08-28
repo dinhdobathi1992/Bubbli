@@ -6,9 +6,22 @@ priority: P1
 effort: "3-4h"
 tags: [ui, child-surface, design-system]
 created: 2026-08-26
+blockedBy: [260827-2117-child-conversation-history]
 ---
 
 # Child chat UI rebuild
+
+> **Status is stale, and Goal 1 is superseded.** Phases 1 and 2 are substantially
+> implemented — `message.tsx`, `composer.tsx` and `suggestions.tsx` exist, the Bubbli
+> mark is on assistant turns, and the bottom-anchoring shipped as `justify-end` rather
+> than the `mt-auto` specified here — but nothing was ever marked done.
+>
+> Goal 1, "Remove the dead viewport", is now owned by
+> [260827-2117-child-conversation-history](../260827-2117-child-conversation-history/phase-04-composition.md),
+> which scopes the bottom-anchoring rule to a breakpoint rather than reversing it. That
+> plan adds a sidebar, which changes the column structure this plan's phase 1 assumed.
+>
+> Reconcile the remaining phases against the shipped code before resuming this plan.
 
 ## Overview
 

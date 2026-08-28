@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Child conversation history &middot; plan</title>
+<style>
+:root{
+  --paper:#faf7f2; --panel:#f0ebe1; --ink:#0a0a0a; --muted:#6b6258;
+  --accent:#b8232c; --rule:#d9d1c4; --rule-soft:#e6dfd3;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  /* Bubbli Forest tokens, for the product mockups only */
+  --b-ground:#0d1512; --b-surface:#16211d; --b-raised:#1e2a25; --b-ink:#e8efe9;
+  --b-muted:#9ab0a4; --b-subtle:#6d8176; --b-accent:#f0a882; --b-soft:#3a2b21;
+  --b-line:#25342e;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--sans); font-size:16px; line-height:1.6;
+  background-image:
+    radial-gradient(circle at 17% 23%, rgba(107,98,88,.030) 0 1px, transparent 1px),
+    radial-gradient(circle at 73% 61%, rgba(107,98,88,.022) 0 1px, transparent 1px);
+  background-size:37px 37px, 53px 53px;
+}
+.wrap{max-width:60rem;margin:0 auto;padding:0 1.5rem}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:600;line-height:1.15;text-wrap:balance;margin:0}
+.eyebrow{font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.folio{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+/* cover */
+.cover{padding:5rem 0 3rem;border-bottom:2px solid var(--ink)}
+.cover h1{font-size:clamp(2.4rem,6vw,4.2rem);margin:.6rem 0 1rem;letter-spacing:-.02em}
+.cover .lede{font-family:var(--serif);font-size:clamp(1.05rem,2.2vw,1.3rem);color:var(--muted);max-width:44ch;font-style:italic}
+.meta{display:flex;flex-wrap:wrap;gap:2rem;margin-top:2.5rem;padding-top:1.25rem;border-top:1px solid var(--rule)}
+.meta div{min-width:7rem}
+.meta dt{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.3rem}
+.meta dd{margin:0;font-family:var(--serif);font-size:1.35rem}
+
+section{padding:3.25rem 0;border-bottom:1px solid var(--rule-soft)}
+section > h2{font-size:clamp(1.5rem,3.4vw,2rem);margin-bottom:.4rem;letter-spacing:-.01em}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;margin-bottom:1.75rem}
+p{max-width:66ch}
+a{color:var(--accent)}
+
+/* correction callout */
+.correction{border-left:3px solid var(--accent);background:var(--panel);padding:1.1rem 1.35rem;margin:1.5rem 0;max-width:70ch}
+.correction .eyebrow{display:block;margin-bottom:.4rem}
+.correction p{margin:.4rem 0}
+.correction p:last-child{margin-bottom:0}
+
+/* verification table */
+table{border-collapse:collapse;width:100%;font-size:.9rem;margin:1rem 0}
+th,td{text-align:left;padding:.55rem .7rem;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-family:var(--mono);font-size:.62rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td code,p code,li code{font-family:var(--mono);font-size:.84em;background:var(--panel);padding:.08em .34em}
+.v-pass{color:var(--muted);font-family:var(--mono);font-size:.78rem}
+.v-fail{color:var(--accent);font-family:var(--mono);font-size:.78rem;font-weight:700}
+
+/* stat band */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr));gap:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin:2rem 0}
+.stat{padding:1.15rem 1rem;border-right:1px solid var(--rule-soft)}
+.stat:last-child{border-right:0}
+.stat b{display:block;font-family:var(--serif);font-size:2rem;line-height:1}
+.stat span{font-family:var(--mono);font-size:.6rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.stat.alert b{color:var(--accent)}
+
+/* phase cards */
+.phases{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--rule)}
+.phase{width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule-soft);
+  padding:1.6rem .25rem;cursor:pointer;font:inherit;color:inherit;display:grid;
+  grid-template-columns:3.2rem 1fr;gap:1.25rem;transition:background .15s}
+.phase:hover,.phase:focus-visible{background:var(--panel)}
+.phase:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.pnum{font-family:var(--serif);font-size:2.2rem;color:var(--accent);line-height:1}
+.ptitle{font-family:var(--serif);font-size:1.3rem;margin-bottom:.3rem}
+.ptags{display:flex;flex-wrap:wrap;gap:.9rem;margin-bottom:.6rem}
+.ptag{font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.pobj{color:var(--muted);max-width:62ch;margin:0 0 .8rem}
+.pbul{margin:0 0 .8rem;padding-left:1.05rem;max-width:62ch}
+.pbul li{margin-bottom:.22rem;font-size:.92rem}
+.pfiles{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
+.pfile{font-family:var(--mono);font-size:.68rem;background:var(--panel);padding:.16em .5em;color:var(--muted)}
+.pfile b{color:var(--accent);font-weight:600}
+.more{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-top:.7rem;display:inline-block}
+
+/* diagram */
+figure{margin:2rem 0}
+figure svg{display:block;width:100%;height:auto;max-width:100%}
+figcaption{font-family:var(--mono);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:.8rem}
+.scroll-x{overflow-x:auto}
+
+/* mockups */
+.mocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(19rem,1fr));gap:2rem;margin-top:1.5rem}
+.mock h3{font-size:1.05rem;margin-bottom:.15rem}
+.mock .cap{font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.8rem}
+.annot{list-style:none;padding:0;margin:.9rem 0 0;font-size:.83rem}
+.annot li{padding-left:1.7rem;position:relative;margin-bottom:.45rem;color:var(--muted)}
+.annot li b{counter-increment:none;position:absolute;left:0;top:0;font-family:var(--mono);font-size:.62rem;color:var(--accent);border:1px solid var(--accent);width:1.15rem;height:1.15rem;display:grid;place-items:center;border-radius:50%}
+
+/* modal */
+dialog{border:0;padding:0;max-width:52rem;width:calc(100% - 2rem);background:var(--paper);color:var(--ink);box-shadow:0 0 0 1px var(--rule)}
+dialog::backdrop{background:rgba(10,10,10,.45)}
+.dlg-head{position:sticky;top:0;background:var(--paper);border-bottom:1px solid var(--ink);padding:1.4rem 1.6rem 1rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+.dlg-head h2{font-size:1.5rem}
+.dlg-body{padding:1.4rem 1.6rem 2.5rem}
+.dlg-body h2{font-size:1.15rem;margin:1.8rem 0 .5rem;padding-bottom:.3rem;border-bottom:1px solid var(--rule-soft)}
+.dlg-body h3{font-size:1rem;margin:1.3rem 0 .4rem}
+.dlg-body p{margin:.7rem 0}
+.dlg-body ul,.dlg-body ol{padding-left:1.3rem;max-width:66ch}
+.dlg-body li{margin-bottom:.3rem}
+.dlg-body pre{background:var(--panel);padding:.9rem 1rem;overflow-x:auto;font-family:var(--mono);font-size:.76rem;line-height:1.5;border-left:2px solid var(--rule)}
+.dlg-body blockquote{margin:1rem 0;padding-left:1rem;border-left:2px solid var(--accent);color:var(--muted);font-style:italic}
+.dlg-body hr{border:0;border-top:1px solid var(--rule);margin:1.6rem 0}
+.dlg-body .task{list-style:none;margin-left:-1.3rem}
+.dlg-body .task li{padding-left:1.4rem;position:relative}
+.dlg-body .task li::before{content:"";position:absolute;left:0;top:.42em;width:.72em;height:.72em;border:1px solid var(--muted)}
+.close{background:none;border:1px solid var(--rule);font-family:var(--mono);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;padding:.5rem .8rem;cursor:pointer;color:var(--muted);min-height:44px}
+.close:hover{border-color:var(--accent);color:var(--accent)}
+footer{padding:3rem 0 4rem;color:var(--muted);font-size:.85rem}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{.phase{page-break-inside:avoid}dialog{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="cover">
+  <span class="eyebrow">Bubbli &middot; implementation plan &middot; red-teamed &amp; validated</span>
+  <h1 id="ttl"></h1>
+  <p class="lede" id="desc"></p>
+  <dl class="meta">
+    <div><dt>Phases</dt><dd id="m-ph"></dd></div>
+    <div><dt>Checks</dt><dd id="m-ck"></dd></div>
+    <div><dt>Effort</dt><dd id="m-ef"></dd></div>
+    <div><dt>Priority</dt><dd id="m-pr"></dd></div>
+    <div><dt>Branch</dt><dd style="font-size:1rem">main-rebuild</dd></div>
+  </dl>
+</header>
+
+<section>
+  <div class="sec-head"><h2>What validation changed</h2><span class="folio">01</span></div>
+  <p>A Full-tier verification pass checked 15 factual claims in this plan against the
+  codebase before any of it was interviewed. Two failed, and both would have cost real work.</p>
+
+  <div class="stats">
+    <div class="stat"><b>15</b><span>claims checked</span></div>
+    <div class="stat"><b>13</b><span>verified</span></div>
+    <div class="stat alert"><b>2</b><span>failed</span></div>
+    <div class="stat"><b>4</b><span>decisions taken</span></div>
+  </div>
+
+  <div class="correction">
+    <span class="eyebrow">Failure 1 &middot; the premise was wrong</span>
+    <p>The plan claimed <em>&ldquo;There is no LIST query anywhere. This is the real gap.&rdquo;</em>
+    There is one, at <code>src/app/api/chat/route.ts:130-140</code> &mdash; capped at 30, with a
+    message count and no excerpt. Nothing ever calls it.</p>
+    <p><b>Effect:</b> phase 1 became a rewrite, not a creation.</p>
+  </div>
+
+  <div class="correction">
+    <span class="eyebrow">Failure 2 &middot; the query would have returned nothing</span>
+    <p>The excerpt SQL used <code>m.role = 'user'</code>. The check constraint
+    <code>messages_role_ck</code> permits only <code>('child','assistant','system')</code>,
+    so it matches zero rows &mdash; no error, just a null excerpt on every row, forever.</p>
+    <p><b>Effect:</b> corrected to <code>'child'</code>, with a test that would catch the regression.</p>
+  </div>
+
+  <p>Verified along the way, and load-bearing for the design:
+  <code>src/lib/chat/child-transcript.ts</code> is in the G1 allowlist
+  (<code>eslint-rules/no-direct-message-query.js:13</code>). Reading
+  <code>messages.content</code> from a route handler fails <code>pnpm lint</code>. That
+  constraint <em>forces</em> the module placement rather than merely recommending it.</p>
+
+  <div class="scroll-x">
+  <table>
+    <thead><tr><th>#</th><th>Claim</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>&ldquo;There is no LIST query anywhere&rdquo;</td><td class="v-fail">FAILED</td></tr>
+      <tr><td>2</td><td>Excerpt SQL uses <code>role = 'user'</code></td><td class="v-fail">FAILED</td></tr>
+      <tr><td>3</td><td><code>conversationId</code> in React state, lost on reload</td><td class="v-pass">verified</td></tr>
+      <tr><td>4</td><td><code>getOwnTranscript</code> exists and is authorized</td><td class="v-pass">verified</td></tr>
+      <tr><td>5</td><td>That path is unaudited by design</td><td class="v-pass">verified</td></tr>
+      <tr><td>6</td><td>V6 forbids a stored title</td><td class="v-pass">verified</td></tr>
+      <tr><td>7</td><td>Bottom-anchoring is a deliberate decision</td><td class="v-pass">verified</td></tr>
+      <tr><td>8</td><td><code>conversations_child_idx</code> covers the ordering</td><td class="v-pass">verified</td></tr>
+      <tr><td>9</td><td><code>child-transcript.ts</code> is G1-allowlisted</td><td class="v-pass">verified</td></tr>
+      <tr><td>10</td><td><code>messages.status</code> has a <code>completed</code> value</td><td class="v-pass">verified</td></tr>
+      <tr><td>11</td><td><code>audit_events</code> is the audit table</td><td class="v-pass">verified</td></tr>
+      <tr><td>12</td><td><code>assertIsOwningChild</code> guards by conversation</td><td class="v-pass">verified</td></tr>
+      <tr><td>13&ndash;15</td><td>parent route, <code>force-dynamic</code>, chat components exist</td><td class="v-pass">verified</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>What the red team found</h2><span class="folio">02</span></div>
+  <p>Three adversarial lenses &mdash; Security Adversary, Assumption Destroyer, Failure Mode
+  Analyst &mdash; against five phases. Four findings, every one carrying a
+  <code>file:line</code> citation, all accepted.</p>
+
+  <div class="stats">
+    <div class="stat alert"><b>2</b><span>high</span></div>
+    <div class="stat"><b>2</b><span>medium</span></div>
+    <div class="stat"><b>4</b><span>accepted</span></div>
+    <div class="stat"><b>0</b><span>evidence-free</span></div>
+  </div>
+
+  <div class="correction">
+    <span class="eyebrow">F4 &middot; high &middot; the finding that matters most</span>
+    <p>A crisis message would have become permanent sidebar furniture.
+    <code>pipeline.ts:201-202</code> stores a child&rsquo;s message as
+    <code>status='completed'</code> <em>even when it triggered a critical flag</em>, and
+    the excerpt query selects exactly that row.</p>
+    <p>So a child whose first message was <em>&ldquo;I want to kill myself&rdquo;</em>
+    would see that sentence rendered back at them in the sidebar, every session, forever.
+    The plan never considered it.</p>
+    <p><b>Fix (D11):</b> a conversation flagged <code>medium</code> or above returns no
+    excerpt at all &mdash; suppressed in the module, not the component, so the text never
+    reaches the browser. The row shows a neutral, time-based label, styled exactly like
+    every other row: no badge, no colour. A child should not be shown a marker on their
+    own difficult moment.</p>
+  </div>
+
+  <div class="correction">
+    <span class="eyebrow">F1 &middot; high &middot; the plan activates a dormant bug</span>
+    <p><code>schema.ts:138</code> promises the conversation&rsquo;s age band is
+    <em>&ldquo;Pinned at creation so a mid-conversation band change starts a new
+    one.&rdquo;</em> <b>Nothing implements that.</b> <code>route.ts:49</code> always uses
+    the child&rsquo;s <em>current</em> band for the guardrail.</p>
+    <p>Invisible today, because a conversation cannot outlive its page session.
+    <b>Phase&nbsp;2 is what makes conversations persistent, so phase&nbsp;2 is what
+    activates it</b> &mdash; and the bands genuinely differ:
+    <code>inap.sexual.topic.young</code> is <code>medium</code> for under-12s where
+    <code>.older</code> is <code>low</code>.</p>
+    <p><b>Fix (D12):</b> on send, a band mismatch forks a new conversation. Reads are
+    never gated by band &mdash; a birthday must not make a child&rsquo;s history
+    unreachable.</p>
+  </div>
+
+  <div class="scroll-x">
+  <table>
+    <thead><tr><th>#</th><th>Sev</th><th>Finding</th><th>Evidence</th><th>&rarr;</th></tr></thead>
+    <tbody>
+      <tr><td>F1</td><td class="v-fail">HIGH</td><td>Resumability activates the age-band drift</td><td><code>schema.ts:138</code>, <code>route.ts:49</code></td><td>D12</td></tr>
+      <tr><td>F2</td><td class="v-pass">MED</td><td>Plan contradicts itself: transcript returns 404, D9 demanded 403</td><td><code>route.ts:145</code></td><td>D13</td></tr>
+      <tr><td>F3</td><td class="v-pass">MED</td><td>Read path has no throttle; POST is quota-guarded, GET is not</td><td><code>route.ts:64</code></td><td>D14</td></tr>
+      <tr><td>F4</td><td class="v-fail">HIGH</td><td>A crisis message becomes a permanent sidebar label</td><td><code>pipeline.ts:201-202</code></td><td>D11</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p><b>What F1 and F4 have in common:</b> neither is a flaw in the plan&rsquo;s own
+  reasoning. Both are latent conditions in existing code that become reachable
+  <em>because</em> this plan makes conversations persistent and lists them. That is the
+  class of defect a red team exists to find, and neither would have surfaced from reading
+  the plan alone.</p>
+
+  <p style="color:var(--muted);font-size:.86rem;max-width:70ch">Reviewers were not spawned
+  as subagents: <code>AGENT.md</code> &sect;2A routes delegation through herdr panes and
+  <code>HERDR_ENV</code> is unset in this session, so the lenses were run inline. Recorded
+  rather than silently skipped.</p>
+</section>
+
+<section>
+  <div class="sec-head"><h2>How it fits together</h2><span class="folio">03</span></div>
+  <p>Phase 2 is deliberately ahead of the sidebar: it alone repairs the reported symptom,
+  so it can ship without waiting for any UI.</p>
+  <figure>
+  <svg viewBox="0 0 900 380" role="img" aria-labelledby="dgt dgd">
+    <title id="dgt">Phase dependency and data flow</title>
+    <desc id="dgd">Phase 1 builds the read path in child-transcript.ts. Phase 2 moves the
+    conversation pointer into the URL, which alone fixes the refresh symptom. Phase 3 adds the
+    sidebar, phase 4 the desktop composition, phase 5 verifies all of it.</desc>
+    <defs>
+      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+        <path d="M0 0 L10 5 L0 10 z" fill="#6b6258"/>
+      </marker>
+      <marker id="ara" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+        <path d="M0 0 L10 5 L0 10 z" fill="#b8232c"/>
+      </marker>
+    </defs>
+    <g font-family="ui-monospace,Menlo,monospace" font-size="10">
+      <text x="0" y="14" fill="#b8232c" letter-spacing="1.6">SERVER</text>
+      <text x="0" y="150" fill="#b8232c" letter-spacing="1.6">ROUTING</text>
+      <text x="0" y="268" fill="#b8232c" letter-spacing="1.6">SURFACE</text>
+    </g>
+    <line x1="0" y1="22" x2="900" y2="22" stroke="#e6dfd3"/>
+    <line x1="0" y1="158" x2="900" y2="158" stroke="#e6dfd3"/>
+    <line x1="0" y1="276" x2="900" y2="276" stroke="#e6dfd3"/>
+
+    <g>
+      <rect x="0" y="40" width="250" height="86" fill="#f0ebe1" stroke="#b8232c" stroke-width="2"/>
+      <text x="14" y="62" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#b8232c" letter-spacing="1.3">PHASE 1</text>
+      <text x="14" y="83" font-family="Georgia,serif" font-size="15" fill="#0a0a0a">listOwnConversations()</text>
+      <text x="14" y="102" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#6b6258">child-transcript.ts</text>
+      <text x="14" y="116" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#6b6258">excerpt + count, G1-allowlisted</text>
+    </g>
+    <g>
+      <rect x="300" y="40" width="230" height="86" fill="#faf7f2" stroke="#d9d1c4"/>
+      <text x="314" y="62" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#6b6258" letter-spacing="1.3">REPLACES</text>
+      <text x="314" y="83" font-family="Georgia,serif" font-size="14" fill="#0a0a0a">inline query</text>
+      <text x="314" y="102" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#6b6258">route.ts:130-140</text>
+      <text x="314" y="116" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#b8232c">found in validation</text>
+    </g>
+    <g>
+      <rect x="580" y="40" width="230" height="86" fill="#faf7f2" stroke="#d9d1c4"/>
+      <text x="594" y="62" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#6b6258" letter-spacing="1.3">GUARD</text>
+      <text x="594" y="83" font-family="Georgia,serif" font-size="14" fill="#0a0a0a">401 / 403 split</text>
+      <text x="594" y="102" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#6b6258">no session &rarr; 401</text>
+      <text x="594" y="116" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#6b6258">parent &rarr; 403</text>
+    </g>
+    <line x1="300" y1="83" x2="256" y2="83" stroke="#6b6258" marker-end="url(#ar)"/>
+    <line x1="580" y1="83" x2="536" y2="83" stroke="#6b6258" marker-end="url(#ar)"/>
+
+    <g>
+      <rect x="0" y="176" width="250" height="82" fill="#f0ebe1" stroke="#b8232c" stroke-width="2"/>
+      <text x="14" y="198" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#b8232c" letter-spacing="1.3">PHASE 2</text>
+      <text x="14" y="219" font-family="Georgia,serif" font-size="15" fill="#0a0a0a">/chat?c=&lt;id&gt;</text>
+      <text x="14" y="238" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#6b6258">pointer moves to the URL</text>
+      <text x="14" y="251" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#b8232c">fixes the reported symptom</text>
+    </g>
+    <g>
+      <rect x="300" y="176" width="230" height="82" fill="#faf7f2" stroke="#d9d1c4"/>
+      <text x="314" y="198" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#6b6258" letter-spacing="1.3">SERVER HYDRATION</text>
+      <text x="314" y="219" font-family="Georgia,serif" font-size="14" fill="#0a0a0a">no greeting flash</text>
+      <text x="314" y="238" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#6b6258">getOwnTranscript in page.tsx</text>
+      <text x="314" y="251" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#6b6258">bad id &rarr; new chat, not an error</text>
+    </g>
+    <line x1="125" y1="132" x2="125" y2="170" stroke="#b8232c" marker-end="url(#ara)"/>
+    <line x1="256" y1="217" x2="294" y2="217" stroke="#6b6258" marker-end="url(#ar)"/>
+
+    <g>
+      <rect x="0" y="294" width="196" height="70" fill="#f0ebe1" stroke="#b8232c" stroke-width="2"/>
+      <text x="14" y="315" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#b8232c" letter-spacing="1.3">PHASE 3</text>
+      <text x="14" y="336" font-family="Georgia,serif" font-size="14" fill="#0a0a0a">the sidebar</text>
+      <text x="14" y="353" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#6b6258">rail / drawer, collapsed</text>
+    </g>
+    <g>
+      <rect x="236" y="294" width="196" height="70" fill="#faf7f2" stroke="#d9d1c4"/>
+      <text x="250" y="315" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#6b6258" letter-spacing="1.3">PHASE 4</text>
+      <text x="250" y="336" font-family="Georgia,serif" font-size="14" fill="#0a0a0a">composition</text>
+      <text x="250" y="353" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#6b6258">capped column (D10)</text>
+    </g>
+    <g>
+      <rect x="472" y="294" width="338" height="70" fill="#faf7f2" stroke="#0a0a0a" stroke-width="1.5"/>
+      <text x="486" y="315" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#0a0a0a" letter-spacing="1.3">PHASE 5 &middot; VERIFICATION</text>
+      <text x="486" y="336" font-family="Georgia,serif" font-size="14" fill="#0a0a0a">the checks that fail silently</text>
+      <text x="486" y="353" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#6b6258">V6 &middot; D3 &middot; G1 &middot; 401/403 &middot; by-hand refresh</text>
+    </g>
+    <line x1="125" y1="264" x2="125" y2="288" stroke="#b8232c" marker-end="url(#ara)"/>
+    <line x1="202" y1="329" x2="230" y2="329" stroke="#6b6258" marker-end="url(#ar)"/>
+    <line x1="438" y1="329" x2="466" y2="329" stroke="#6b6258" marker-end="url(#ar)"/>
+  </svg>
+  <figcaption>Fig. 1 &mdash; Phase dependencies. Red-bordered blocks are new work; phase 2 alone closes the reported bug.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="sec-head"><h2>The interface</h2><span class="folio">04</span></div>
+  <p>Mockups render in Bubbli&rsquo;s own Forest tokens, not this document&rsquo;s palette.
+  Row labels are derived on read and never stored &mdash; validation decision V6 forbids a
+  <code>title</code> column, because it becomes a leak vector in the parent-visible flags list.</p>
+
+  <div class="mocks">
+    <div class="mock">
+      <h3>Sidebar, expanded</h3>
+      <p class="cap">Phase 3 &middot; desktop rail</p>
+      <svg viewBox="0 0 420 300" role="img" aria-label="Expanded sidebar listing past conversations beside the chat column">
+        <rect width="420" height="300" fill="#0d1512"/>
+        <rect x="0" y="0" width="150" height="300" fill="#16211d"/>
+        <line x1="150" y1="0" x2="150" y2="300" stroke="#25342e"/>
+        <line x1="0" y1="34" x2="420" y2="34" stroke="#25342e"/>
+        <circle cx="18" cy="17" r="6" fill="none" stroke="#f0a882" stroke-width="1.4"/>
+        <text x="30" y="21" font-family="Georgia,serif" font-size="11" fill="#e8efe9">Bubbli</text>
+        <rect x="10" y="46" width="130" height="24" rx="12" fill="#3a2b21"/>
+        <text x="22" y="62" font-family="Helvetica,Arial" font-size="10" fill="#f0a882">+  New chat</text>
+        <text x="12" y="92" font-family="ui-monospace,Menlo,monospace" font-size="7" fill="#6d8176" letter-spacing="1.2">TODAY</text>
+        <rect x="6" y="98" width="138" height="30" fill="#1e2a25"/>
+        <rect x="6" y="98" width="2" height="30" fill="#f0a882"/>
+        <text x="16" y="111" font-family="Helvetica,Arial" font-size="9" fill="#e8efe9">why is the sky blue?</text>
+        <text x="16" y="123" font-family="ui-monospace,Menlo,monospace" font-size="7" fill="#6d8176">8 msgs &middot; 3:40pm</text>
+        <text x="16" y="146" font-family="Helvetica,Arial" font-size="9" fill="#9ab0a4">how do volcanoes...</text>
+        <text x="16" y="158" font-family="ui-monospace,Menlo,monospace" font-size="7" fill="#6d8176">4 msgs &middot; 2:15pm</text>
+        <text x="12" y="182" font-family="ui-monospace,Menlo,monospace" font-size="7" fill="#6d8176" letter-spacing="1.2">YESTERDAY</text>
+        <text x="16" y="200" font-family="Helvetica,Arial" font-size="9" fill="#9ab0a4">tell me about space</text>
+        <text x="16" y="212" font-family="ui-monospace,Menlo,monospace" font-size="7" fill="#6d8176">12 msgs &middot; 6:02pm</text>
+        <rect x="196" y="60" width="150" height="26" rx="9" fill="#3a2b21"/>
+        <text x="206" y="77" font-family="Helvetica,Arial" font-size="9" fill="#e8efe9">why is the sky blue?</text>
+        <rect x="176" y="96" width="200" height="42" rx="9" fill="#16211d" stroke="#25342e"/>
+        <text x="186" y="113" font-family="Helvetica,Arial" font-size="9" fill="#e8efe9">Sunlight is made of every</text>
+        <text x="186" y="127" font-family="Helvetica,Arial" font-size="9" fill="#e8efe9">colour mixed together...</text>
+        <rect x="176" y="258" width="180" height="24" rx="12" fill="none" stroke="#f0a882"/>
+        <text x="186" y="274" font-family="Helvetica,Arial" font-size="9" fill="#6d8176">Ask me anything</text>
+        <text x="368" y="274" font-family="Helvetica,Arial" font-size="9" fill="#9ab0a4">Send</text>
+        <g font-family="ui-monospace,Menlo,monospace" font-size="8" fill="#b8232c">
+          <circle cx="134" cy="113" r="7" fill="#faf7f2" stroke="#b8232c"/><text x="131" y="116">1</text>
+          <circle cx="134" cy="62" r="7" fill="#faf7f2" stroke="#b8232c"/><text x="131" y="65">2</text>
+          <circle cx="366" cy="117" r="7" fill="#faf7f2" stroke="#b8232c"/><text x="363" y="120">3</text>
+        </g>
+      </svg>
+      <ul class="annot">
+        <li><b>1</b>Derived excerpt + completed-message count (D8). Active row marked by an accent rule and a raised surface &mdash; never colour alone.</li>
+        <li><b>2</b><code>+ New chat</code> clears the <code>c</code> param. No delete, hide, rename or archive control exists anywhere (D3).</li>
+        <li><b>3</b>Conversation keeps <code>max-w-2xl</code>. The rail sits outside the measure, so prose never reflows wider.</li>
+      </ul>
+    </div>
+
+    <div class="mock">
+      <h3>Composition at 1440&times;900</h3>
+      <p class="cap">Phase 4 &middot; before / after</p>
+      <svg viewBox="0 0 420 300" role="img" aria-label="Before and after of the desktop empty state, showing the black expanse replaced by a capped centred column">
+        <rect width="420" height="300" fill="#faf7f2"/>
+        <rect x="4" y="20" width="196" height="264" fill="#0d1512" stroke="#d9d1c4"/>
+        <text x="4" y="14" font-family="ui-monospace,Menlo,monospace" font-size="8" fill="#6b6258" letter-spacing="1.2">TODAY</text>
+        <line x1="4" y1="46" x2="200" y2="46" stroke="#25342e"/>
+        <text x="14" y="38" font-family="Georgia,serif" font-size="9" fill="#e8efe9">Bubbli</text>
+        <rect x="26" y="60" width="152" height="152" fill="none" stroke="#b8232c" stroke-dasharray="3 3"/>
+        <text x="60" y="140" font-family="ui-monospace,Menlo,monospace" font-size="8" fill="#b8232c">dead viewport</text>
+        <rect x="110" y="222" width="76" height="16" rx="7" fill="#3a2b21"/>
+        <text x="118" y="233" font-family="Helvetica,Arial" font-size="7" fill="#e8efe9">how to...</text>
+        <rect x="20" y="242" width="90" height="14" rx="6" fill="#16211d" stroke="#25342e"/>
+        <rect x="14" y="264" width="176" height="14" rx="7" fill="none" stroke="#f0a882"/>
+
+        <rect x="220" y="20" width="196" height="264" fill="#0d1512" stroke="#d9d1c4"/>
+        <text x="220" y="14" font-family="ui-monospace,Menlo,monospace" font-size="8" fill="#b8232c" letter-spacing="1.2">AFTER &middot; D10</text>
+        <line x1="220" y1="46" x2="416" y2="46" stroke="#25342e"/>
+        <text x="230" y="38" font-family="Georgia,serif" font-size="9" fill="#e8efe9">Bubbli</text>
+        <rect x="230" y="120" width="176" height="96" fill="none" stroke="#b8232c" stroke-dasharray="3 3"/>
+        <text x="256" y="116" font-family="ui-monospace,Menlo,monospace" font-size="7" fill="#b8232c">capped column</text>
+        <rect x="326" y="132" width="76" height="16" rx="7" fill="#3a2b21"/>
+        <text x="334" y="143" font-family="Helvetica,Arial" font-size="7" fill="#e8efe9">how to...</text>
+        <rect x="236" y="154" width="90" height="14" rx="6" fill="#16211d" stroke="#25342e"/>
+        <rect x="236" y="172" width="120" height="14" rx="6" fill="#16211d" stroke="#25342e"/>
+        <path d="M236 196 L236 210" stroke="#b8232c" stroke-width="1"/>
+        <path d="M232 206 L236 212 L240 206" fill="#b8232c"/>
+        <text x="246" y="211" font-family="ui-monospace,Menlo,monospace" font-size="7" fill="#b8232c">small, fixed gap</text>
+        <rect x="230" y="264" width="176" height="14" rx="7" fill="none" stroke="#f0a882"/>
+      </svg>
+      <ul class="annot">
+        <li><b>1</b>Left: today. <code>min-h-full</code> + <code>justify-end</code> pins one exchange to the floor and leaves the rest black.</li>
+        <li><b>2</b>Right: the column centres but is <em>bounded</em>, so the newest turn stays near the composer &mdash; honouring the shipped requirement it would otherwise override.</li>
+        <li><b>3</b>Breakpoint-scoped. Mobile is untouched, and the original reasoning stays in the comment rather than being deleted.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Phases</h2><span class="folio">05</span></div>
+  <p>Select any phase for its full specification &mdash; architecture, files, steps, success criteria and risk.</p>
+  <div class="phases" id="phases"></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Open questions</h2><span class="folio">06</span></div>
+  <p><b>None.</b> Navigation shape, deletion policy and row label were settled in the
+  brainstorm; the existing-query rewrite, the message count, the 401/403 split and the
+  desktop-layout conflict were settled in validation session&nbsp;1; the crisis excerpt,
+  the age-band fork and the status-code split were settled in red team session&nbsp;1.</p>
+</section>
+
+<footer>
+  <p class="folio">Canonical source</p>
+  <p><code>plans/260827-2117-child-conversation-history/</code> &mdash; <code>plan.md</code>
+  plus five phase files. This page is generated from them; the markdown is authoritative.</p>
+</footer>
+
+</div>
+
+<dialog id="dlg">
+  <div class="dlg-head">
+    <h2 id="dlg-t"></h2>
+    <button class="close" id="dlg-x" autofocus>Close &nbsp;esc</button>
+  </div>
+  <div class="dlg-body" id="dlg-b"></div>
+</dialog>
+
+<script>
+const DATA = {"title": "Child conversation history", "description": "Give a child a collapsed sidebar of their past conversations, make a refresh keep its place, and stop the chat rendering as a black expanse on a desktop viewport.", "effort": "1-2d", "priority": "P1", "created": "2026-08-27", "phases": [{"file": "phase-01-read-path.md", "num": "1", "title": "The read path", "status": "pending", "priority": "P1", "effort": "3h", "deps": "[]", "md": "# Phase 1: The read path\n\n<!-- Updated: Validation Session 1 — premise corrected; a list query already exists -->\n<!-- Updated: Red Team Session 1 — D11 neutral label, D13 status codes, D14 throttle -->\n\n## Overview\n\nReplace the conversation list that already exists inline in the route handler with one\nthat lives in the allowlisted module, carries an excerpt, and excludes conversations\nthat never got a message.\n\n**This phase was originally written as \"add the missing query\". That was wrong.**\nValidation found a list query already at `src/app/api/chat/route.ts:130-140`. It works,\nand it is why the UI *could* have shown history all along — nothing ever called it.\n\n## What the existing query does and does not do\n\n```sql\n-- route.ts:131, today\nselect id, started_at,\n       (select count(*)::int from messages m where m.conversation_id = c.id) as message_count\n  from conversations c\n where child_id = $1\n order by started_at desc limit 30\n```\n\n| | Today | Needed |\n|---|---|---|\n| Location | inline in the route handler | `child-transcript.ts` — **forced**, see below |\n| Row label | none | derived excerpt |\n| Message count | all statuses | completed only |\n| Empty conversations | included | excluded (D5) |\n| Cap | 30, no continuation | 50 + `hasMore` (D6) |\n| Non-child session | 401 | 403 (D9) |\n\n**The location is not a style preference.** `eslint-rules/no-direct-message-query.js:9`\nallows `messages.content` reads from exactly two files —\n`src/lib/parent/transcript.ts` and `src/lib/chat/child-transcript.ts`. The current\nquery passes lint only because `count(*)` touches no content. Adding the excerpt in\nplace would fail the build unless the allowlist were widened, which is the one thing\nthat rule exists to prevent.\n\n## Requirements\n\n- Functional: given a child session, return that child's conversations newest first,\n  each with an id, a start time, a completed-message count, and a short excerpt of the\n  child's first message.\n- Functional: a conversation with no completed message is omitted.\n- Functional: **a conversation whose `max_severity` is `medium` or above returns NO\n  excerpt** (D11). The caller renders a neutral label. Its content is unchanged and it\n  opens normally — only the persistent label is suppressed.\n- Functional: the endpoint is throttled (D14), and the throttle does not draw on the\n  family's AI budget: a read is not a model call.\n- Functional: at most 50 rows, plus `hasMore` so the caller can request older.\n- Non-functional: a **parent** session receives 403, not 401 — it is authenticated and\n  not authorized, and the two must not be conflated.\n- Non-functional: a child session cannot read another child's conversations. The\n  collection answers 403; a specific conversation answers **404** (D13).\n- Non-functional: no audit event is written (`child-transcript.ts:1-11`).\n- Non-functional: no new column on `conversations`. The excerpt is derived on read.\n\n## Architecture\n\n`listOwnConversations()` joins `getOwnTranscript` in\n`src/lib/chat/child-transcript.ts`.\n\nThe excerpt is the child's first message, computed in SQL rather than by loading every\nmessage. **`role` is `'child'`, not `'user'`** — `messages_role_ck` constrains the\ncolumn to `('child','assistant','system')`, so the obvious spelling silently matches\nnothing:\n\n```sql\nselect c.id,\n       c.started_at,\n       (select count(*)::int\n          from messages m\n         where m.conversation_id = c.id\n           and m.status = 'completed')            as message_count,\n       c.max_severity,\n       (select left(m.content, 80)\n          from messages m\n         where m.conversation_id = c.id\n           and m.role = 'child'                   -- NOT 'user'; see messages_role_ck\n           and m.status = 'completed'\n         order by m.created_at asc\n         limit 1)                                 as excerpt\n  from conversations c\n where c.child_id = $1\n   and exists (select 1 from messages m2\n                where m2.conversation_id = c.id\n                  and m2.status = 'completed')\n order by c.started_at desc\n limit $2 offset $3\n```\n\n`max_severity` comes back so the caller can apply D11. **Suppress the excerpt in the\nmodule, not in the component** — a component-side check leaves the text in the JSON\nresponse, where it reaches the browser, the network tab, and any future consumer. The\nwhole point is that it does not travel.\n\nThe `exists` clause is D5 — it drops a conversation whose row was created by a send\nthat then failed. `conversations_child_idx` on `(child_id, started_at)` covers the\nordering; `messages_conversation_idx` on `(conversation_id, created_at)` covers both\nsubqueries.\n\n**The excerpt is never stored.** That is what keeps validation decision V6 intact: no\ncolumn means no field a parent-side query can select by mistake, which is the exact\nfailure V6 was written against.\n\nAuthorization: `assertIsChild` (`src/lib/authz/index.ts`) rejects a parent principal\nbefore any query runs. The route's current `if (!session?.childId) → 401` collapses\n\"not signed in\" and \"signed in as a parent\" into one answer; split it.\n\n## Related Code Files\n\n- Modify: `src/lib/chat/child-transcript.ts` — add `listOwnConversations()`\n- Modify: `src/app/api/chat/route.ts` — **delete** the inline query at 130-140, call the\n  module, and split 401 from 403 at line 126\n- Create: `tests/chat/child-conversation-list.test.ts`\n\n## Implementation Steps\n\n1. Add `ChildConversationSummary` (`id`, `startedAt`, `messageCount`, `excerpt`) and\n   `listOwnConversations(db, session, { limit, offset })` to `child-transcript.ts`.\n2. Delete the inline query from `route.ts` and call the module instead. Return\n   `{ conversations, hasMore }`.\n3. Split the auth check: no session → 401; session that is not a child → 403.\n4. Write the tests below. The authz cases are the point of the phase, not an extra.\n\n## Success Criteria\n\n- [ ] A child session gets its own conversations, newest first, with excerpt and count\n- [ ] A **parent** session gets **403** — asserted, not assumed\n- [ ] No session gets 401, and the two codes are distinguishable\n- [ ] A child session cannot see another child's conversations, even same family\n- [ ] A specific conversation belonging to another child answers **404**, not 403 (D13)\n- [ ] A conversation with zero completed messages is absent\n- [ ] `message_count` counts completed messages only\n- [ ] The excerpt is the child's first message — a test with an assistant-first\n      conversation proves `role = 'child'` is right and `'user'` would have returned null\n- [ ] A conversation with `max_severity` `medium`/`high`/`critical` returns **no excerpt\n      field at all** (D11) — asserted on the JSON, not on the rendered component\n- [ ] The endpoint is throttled, and the throttle consumes no AI quota (D14)\n- [ ] No audit row written by a list call — asserted against `audit_events`\n- [ ] No inline `messages` query remains in `route.ts`\n- [ ] `git diff src/db/schema.ts` empty: no column added\n- [ ] `pnpm typecheck && pnpm lint` clean — lint passing is itself evidence the content\n      read is in an allowlisted module\n\n## Risk Assessment\n\n**The list endpoint becomes a way for a parent to read content unaudited.** The parent\npath is severity-gated and audited on purpose; this one is neither by design. A parent\nsession satisfying it is a real bypass of the oversight record.\n\n**Signal it broke:** the parent-session test returns anything other than 403.\n**Response:** stop and fix the guard before any UI work. Do not proceed to phase 2 with\nthis test failing or skipped.\n\n**`role = 'user'` reappears.** It is the spelling every other chat codebase uses, and\nit fails silently here — no error, just a null excerpt on every row. The success\ncriteria include a test that would catch it rather than relying on the comment.\n\n**Widening the G1 allowlist to avoid moving the query.** Rejected during validation.\nThe rule's value is that it is narrow; an entry added for convenience makes every later\nentry easier to justify.\n\n**The excerpt suppression is added to the component instead of the module.** It would\nlook equivalent and would not be: the crisis text would still be in the HTTP response.\nThe success criterion asserts on the JSON for exactly this reason.\n\n**Throttle mechanism is unspecified here on purpose.** `checkChatQuota` is an AI-budget\nlimiter and is the wrong tool — a read costs no tokens. The identifier-scoped counter in\n`src/lib/auth/login-rate-limit.ts` is the closer pattern. Pick one during implementation\nand record which; do not reuse the AI quota.\n\n**`left(content, 80)` splits a multi-byte character.** Postgres `left()` counts\ncharacters, not bytes, so emoji and accented text are safe. Worth a test case rather\nthan a comment.\n", "objective": "Replace the conversation list that already exists inline in the route handler with one that lives in the allowlisted module, carries an excerpt, and excludes conversations that never got a message.", "bullets": ["Functional: given a child session, return that child's conversations newest first,", "Functional: a conversation with no completed message is omitted.", "Functional: **a conversation whose `max_severity` is `medium` or above returns NO", "Functional: the endpoint is throttled (D14), and the throttle does not draw on the", "Functional: at most 50 rows, plus `hasMore` so the caller can request older."], "files": [{"verb": "Modify", "path": "src/lib/chat/child-transcript.ts"}, {"verb": "Modify", "path": "src/app/api/chat/route.ts"}, {"verb": "Create", "path": "tests/chat/child-conversation-list.test.ts"}], "criteria": ["A child session gets its own conversations, newest first, with excerpt and count", "A **parent** session gets **403** — asserted, not assumed", "No session gets 401, and the two codes are distinguishable", "A child session cannot see another child's conversations, even same family"], "criteria_total": 14}, {"file": "phase-02-resumable-url.md", "num": "2", "title": "Resumable conversations", "status": "pending", "priority": "P1", "effort": "3h", "deps": "[1]", "md": "# Phase 2: Resumable conversations\n\n<!-- Updated: Red Team Session 1 — D12 age-band fork on resume -->\n\n## Overview\n\nMove the active conversation pointer out of React state and into the URL, so a refresh\nkeeps its place. This is the phase that fixes the reported symptom, and it is placed\nbefore the sidebar so it can ship on its own.\n\n## Requirements\n\n- Functional: `/chat?c=<uuid>` opens that conversation with its full history.\n- Functional: `/chat` with no parameter opens a new, empty chat showing the greeting.\n- Functional: sending the first message in a new chat replaces the URL with\n  `?c=<new id>` **without** adding a history entry — the back button must not step\n  through every message.\n- Functional: sending into a resumed conversation continues it. No new row — **unless\n  the child's age band no longer matches the conversation's pinned band**, in which case\n  a new conversation starts (D12).\n- Non-functional: an unknown, malformed, or other-child `c` value does not render an\n  error screen. It falls back to a new chat.\n- Non-functional: no flash of the greeting before a resumed conversation paints.\n\n## The band problem this phase creates\n\n`conversations.age_band` is pinned at creation, and `schema.ts:138` says why:\n\n> Pinned at creation so a mid-conversation band change starts a new one.\n\n**Nothing implements that.** `route.ts:49` reads the child's *current* band, uses it for\n`checkInput` (`route.ts:66`), and writes it to `guardrail_results.age_band`. The pinned\ncolumn is recorded and never consulted.\n\nToday that is invisible, because a conversation cannot outlive the page session that\ncreated it. **This phase is what makes conversations long-lived, so this phase is what\nactivates the bug.** A child moving `8-11 → 12` who resumes an old thread would be\nguarded at `12` inside a conversation the row calls `8-11` — and the bands genuinely\ndiffer: `inap.sexual.topic.young` is `medium` for under-12s where `.older` is `low`.\n\nD12: on resume, compare the child's current band to the conversation's pinned band. If\nthey differ, start a new conversation rather than appending. The child's actual age\nalways governs the guardrail, and the row never lies about which band its turns were\njudged under.\n\n## Architecture\n\n`ChatPage` is already a server component that resolves the session (`page.tsx`). It\ngains the `c` search param, and when present it calls `getOwnTranscript` **server-side**\nand passes the messages to `ChatClient` as initial state.\n\nThat placement is deliberate and is what satisfies the no-flash requirement: doing the\nfetch in a client `useEffect` guarantees one paint of the empty greeting first. It also\nmeans an unauthorized id fails on the server, where `assertIsOwningChild` already\nthrows, rather than surfacing as a client error.\n\n```\n/chat?c=<id>  ──▶ ChatPage (server)\n                    ├─ getSession()                     already there\n                    ├─ getOwnTranscript(id)  ──▶ throws on wrong owner\n                    │      └─ catch ──▶ treat as new chat\n                    └─ <ChatClient initialTurns=… initialConversationId=… />\n```\n\nThe catch is what turns a stale bookmark or a copied link into a harmless new chat\nrather than an error page. A child should never see a permission error for a URL they\ndid not construct.\n\nClient-side, `conversationId` stops being the source of truth and becomes a mirror of\nthe URL. After the first send, `history.replaceState` — not `push` — records the id.\n\nThe `dynamic = 'force-dynamic'` already on the page stays; this content is per-session\nand must never be cached.\n\n## Related Code Files\n\n- Modify: `src/app/(child)/chat/page.tsx` — read `c`, hydrate, fall back on failure\n- Modify: `src/components/chat/chat-client.tsx` — accept initial state, `replaceState`\n  after first send\n- Create: `tests/chat/resume-conversation.test.ts`\n\n## Implementation Steps\n\n1. Add `searchParams` to `ChatPage`; validate `c` is a UUID before touching the\n   database, so a junk value costs no query.\n2. Call `getOwnTranscript` inside a `try`. On any throw, log nothing user-facing and\n   render a new chat.\n3. Pass `initialTurns` and `initialConversationId` into `ChatClient`; seed `useState`\n   from them.\n4. After the first successful send in a new chat, `window.history.replaceState` to\n   `?c=<id>`.\n5. Verify by hand: send, hard-refresh, confirm the conversation is intact — the exact\n   reproduction from the report.\n\n## Success Criteria\n\n- [ ] Send a message, hard-refresh — history intact. **The reported symptom, gone**\n- [ ] `/chat` shows the greeting; `/chat?c=<valid>` shows that conversation\n- [ ] `/chat?c=not-a-uuid` renders a new chat, no error, no database query\n- [ ] `/chat?c=<another child's id>` renders a new chat, not a permission error\n- [ ] Back button after several messages leaves the chat, not the previous message\n- [ ] No greeting flash when resuming — the first paint already has the messages\n- [ ] Sending into a resumed conversation adds no `conversations` row\n- [ ] Resuming a conversation whose pinned band differs from the child's current band\n      **starts a new conversation** (D12), and the old one stays readable\n- [ ] `guardrail_results.age_band` never disagrees with its conversation's `age_band`\n- [ ] `pnpm typecheck && pnpm lint && pnpm test` clean\n\n## Risk Assessment\n\n**A conversation id in a URL looks like a leak.** It is an opaque UUID and every read\nof it is authorized by `assertIsOwningChild`; the parent side already addresses\nconversations this way (`/parent/conversations/[id]`). It is not a capability — holding\nthe id grants nothing without the owning session. Worth stating in the code comment so\nthe next reader does not have to re-derive it.\n\n**Signal it broke:** any path where the id alone, without the session, returns content.\n**Response:** that is a authorization defect, not a URL-design defect. Fix the guard.\n\n**Server-side hydration slows first paint on a long conversation.** A child's\nconversation is tens of messages, not thousands, and the query is indexed. If it ever\nmatters, the answer is to cap the initial render and load older on scroll — not to move\nthe fetch back to the client, which would reintroduce the flash.\n\n**The band fork is added to the read path instead of the write path.** Resuming to\n*read* an old conversation must always work — the fork belongs at the moment of sending,\nnot the moment of opening. Getting this backwards would make a child's history\nunreachable after a birthday.\n\n**Signal it broke:** an old conversation stops opening after a band change.\n**Response:** the check moved to the wrong side. Reads are never gated by band.\n\n**`replaceState` conflicts with the Next router.** Using the native API rather than\n`router.replace` avoids a re-render and a server round-trip for what is a cosmetic URL\nupdate. If Next's router state and the URL disagree in a way that matters later,\n`router.replace(url, { scroll: false })` is the fallback — at the cost of a re-render.\n", "objective": "Move the active conversation pointer out of React state and into the URL, so a refresh keeps its place. This is the phase that fixes the reported symptom, and it is placed before the sidebar so it can ship on its own.", "bullets": ["Functional: `/chat?c=<uuid>` opens that conversation with its full history.", "Functional: `/chat` with no parameter opens a new, empty chat showing the greeting.", "Functional: sending the first message in a new chat replaces the URL with", "Functional: sending into a resumed conversation continues it. No new row — **unless", "Non-functional: an unknown, malformed, or other-child `c` value does not render an"], "files": [{"verb": "Modify", "path": "src/app/(child)/chat/page.tsx"}, {"verb": "Modify", "path": "src/components/chat/chat-client.tsx"}, {"verb": "Create", "path": "tests/chat/resume-conversation.test.ts"}], "criteria": ["Send a message, hard-refresh — history intact. **The reported symptom, gone**", "`/chat` shows the greeting; `/chat?c=<valid>` shows that conversation", "`/chat?c=not-a-uuid` renders a new chat, no error, no database query", "`/chat?c=<another child's id>` renders a new chat, not a permission error"], "criteria_total": 10}, {"file": "phase-03-sidebar.md", "num": "3", "title": "The sidebar", "status": "pending", "priority": "P1", "effort": "5h", "deps": "[1, 2]", "md": "# Phase 3: The sidebar\n\n<!-- Updated: Validation Session 1 — rows carry a message count (D8) -->\n<!-- Updated: Red Team Session 1 — D11 neutral label for flagged conversations -->\n\n## Overview\n\nThe list a child actually sees: a rail on desktop, a drawer on mobile, collapsed by\ndefault, with `+ New` at the top and conversations grouped by day.\n\n## Requirements\n\n- Functional: a toggle in the header opens and closes it; the state persists across\n  navigation within the session.\n- Functional: rows are grouped `TODAY` / `YESTERDAY` / `EARLIER`, newest first.\n- Functional: each row shows the derived excerpt, a completed-message count (D8) and a\n  time; the active conversation is visually current.\n- Functional: when the endpoint returns no excerpt (D11 — the conversation is flagged),\n  the row shows a neutral, time-based label such as *\"A chat from this afternoon\"*. It\n  must read as ordinary, and must **not** be styled as a warning: a child should not be\n  shown a badge on their own difficult moment.\n- Functional: `+ New` navigates to `/chat`, clearing the `c` param.\n- Functional: \"Show older\" appears only when `hasMore`, and appends rather than replaces.\n- Functional: **no control deletes, hides, renames, pins or archives anything** (D3).\n- Non-functional: collapsed by default, so the chat is the subject on first load.\n- Non-functional: all controls >= 44px; the drawer traps focus and closes on Escape;\n  the toggle is reachable and labelled for a screen reader.\n- Non-functional: both themes, WCAG AA, reduced motion honoured on the open/close.\n- Non-functional: the conversation column keeps its `max-w-2xl` reading measure.\n\n## Architecture\n\nA new `src/components/chat/conversation-list.tsx`, and a thin sidebar shell that owns\nonly the open/closed state. The list is a presentational component fed by the phase-1\nendpoint; it holds no conversation state of its own, because the URL is the source of\ntruth after phase 2 and two sources would drift.\n\nLayout at desktop: a two-column grid where the rail is a fixed width and the\nconversation column keeps `max-w-2xl` *inside* the remaining space. The measure is a\nproperty of the prose, not of the viewport, so it must not be recomputed from the space\nthe sidebar leaves.\n\n```\n collapsed                       expanded\n┌──┬──────────────────────┐    ┌────────────┬────────────────┐\n│☰ │  header              │    │ ☰  + New   │  header        │\n├──┼──────────────────────┤    ├────────────┼────────────────┤\n│  │                      │    │ TODAY      │                │\n│  │   max-w-2xl column   │    │  why is…   │  max-w-2xl     │\n│  │                      │    │  how do…   │  column        │\n│  │                      │    │ YESTERDAY  │  (unchanged    │\n│  │  [composer]          │    │  tell me…  │   measure)     │\n└──┴──────────────────────┘    └────────────┴────────────────┘\n```\n\nMobile is the same component in a drawer over the chat, not a second implementation.\n\nDay grouping is computed in the client from `startedAt` against the viewer's local\nmidnight. Doing it in SQL would bake the server's timezone into the labels.\n\n**No delete affordance is not an omission to be filled in later.** D3 is a safety\ndecision: a conversation is the evidence behind a parent's alert. A comment in the\ncomponent should say so, or a future contributor will add the missing button as an\nobvious improvement.\n\n## Related Code Files\n\n- Create: `src/components/chat/conversation-list.tsx`\n- Create: `src/components/chat/sidebar.tsx` — shell, toggle, drawer behaviour\n- Modify: `src/components/chat/chat-client.tsx` — host the sidebar, header toggle\n- Create: `tests/chat/conversation-list.test.ts`\n\n## Implementation Steps\n\n1. Build `conversation-list.tsx` against the phase-1 response shape: grouping, active\n   row, empty state, \"show older\".\n2. Build the sidebar shell: rail at `md:` and up, drawer below, Escape to close, focus\n   trap while open, `aria-expanded` on the toggle.\n3. Wire the toggle into the existing header beside \"How you're kept safe\".\n4. Restructure the chat layout to two columns without changing the prose measure.\n5. Write the empty state: a child on day one has no history, and \"No chats yet\" must\n   not read as an error.\n\n## Success Criteria\n\n- [ ] Collapsed on first load; toggle opens and closes it\n- [ ] Rows grouped Today / Yesterday / Earlier, newest first\n- [ ] Each row shows excerpt, message count and time without crowding at the rail width\n- [ ] A flagged conversation shows a neutral label, indistinguishable in styling from any\n      other row (D11) — no badge, no colour, no icon\n- [ ] Selecting a row navigates to `?c=<id>` and paints that conversation\n- [ ] The active row is visually distinguishable, and not by colour alone\n- [ ] `+ New` returns to `/chat` and the greeting\n- [ ] \"Show older\" appends; it is absent when there is nothing older\n- [ ] **No delete, hide, rename, pin or archive control exists anywhere** — grep the\n      component for those words and find none\n- [ ] Escape closes the drawer; focus returns to the toggle; focus is trapped while open\n- [ ] Every control >= 44px; contrast passes AA in both themes\n- [ ] Prose measure unchanged with the sidebar open — messages do not reflow wider\n- [ ] Empty state reads as normal, not as a failure\n\n## Risk Assessment\n\n**The sidebar becomes the screen.** For a four-year-old, a list of past chats is noise\ncompeting with the one thing they came to do. Collapsed-by-default is the mitigation,\nand it is why the brainstorm rejected an always-open rail.\n\n**Signal it broke:** the chat column narrows enough that assistant prose reflows, or\nthe composer stops being the obvious focus on open.\n**Response:** the rail is too wide. Narrow it or make it an overlay at that breakpoint —\ndo not shrink the reading measure to make room.\n\n**Someone adds a delete button later because its absence looks like an oversight.**\nMitigated by an explicit comment naming D3 and by a success criterion that greps for\nit. This is the highest-value guard in the phase, because the failure is silent: the\nproduct still works, it just stops being trustworthy.\n\n**The neutral label is styled as a warning.** Marking the row would tell a child the\nsystem noticed their crisis and filed it — which is a worse experience than showing the\ntext. The row must be visually ordinary; only the words change.\n\n**Day grouping is wrong across a timezone change or midnight.** Computed client-side\nagainst local midnight, so a child who travels sees labels relative to where they are.\nAcceptable; the alternative bakes the server's zone into a child-facing label.\n", "objective": "The list a child actually sees: a rail on desktop, a drawer on mobile, collapsed by default, with `+ New` at the top and conversations grouped by day.", "bullets": ["Functional: a toggle in the header opens and closes it; the state persists across", "Functional: rows are grouped `TODAY` / `YESTERDAY` / `EARLIER`, newest first.", "Functional: each row shows the derived excerpt, a completed-message count (D8) and a", "Functional: when the endpoint returns no excerpt (D11 — the conversation is flagged),", "Functional: `+ New` navigates to `/chat`, clearing the `c` param."], "files": [{"verb": "Create", "path": "src/components/chat/conversation-list.tsx"}, {"verb": "Create", "path": "src/components/chat/sidebar.tsx"}, {"verb": "Modify", "path": "src/components/chat/chat-client.tsx"}, {"verb": "Create", "path": "tests/chat/conversation-list.test.ts"}], "criteria": ["Collapsed on first load; toggle opens and closes it", "Rows grouped Today / Yesterday / Earlier, newest first", "Each row shows excerpt, message count and time without crowding at the rail width", "A flagged conversation shows a neutral label, indistinguishable in styling from any"], "criteria_total": 13}, {"file": "phase-04-composition.md", "num": "4", "title": "Composition at desktop height", "status": "pending", "priority": "P2", "effort": "2h", "deps": "[3]", "md": "# Phase 4: Composition at desktop height\n\n<!-- Updated: Validation Session 1 — D10 settles the conflict with 260826-0149 -->\n\n## Overview\n\nSettle what the chat looks like when it is nearly empty on a tall screen. Today a\nsingle exchange sits on the floor of a 900px viewport with everything above it black.\n\n## This changes a decision that was made on purpose\n\n`chat-client.tsx:9` records the current behaviour as deliberate:\n\n> `min-h-full` + `justify-end` on the inner column: short conversations [put the newest\n> turn directly above the composer]\n\nThat is correct on a phone, and it is the behaviour phase 1 of\n`260826-0149-child-chat-ui-rebuild` was written to produce. It is not a bug, and this\nphase must not be written as if it were. What was never reconciled is a 1440x900\nviewport, where the same rule leaves two-thirds of the screen empty.\n\nSo the change is scoped to wide-and-tall viewports, and the reasoning stays in the\ncomment rather than being deleted.\n\n## Requirements\n\n- Functional: empty state — the greeting sits in the optical centre of the conversation\n  area, not on its floor.\n- Functional: short conversation — the exchange is vertically composed rather than\n  bottom-pinned, within a **capped column height** (D10) so the newest turn stays close\n  to the composer.\n- Functional: long conversation — unchanged. Scrolls normally, pinned to newest.\n- Functional: mobile unchanged. The current behaviour is right there and stays.\n- Non-functional: no JavaScript height measurement, no layout thrash, no CLS.\n- Non-functional: `scrollIntoView` on new turns keeps working.\n- Non-functional: reduced motion honoured.\n\n## Architecture\n\nThe switch is a breakpoint, not a measurement. Below `md`, keep `justify-end`. At `md`\nand up, the conversation area becomes a centred column with a max height, so content\ngrows from the middle and only pins to the bottom once it exceeds the space.\n\nCSS-only, so there is nothing to measure and nothing to thrash:\n\n```\nmobile (unchanged)        desktop, empty         desktop, short\n┌──────────────┐          ┌──────────────┐       ┌──────────────┐\n│              │          │              │       │              │\n│              │          │              │       │   ┌────────┐ │\n│              │          │   Hi Thi.    │       │   │ msg    │ │\n│              │          │   What shall │       │   └────────┘ │\n│   ┌────────┐ │          │   we learn?  │       │  ┌─────────┐ │\n│   │ msg    │ │          │              │       │  │ reply   │ │\n│   └────────┘ │          │              │       │  └─────────┘ │\n│ [composer]   │          │ [composer]   │       │ [composer]   │\n└──────────────┘          └──────────────┘       └──────────────┘\n   justify-end              centred                centred\n```\n\nThe greeting and the message list are the same column; only its vertical alignment\nchanges with the breakpoint. Once content exceeds the column, `overflow-y-auto` and the\nexisting scroll-to-newest take over unchanged — which is why the long-conversation case\nneeds no special handling.\n\n## Related Code Files\n\n- Modify: `src/components/chat/chat-client.tsx` — the inner column at `chat-client.tsx:127`,\n  and the comment at `chat-client.tsx:9` to record why the rule is now breakpoint-scoped\n\n## Implementation Steps\n\n1. Replace the unconditional `justify-end` with a breakpoint-scoped alignment.\n2. Update the comment at the top of the file. Do not delete the original reasoning —\n   extend it, so the next reader learns the rule was scoped rather than reversed.\n3. Check all three states at 1440x900 and at 390x844: empty, one exchange, twenty.\n4. Confirm the newest turn is still scrolled into view after a send in every state.\n\n## Success Criteria\n\n- [ ] 1440x900 empty: no dead region taller than the composer\n- [ ] 1440x900 one exchange: composed, not floor-pinned, and the gap between the newest\n      turn and the composer stays small enough that they read as one object (D10)\n- [ ] 1440x900 twenty turns: identical to today — scrolls, pinned to newest\n- [ ] 390x844 all three states: identical to today\n- [ ] New turns still scroll into view\n- [ ] No JS height measurement introduced; no CLS on load\n- [ ] The comment at `chat-client.tsx:9` explains the breakpoint, not just the rule\n- [ ] Both themes; reduced motion honoured\n\n## Risk Assessment\n\n**This re-breaks the thing `260826-0149` phase 1 fixed.** That phase's requirement was\n\"with a short conversation the last message sits directly above the composer\". A\ncentred column at desktop puts a gap between the newest turn and the composer, which is\narguably a regression against that wording.\n\n**Settled in validation session 1 (D10): cap the column's height.** The conversation\narea centres at desktop but is bounded, so the newest turn stays near the composer and\nboth requirements hold. Full centring was rejected precisely because it would override\na shipped decision silently.\n\n**Signal it broke:** the newest turn is far enough above the composer that the two stop\nreading as one object — the exact failure the older phase named.\n**Response:** tighten the cap. If no cap value satisfies both, the requirements\ngenuinely conflict at desktop height — stop and bring it to Thi rather than resolving\nit in CSS.\n\n**The sidebar changes the available width, so this is tuned against the wrong layout.**\nDepends on phase 3 for that reason. Check with the sidebar both open and closed.\n", "objective": "Settle what the chat looks like when it is nearly empty on a tall screen. Today a single exchange sits on the floor of a 900px viewport with everything above it black.", "bullets": ["Functional: empty state — the greeting sits in the optical centre of the conversation", "Functional: short conversation — the exchange is vertically composed rather than", "Functional: long conversation — unchanged. Scrolls normally, pinned to newest.", "Functional: mobile unchanged. The current behaviour is right there and stays.", "Non-functional: no JavaScript height measurement, no layout thrash, no CLS."], "files": [{"verb": "Modify", "path": "src/components/chat/chat-client.tsx"}], "criteria": ["1440x900 empty: no dead region taller than the composer", "1440x900 one exchange: composed, not floor-pinned, and the gap between the newest", "1440x900 twenty turns: identical to today — scrolls, pinned to newest", "390x844 all three states: identical to today"], "criteria_total": 8}, {"file": "phase-05-verification.md", "num": "5", "title": "Verification", "status": "pending", "priority": "P1", "effort": "3h", "deps": "[1, 2, 3, 4]", "md": "# Phase 5: Verification\n\n<!-- Updated: Validation Session 1 — 401/403 split (D9), inline-query removal -->\n<!-- Updated: Red Team Session 1 — D11 D12 D13 D14 -->\n\n## Overview\n\nProve the three properties that are easy to lose quietly: no new leak surface, no way\nfor a child to destroy evidence, and no bypass of the parent oversight record.\n\nEverything else in this plan announces itself when it breaks. These do not.\n\n## Requirements\n\n- The reported symptom is gone, checked by hand against the running app.\n- Every authorization boundary on the new paths is asserted by a test, not reasoned about.\n- No stored title, and no parent-visible surface carrying child content.\n- No delete affordance anywhere in the child UI.\n- Both themes, both breakpoints, keyboard-complete.\n- All existing gates still pass.\n\n## Architecture\n\nThree of these need a structural check rather than a behavioural one, because the\nfailure is a future edit rather than a current bug:\n\n| Property | Structural check |\n|---|---|\n| V6 holds | the `conversations` table definition contains no `title` / `summary` / `excerpt` column |\n| The child module stays child-only | no file under `src/app/(parent)` or `src/lib/parent*` imports from `child-transcript.ts` |\n| D3 holds | no delete / hide / archive / remove control in `src/components/chat/` |\n| G1 holds | `messages.content` is read only from the two allowlisted modules — `pnpm lint` passing is the assertion |\n| D11 holds | no code path returns an excerpt for a conversation whose `max_severity` is `medium`+ |\n\nThese belong in the test suite, not a checklist, because a checklist is not run again\nin six months.\n\n## Related Code Files\n\n- Create: `tests/chat/child-history-boundaries.test.ts` — the three structural checks\n- Modify: existing chat tests if the `ChatClient` props changed\n\n## Implementation Steps\n\n1. **Reproduce the original report**, against the running dev server: sign in as a\n   child, send a message, hard-refresh. The conversation must survive. This is the\n   acceptance test for the whole plan and it is done by hand, once, deliberately.\n2. Write the three structural tests above.\n3. Sweep both themes at 1440x900 and 390x844, across: empty chat, short conversation,\n   long conversation, sidebar open, sidebar closed, empty history.\n4. Keyboard-only pass: reach the toggle, open, move through rows, select, Escape,\n   confirm focus returns to the toggle.\n5. Run every gate: `pnpm typecheck`, `pnpm lint`, `pnpm build`, full suite,\n   `pnpm corpus:eval`.\n6. Confirm the guardrail path is untouched — `policyVersion()` unchanged and G4\n   precision still 100%. Nothing in this plan touches rules, and that should be visible\n   rather than assumed.\n\n## Success Criteria\n\n- [ ] Send → hard-refresh → history intact, verified by hand on the running app\n- [ ] Parent session → child list endpoint → **403**, asserted\n- [ ] Anonymous request → **401**, asserted, and distinguishable from the 403 (D9)\n- [ ] No inline `messages` query remains in `src/app/api/chat/route.ts` — the content read\n      lives only in the G1-allowlisted module\n- [ ] Child session → another child's conversation → **404**, asserted (D13, anti-enumeration)\n- [ ] A list call writes no row to `audit_events`, asserted\n- [ ] `conversations` has no title-shaped column, asserted structurally\n- [ ] No parent-side file imports `child-transcript.ts`, asserted structurally\n- [ ] No delete / hide / archive control in the child chat components, asserted structurally\n- [ ] Conversations with no completed message never listed\n- [ ] **A `critical`-flagged conversation returns no excerpt in the JSON** (D11) — asserted\n      on the response body, so the text never reaches the browser at all\n- [ ] Resuming across a band change forks a new conversation; the old one still opens (D12)\n- [ ] The list endpoint is throttled and consumes no AI quota (D14)\n- [ ] Both themes x both breakpoints x six states: no contrast failure, no horizontal\n      scroll, no dead region taller than the composer\n- [ ] Keyboard-complete, focus visible throughout, focus returns to the toggle on close\n- [ ] `policyVersion()` unchanged; G4 still 100% precision\n- [ ] `pnpm typecheck`, `pnpm lint`, `pnpm build`, full suite, `pnpm corpus:eval` — all pass\n\n## Risk Assessment\n\n**A green suite is taken as proof of the properties that were never tested.** This is\nthe specific failure this project has already hit once: G4 reported 100% recall on a\nguardrail that missed the most obvious violence request in the language, because the\ncorpus shared the rule's blind spot. A test that was never written measures nothing,\nand a metric derived from it is worse than no metric because it is reassuring.\n\n**Signal it broke:** any success criterion above marked done without an accompanying\ncommand output or assertion.\n**Response:** it is not done. Write the assertion.\n\n**The by-hand check is skipped because the unit tests pass.** The unit tests cover the\nread path; they do not cover a real browser reload with a real session cookie, which is\nwhat the user reported. Step 1 is not optional and is not replaceable by a test.\n\n**D11 is verified by looking at the screen instead of the response.** A component that\nrenders a neutral label while the JSON still carries the crisis text passes a visual\ncheck and fails the actual requirement. Assert on the response body.\n\n**Structural tests are brittle and get deleted.** Each carries a comment naming the\ndecision it protects — V6, D3, the child-module boundary — so a contributor who hits\none learns why rather than reaching for the delete key.\n", "objective": "Prove the three properties that are easy to lose quietly: no new leak surface, no way for a child to destroy evidence, and no bypass of the parent oversight record.", "bullets": ["The reported symptom is gone, checked by hand against the running app.", "Every authorization boundary on the new paths is asserted by a test, not reasoned about.", "No stored title, and no parent-visible surface carrying child content.", "No delete affordance anywhere in the child UI.", "Both themes, both breakpoints, keyboard-complete."], "files": [{"verb": "Create", "path": "tests/chat/child-history-boundaries.test.ts"}], "criteria": ["Send → hard-refresh → history intact, verified by hand on the running app", "Parent session → child list endpoint → **403**, asserted", "Anonymous request → **401**, asserted, and distinguishable from the 403 (D9)", "No inline `messages` query remains in `src/app/api/chat/route.ts` — the content read"], "criteria_total": 17}], "planMd": "# Child conversation history\n\n## Overview\n\nA child sends a message, refreshes, and lands on an empty greeting. Their words are\nstill in the database — nothing is lost — but nothing reads them back, so from the\nchild's side the conversation is gone.\n\nAlongside it, the chat renders as a tall black expanse on a desktop viewport, with a\nsingle exchange pinned to the bottom edge.\n\nThis plan adds the read path, the list UI, and a resumable URL, and settles what the\nchat should look like when it is nearly empty.\n\n## What is actually broken, and what is not\n\nEstablished by reading the code, not inferred from the screenshots:\n\n| # | Finding | Evidence |\n|---|---------|----------|\n| 1 | Messages persist correctly. Nothing is lost | `messages` rows written by `src/app/api/chat/route.ts` |\n| 2 | The **pointer** is what is lost. `conversationId` lives in React state and dies on reload | `src/components/chat/chat-client.tsx:26` |\n| 3 | A child-owned read path ALREADY exists and is already authorized | `GET /api/chat?conversationId=` → `getOwnTranscript()`, `src/lib/chat/child-transcript.ts:23` |\n| 4 | That path is deliberately **not audited and not severity-gated** | `child-transcript.ts:1-11` — \"a child may always read what they wrote… the child is the subject, not an observer of someone else\" |\n| 5 | ~~There is no LIST query anywhere~~ — **corrected in validation.** One already exists inline at `src/app/api/chat/route.ts:130-140`, capped at 30, with a message count and no excerpt. Nothing ever calls it | `route.ts:130-140` |\n| 6 | The bottom-anchored layout is a **deliberate decision**, not a bug | `chat-client.tsx:9` documents `min-h-full` + `justify-end` as the chosen behaviour |\n\nFinding 6 matters for how phase 4 is framed. The current layout does exactly what it\nwas designed to do — put the newest turn directly above the composer — and that is\nright on a phone. It was simply never reconciled with a 900px-tall viewport, where\nthe same rule pushes everything to the floor and leaves the rest black.\n\n## Decisions taken\n\n| # | Decision | Why |\n|---|----------|-----|\n| D1 | **Collapsed sidebar** — rail on desktop, drawer on mobile, `+ New` at the top | History has to be discoverable without turning the chat into an app chrome exercise for a six-year-old. Collapsed by default keeps the chat the subject |\n| D2 | **Row label is a derived excerpt**, computed on read, never stored | Validation decision V6 (`src/db/schema.ts:142`) forbids a stored title: it \"needs a model call over content the parent cannot see, and becomes a leak vector in the flags list — the exact field the prior art leaked\". Deriving it inside `child-transcript.ts` adds no column, so there is nothing for a parent-side query to select |\n| D3 | **No delete, and no hide** | A conversation is the evidence behind a parent's alert. A child-side delete would let the flagged exchange be erased before the guardian opens it, which makes the whole dashboard promise conditional on the child's cooperation |\n| D4 | **`/chat` starts fresh; `/chat?c=<id>` resumes** | This is the actual repair for the reported symptom. Moving the pointer from React state into the URL means reload keeps its place, `+ New` is an explicit act, and the greeting still gets its moment |\n| D5 | **The list excludes conversations with no completed message** | A send that fails after the `conversations` row is inserted would otherwise leave a blank row in a child's history |\n| D6 | **Cap the list at 50 with a \"show older\" control** | Unbounded history is a slow query and an unusable list. 50 covers weeks of normal use |\n| D7 | Reading own history stays **unaudited** | Preserves D4 of the existing architecture. Do not add an audit write on this path; it would record a child observing themselves |\n| D8 | **Rows carry a completed-message count alongside the excerpt** | Validation session 1. Costs a second correlated subquery per row; both are covered by `messages_conversation_idx` |\n| D9 | **403 for a parent session, 401 only when there is no session** | Validation session 1. `route.ts:126` currently tests `session?.childId` and answers 401 for both, telling an authenticated parent to log in — wrong, and it hides an authorization failure behind an authentication one |\n| D10 | **Phase 4 caps the conversation column's height** rather than fully centring it | Validation session 1. Full centring would override `260826-0149`'s shipped requirement that the newest turn sit directly above the composer. Capping satisfies both |\n| D11 | **A flagged conversation gets a neutral label, not its excerpt** | Red team F4. `pipeline.ts:201-202` stores a child's message as `completed` even when it triggered a critical flag, so the excerpt query would select it. Without this, a child whose first message was a crisis disclosure sees that sentence in the sidebar on every visit, forever. Gated on `conversations.max_severity >= medium`, a column already on the row |\n| D12 | **A band change forks a new conversation on resume** | Red team F1. `schema.ts:138` already promises this — *\"Pinned at creation so a mid-conversation band change starts a new one\"* — and nothing implements it. Dormant today because conversations die with the page session; phase 2 makes them long-lived, which activates it |\n| D13 | **403 on the list endpoint, 404 on a specific conversation** | Red team F2. 404 for someone else's conversation is deliberate anti-enumeration (`route.ts:145`) and stays. D9's 403 applies to the collection, where there is no id to confirm or deny |\n| D14 | **The read path is throttled** | Red team F3. `checkChatQuota` guards POST (`route.ts:64`); GET has nothing, and phase 1 makes it heavier — two correlated subqueries per row across 50 rows |\n\n## Relationship to `260826-0149-child-chat-ui-rebuild`\n\nThat plan is still marked `pending`, but **its phases 1 and 2 are substantially\nimplemented**: `message.tsx`, `composer.tsx` and `suggestions.tsx` all exist, the\nBubbli mark is on assistant turns, and the bottom-anchoring is in place — via\n`justify-end` rather than the `mt-auto` that plan specified.\n\nIts Goal 1, *\"Remove the dead viewport\"*, overlaps this plan's phase 4 directly.\n**Phase 4 here supersedes it**, because the sidebar changes the column structure the\nolder phase assumed. Marked `blocks:` in the frontmatter.\n\nThat plan's status is stale and should be reconciled separately — it is not this\nplan's job to mark someone else's phases done, and guessing which parts shipped would\nbe worse than leaving it flagged.\n\n## Goals\n\n| # | Goal | Priority |\n|---|------|----------|\n| 1 | A child can see and reopen their past conversations | P1 |\n| 2 | A refresh keeps the child where they were | P1 |\n| 3 | No new leak surface: no stored title, no parent-visible field, no audit on the child's own read | P1 |\n| 4 | The chat reads as a composed screen at 1440x900, not a black expanse | P2 |\n| 5 | Nothing in the child UI can destroy safety evidence | P1 |\n\n## Non-goals\n\n- Search across conversations.\n- Renaming, pinning, archiving, or deleting.\n- Age-banded UI variants. Collapsed-by-default already answers the young-child concern.\n- Any change to the parent dashboard, the flags list, or guardian visibility.\n- Reconciling the stale status of `260826-0149` (see above).\n\n## Phases\n\n| # | Phase | Status | Depends on |\n|---|-------|--------|------------|\n| 1 | [The read path](./phase-01-read-path.md) | Pending | — |\n| 2 | [Resumable conversations](./phase-02-resumable-url.md) | Pending | 1 |\n| 3 | [The sidebar](./phase-03-sidebar.md) | Pending | 1, 2 |\n| 4 | [Composition at desktop height](./phase-04-composition.md) | Pending | 3 |\n| 5 | [Verification](./phase-05-verification.md) | Pending | 1-4 |\n\nPhase 2 is the one that fixes the reported symptom. It is deliberately ahead of the\nsidebar so the fix can ship without waiting for the UI.\n\n## Success Criteria\n\n- [ ] Send a message, hard-refresh — the conversation is still on screen with its history\n- [ ] `/chat` with no param shows the greeting and an empty chat\n- [ ] Sidebar lists prior conversations, newest first, grouped Today / Yesterday / older\n- [ ] Selecting a row loads it; sending continues that conversation rather than starting a new one\n- [ ] Each row shows a completed-message count as well as the excerpt (D8)\n- [ ] No inline `messages` query remains in `src/app/api/chat/route.ts`\n- [ ] A parent session receives **403** and an anonymous request **401** — distinguishable, proven by tests (D9)\n- [ ] A flagged conversation shows a neutral label, never its text (D11) — proven with a `critical` fixture\n- [ ] Resuming a conversation whose band differs from the child's current band starts a new one (D12)\n- [ ] The list endpoint is throttled, and the throttle does not consume the family's AI budget (D14)\n- [ ] A child session requesting another child's conversation receives **404** — anti-enumeration, deliberate (D13)\n- [ ] `grep -c \"title\" ` against the `conversations` table definition stays at **0**\n- [ ] No control in the child UI deletes or hides a conversation\n- [ ] A conversation with no completed message never appears in the list\n- [ ] At 1440x900 no dead region taller than the composer, in either the empty or the short-conversation state\n- [ ] Both themes, WCAG AA, all controls >= 44px, sidebar reachable and dismissable by keyboard\n- [ ] `pnpm typecheck`, `pnpm lint`, `pnpm build`, full suite, and `pnpm corpus:eval` all pass\n\n## Risks\n\n| Risk | Mitigation |\n|------|------------|\n| The excerpt leaks into a parent-visible surface later | It is computed inside `child-transcript.ts` and returned only by the child endpoint. No column exists to select by accident. Phase 5 asserts the schema has no title field |\n| The list endpoint is reachable by a parent session | `assertIsOwningChild` is the same guard the transcript read uses. Phase 1 tests it explicitly rather than trusting it |\n| The sidebar re-breaks the reading measure | The conversation column keeps `max-w-2xl`; the sidebar sits outside it, not inside |\n| Phase 4 re-litigates a decision that was made on purpose | `chat-client.tsx:9` is the record of that decision. Phase 4 changes it for wide viewports only and states why, rather than deleting it |\n| A child with hundreds of conversations makes the list slow | D6 caps at 50. The `conversations_child_idx` index on `(child_id, started_at)` already covers the query |\n\n## Validation Log\n\n### Session 1 — 2026-08-27\n\n**Verification pass (Full tier, 5 phases): 15 claims checked — 13 verified, 2 failed.**\n\n| # | Claim | Result |\n|---|-------|--------|\n| 1 | \"There is no LIST query anywhere\" | **FAILED** — exists at `route.ts:130-140` |\n| 2 | Excerpt SQL uses `m.role = 'user'` | **FAILED** — `messages_role_ck` allows only `('child','assistant','system')`; `'user'` matches nothing and returns a null excerpt silently |\n| 3 | `conversationId` held in React state, lost on reload | verified `chat-client.tsx:26` |\n| 4 | `getOwnTranscript` exists and is authorized | verified `child-transcript.ts:23` |\n| 5 | That path is unaudited by design | verified `child-transcript.ts:1-11` |\n| 6 | V6 forbids a stored title | verified `schema.ts:142` |\n| 7 | Bottom-anchoring is a deliberate decision | verified `chat-client.tsx:9` |\n| 8 | `conversations_child_idx` on `(child_id, started_at)` | verified `schema.ts:146` |\n| 9 | `child-transcript.ts` is in the G1 allowlist | verified `eslint-rules/no-direct-message-query.js:13` |\n| 10 | `messages.status` exists with a `completed` value | verified `messages_status_ck` |\n| 11 | `audit_events` is the audit table | verified `schema.ts:306` |\n| 12 | `assertIsOwningChild` guards by conversation | verified `src/lib/authz/index.ts:85` |\n| 13 | `/parent/conversations/[id]` exists | verified |\n| 14 | `dynamic = 'force-dynamic'` on the chat page | verified |\n| 15 | `message.tsx`, `composer.tsx`, `suggestions.tsx` exist | verified |\n\nDiscrepancy, not a failure: `route.ts:126` answers **401** for a parent session; the\nplan's criteria said 403. Settled as D9 below.\n\n**Decisions taken**\n\n| Q | Answer | Effect |\n|---|--------|--------|\n| What to do with the existing list query | **Replace it**; move to `child-transcript.ts` | Phase 1 rewritten. G1 lint forces it: reading `messages.content` from a route handler fails the build |\n| Keep `message_count`? | **Keep both** count and excerpt | D8. Second subquery per row, accepted |\n| 401 or 403 for a parent session | **403**, and change `route.ts:126` | D9 |\n| Phase 4 vs the shipped \"newest turn above the composer\" requirement | **Cap the column height** | D10. Phase 4 risk section closed |\n\n## Red Team Review\n\n### Session 1 — 2026-08-27\n\nThree adversarial lenses (Security Adversary, Assumption Destroyer, Failure Mode\nAnalyst) run against 5 phases. **4 findings, all carrying `file:line` evidence, all\naccepted.** Reviewers were not spawned as subagents — `AGENT.md` §2A routes delegation\nthrough herdr panes and `HERDR_ENV` is unset in this session, so the lenses were run\ninline. Stated rather than silently skipped.\n\n| # | Sev | Finding | Evidence | Disposition |\n|---|-----|---------|----------|-------------|\n| F1 | High | Resumability activates a dormant age-band bug. The conversation's band is pinned but nothing forks on drift; the guardrail always uses the child's *current* band | `schema.ts:138`, `route.ts:49`, `route.ts:66` | **Accept** → D12 |\n| F2 | Medium | The plan contradicts itself: `getOwnTranscript` returns 404, D9 and phase 5 demand 403 | `route.ts:145` | **Accept** → D13 |\n| F3 | Medium | The read path has no throttle. POST is quota-guarded, GET is not, and phase 1 makes GET heavier | `route.ts:64` vs GET branch | **Accept** → D14 |\n| F4 | High | A crisis message becomes permanent sidebar furniture. Blocked child messages are stored `completed`, so the excerpt query selects them | `pipeline.ts:201-202` | **Accept** → D11 |\n\n**What F1 and F4 have in common:** neither is a defect in the plan's own reasoning. Both\nare latent conditions in the existing code that only become reachable *because* this\nplan makes conversations persistent and lists them. That is the class of bug a red team\nexists to find, and neither would have surfaced from reading the plan alone.\n\n## Open questions\n\nNone. Navigation shape, deletion and row label were settled in the brainstorm; the four\nquestions above were settled in validation session 1.\n"};
+
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+function inline(s){
+  return esc(s)
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+    .replace(/~~([^~]+)~~/g,'<del>$1</del>')
+    .replace(/(^|[\s(])\*([^*\n]+)\*/g,'$1<em>$2</em>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>');
+}
+
+function md(src){
+  const out=[]; const lines=src.split('\n'); let i=0;
+  while(i<lines.length){
+    const l=lines[i];
+    if(/^```/.test(l)){
+      const buf=[]; i++;
+      while(i<lines.length && !/^```/.test(lines[i])) buf.push(lines[i++]);
+      i++; out.push('<pre>'+esc(buf.join('\n'))+'</pre>'); continue;
+    }
+    if(/^<!--/.test(l)){ while(i<lines.length && !/-->/.test(lines[i])) i++; i++; continue; }
+    if(/^\|/.test(l)){
+      const rows=[]; while(i<lines.length && /^\|/.test(lines[i])) rows.push(lines[i++]);
+      const cells=r=>r.split('|').slice(1,-1).map(c=>c.trim());
+      let h='<div style="overflow-x:auto"><table><thead><tr>'+
+        cells(rows[0]).map(c=>'<th>'+inline(c)+'</th>').join('')+'</tr></thead><tbody>';
+      rows.slice(2).forEach(r=>{h+='<tr>'+cells(r).map(c=>'<td>'+inline(c)+'</td>').join('')+'</tr>';});
+      out.push(h+'</tbody></table></div>'); continue;
+    }
+    if(/^#{1,4}\s/.test(l)){
+      const n=l.match(/^#+/)[0].length;
+      out.push('<h'+Math.min(n+1,4)+'>'+inline(l.replace(/^#+\s*/,''))+'</h'+Math.min(n+1,4)+'>'); i++; continue;
+    }
+    if(/^>\s?/.test(l)){
+      const buf=[]; while(i<lines.length && /^>\s?/.test(lines[i])) buf.push(lines[i++].replace(/^>\s?/,''));
+      out.push('<blockquote>'+inline(buf.join(' '))+'</blockquote>'); continue;
+    }
+    if(/^---+$/.test(l)){ out.push('<hr>'); i++; continue; }
+    if(/^\s*-\s\[\s?\]/.test(l)){
+      const buf=[]; while(i<lines.length && /^\s*-\s\[\s?\]/.test(lines[i])){
+        let t=lines[i++].replace(/^\s*-\s\[\s?\]\s*/,'');
+        while(i<lines.length && /^\s{6,}\S/.test(lines[i])) t+=' '+lines[i++].trim();
+        buf.push('<li>'+inline(t)+'</li>');
+      }
+      out.push('<ul class="task">'+buf.join('')+'</ul>'); continue;
+    }
+    if(/^\s*[-*]\s/.test(l)){
+      const buf=[]; while(i<lines.length && /^\s*[-*]\s/.test(lines[i])){
+        let t=lines[i++].replace(/^\s*[-*]\s*/,'');
+        while(i<lines.length && /^\s{2,}\S/.test(lines[i]) && !/^\s*[-*]\s/.test(lines[i])) t+=' '+lines[i++].trim();
+        buf.push('<li>'+inline(t)+'</li>');
+      }
+      out.push('<ul>'+buf.join('')+'</ul>'); continue;
+    }
+    if(/^\s*\d+\.\s/.test(l)){
+      const buf=[]; while(i<lines.length && /^\s*\d+\.\s/.test(lines[i])){
+        let t=lines[i++].replace(/^\s*\d+\.\s*/,'');
+        while(i<lines.length && /^\s{3,}\S/.test(lines[i]) && !/^\s*\d+\.\s/.test(lines[i])) t+=' '+lines[i++].trim();
+        buf.push('<li>'+inline(t)+'</li>');
+      }
+      out.push('<ol>'+buf.join('')+'</ol>'); continue;
+    }
+    if(l.trim()===''){ i++; continue; }
+    const buf=[]; while(i<lines.length && lines[i].trim()!=='' && !/^(#{1,4}\s|\||>|```|\s*[-*]\s|\s*\d+\.\s|---+$)/.test(lines[i])) buf.push(lines[i++]);
+    out.push('<p>'+inline(buf.join(' '))+'</p>');
+  }
+  return out.join('\n');
+}
+
+document.getElementById('ttl').textContent = DATA.title;
+document.getElementById('desc').textContent = DATA.description;
+document.getElementById('m-ph').textContent = DATA.phases.length;
+document.getElementById('m-ck').textContent = DATA.phases.reduce((a,p)=>a+p.criteria_total,0);
+document.getElementById('m-ef').textContent = DATA.effort;
+document.getElementById('m-pr').textContent = DATA.priority;
+
+const host = document.getElementById('phases');
+DATA.phases.forEach(p=>{
+  const b=document.createElement('button');
+  b.className='phase'; b.type='button';
+  b.setAttribute('aria-haspopup','dialog');
+  b.innerHTML =
+    '<span class="pnum">'+esc(p.num)+'</span><span>'+
+    '<span class="ptitle">'+esc(p.title)+'</span>'+
+    '<span class="ptags">'+
+      '<span class="ptag">'+esc(p.status)+'</span>'+
+      '<span class="ptag">'+esc(p.priority)+'</span>'+
+      '<span class="ptag">'+esc(p.effort)+'</span>'+
+      '<span class="ptag">deps '+esc(p.deps)+'</span>'+
+      '<span class="ptag">'+p.criteria_total+' checks</span>'+
+    '</span>'+
+    '<p class="pobj">'+inline(p.objective)+'</p>'+
+    '<ul class="pbul">'+p.bullets.map(x=>'<li>'+inline(x)+'</li>').join('')+'</ul>'+
+    '<span class="pfiles">'+p.files.map(f=>'<span class="pfile"><b>'+f.verb[0]+'</b> '+esc(f.path)+'</span>').join('')+'</span>'+
+    '<span class="more">Full specification &rarr;</span></span>';
+  b.addEventListener('click',()=>open(p));
+  host.appendChild(b);
+});
+
+const dlg=document.getElementById('dlg');
+let last=null;
+function open(p){
+  last=document.activeElement;
+  document.getElementById('dlg-t').textContent='Phase '+p.num+' · '+p.title;
+  document.getElementById('dlg-b').innerHTML=md(p.md);
+  dlg.showModal();
+  dlg.querySelector('.dlg-body').scrollTop=0;
+}
+document.getElementById('dlg-x').addEventListener('click',()=>dlg.close());
+dlg.addEventListener('close',()=>{ if(last) last.focus(); });
+dlg.addEventListener('click',e=>{ if(e.target===dlg) dlg.close(); });
+</script>
+</body>
+</html>

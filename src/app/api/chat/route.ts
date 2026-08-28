@@ -11,7 +11,9 @@ import { pool } from '@/lib/db/client';
 import { getSession } from '@/lib/auth/request-session';
 import { assertIsOwningChild, assertIsChild, AuthzError } from '@/lib/authz';
 import { runTurn } from '@/lib/chat/pipeline';
-import { getOwnTranscript } from '@/lib/chat/child-transcript';
+import { getOwnTranscript, listOwnConversations } from '@/lib/chat/child-transcript';
+import { checkReadRate } from '@/lib/chat/read-rate-limit';
+import { continuesConversation } from '@/lib/chat/conversation-continuity';
 import { checkChatQuota, recordChatUsage } from '@/lib/quota/limiter';
 import { checkInput } from '@/lib/guardrails/engine';
 import type { AgeBand } from '@/config/settings';
@@ -83,7 +85,27 @@ export async function POST(req: Request) {
       const status = e instanceof AuthzError ? e.status : 500;
       return NextResponse.json({ error: 'Not found' }, { status });
     }
-  } else {
+
+    // A band change forks a new conversation rather than appending.
+    //
+    // `conversations.age_band` is pinned at creation and the schema says why:
+    // "Pinned at creation so a mid-conversation band change starts a new one."
+    // Nothing implemented that, because a conversation could not previously
+    // outlive the page session that made it. Now that conversations are
+    // resumable from the sidebar, a child whose band moved would be guarded at
+    // their NEW band inside a row still claiming the old one — and the bands
+    // genuinely differ (inap.sexual.topic.young is medium under 12, low above).
+    //
+    // The fork is here, on the WRITE path, deliberately. Reads are never gated
+    // by band: a birthday must not make a child's own history unreachable.
+    const pinned = await pool.query<{ age_band: string }>(
+      `select age_band from conversations where id = $1`,
+      [conversationId],
+    );
+    if (!continuesConversation(pinned.rows[0]?.age_band, ageBand)) conversationId = undefined;
+  }
+
+  if (!conversationId) {
     const c = await pool.query(
       `insert into conversations (child_id, age_band) values ($1,$2) returning id`,
       [session.childId, ageBand],
@@ -121,22 +143,46 @@ export async function POST(req: Request) {
   });
 }
 
+/**
+ * Reading: the conversation list, or one conversation's messages.
+ *
+ * The two answer differently on denial, on purpose.
+ *
+ *   collection  → 403. There is no id in the request, so there is nothing to
+ *                 confirm or deny. Telling an authenticated parent "not signed
+ *                 in" would be a lie and would hide an authorization failure
+ *                 behind an authentication one.
+ *   one convo   → 404. `AuthzError` carries 404 for exactly this reason: a 403
+ *                 would confirm the id exists, which is enumeration.
+ */
 export async function GET(req: Request) {
   const session = await getSession();
-  if (!session?.childId) return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
+  if (!session) return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
+
+  // Authenticated, but not as a child. Distinct from having no session at all.
+  if (session.principalType !== 'child' || !session.childId) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  // Reads are free of the AI budget but not free of database work; the list
+  // runs two correlated subqueries per row.
+  const rate = checkReadRate(session.childId);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      { status: 429, headers: { 'retry-after': String(Math.ceil((rate.retryAfterMs ?? 0) / 1000)) } },
+    );
+  }
 
   const url = new URL(req.url);
   const conversationId = url.searchParams.get('conversationId');
+
   if (!conversationId) {
-    const list = await pool.query(
-      `select id, started_at,
-              (select count(*)::int from messages m where m.conversation_id = c.id) as message_count
-         from conversations c
-        where child_id = $1
-        order by started_at desc limit 30`,
-      [session.childId],
-    );
-    return NextResponse.json({ conversations: list.rows });
+    const offset = Number(url.searchParams.get('offset') ?? 0);
+    const page = await listOwnConversations(pool, session, {
+      offset: Number.isFinite(offset) ? offset : 0,
+    });
+    return NextResponse.json(page);
   }
 
   try {
