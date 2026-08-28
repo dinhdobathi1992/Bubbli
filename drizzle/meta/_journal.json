@@ -43,6 +43,13 @@
       "when": 1787721715534,
       "tag": "0005_parent_auth_and_device_pairing",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787879283255,
+      "tag": "0006_notification_dispatch_outcome",
+      "breakpoints": true
     }
   ]
 }

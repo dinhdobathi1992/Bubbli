@@ -10,7 +10,12 @@
 import type { Pool, PoolClient } from 'pg';
 import type { Severity } from '@/config/settings';
 
-export type AuditOutcome = 'granted' | 'delivered' | 'denied';
+/**
+ * `failed` is not an access decision. It records an attempt the decision
+ * permitted and the world refused — a notification the transport would not
+ * take. Folding it into `denied` would read as a guardian who was refused.
+ */
+export type AuditOutcome = 'granted' | 'delivered' | 'denied' | 'failed';
 
 export async function pseudonymFor(
   db: Pool | PoolClient,

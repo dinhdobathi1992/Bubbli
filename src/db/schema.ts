@@ -313,6 +313,13 @@ export const auditEvents = pgTable(
     entityId: uuid('entity_id'),
     /** Which severity authorised the access. Null for denials. */
     authorisingSeverity: text('authorising_severity'),
+    /**
+     * `failed` exists so a notification nobody received cannot be recorded as
+     * one they did. The other three describe an ACCESS DECISION; this one
+     * describes an attempt the decision permitted and the world refused.
+     * Collapsing it into `denied` would read, to anyone auditing this table, as
+     * a guardian who was refused.
+     */
     outcome: text('outcome').notNull(),
     metadata: jsonb('metadata').notNull().default(sql`'{}'::jsonb`),
     createdAt: now(),
@@ -320,7 +327,7 @@ export const auditEvents = pgTable(
   (t) => [
     index('audit_actor_idx').on(t.actorPseudonym, t.createdAt),
     index('audit_entity_idx').on(t.entityType, t.entityId),
-    check('audit_outcome_ck', sql`${t.outcome} in ('granted','delivered','denied')`),
+    check('audit_outcome_ck', sql`${t.outcome} in ('granted','delivered','denied','failed')`),
   ],
 );
 
