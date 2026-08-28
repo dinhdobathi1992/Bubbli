@@ -14,6 +14,7 @@ document and the code disagree, the code is right and the document is a bug.
 | [0004](decisions/0004-child-principal.md) | How a child authenticates | Better Auth has one principal type; children needed a second |
 | [0005](decisions/0005-child-conversation-history.md) | Child conversation history | Giving a child their history activated two dormant safety bugs |
 | [0006](decisions/0006-notification-transport.md) | How a guardian is told | Push fails silently on iOS Safari, which is disqualifying for a safety alert |
+| [0007](decisions/0007-budget-on-blocked-requests.md) | What a blocked message costs | Nothing, deliberately, and where the resulting hole is bounded instead |
 
 A record is added when a decision would otherwise survive only in someone's
 memory: a rejected alternative, a constraint that is not obvious from the code,

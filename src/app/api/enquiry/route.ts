@@ -11,9 +11,11 @@
  * surface that attracts automated submission.
  */
 import { NextResponse } from 'next/server';
+import { clientIp } from '@/lib/http/client-ip';
 import { z } from 'zod';
 import { pool } from '@/lib/db/client';
 import { settings } from '@/config/settings';
+import { log } from '@/lib/log/redact';
 import { sendMail } from '@/lib/email/send';
 import { checkEnquiryRate, recordLoginAttempt } from '@/lib/auth/login-rate-limit';
 
@@ -43,7 +45,7 @@ const Enquiry = z.object({
 });
 
 export async function POST(req: Request) {
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1';
+  const ip = clientIp(req);
 
   // NOT checkLoginRate: that counts failures only, and every successful
   // enquiry sends a message from a verified identity. The successes are the
@@ -90,7 +92,7 @@ export async function POST(req: Request) {
     // The sender must know it did not go through. Silently succeeding here
     // means an enquiry that nobody ever answers.
     const reason = (e as Error).message.slice(0, 200);
-    console.error('[enquiry] send failed:', reason);
+    log.error('enquiry', 'send failed', reason);
     return NextResponse.json(
       {
         error: 'We could not send that just now. Please try again, or email us directly.',

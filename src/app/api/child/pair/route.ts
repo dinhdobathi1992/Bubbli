@@ -5,6 +5,7 @@
  * is the last time anything is typed on it until the pairing expires.
  */
 import { NextResponse } from 'next/server';
+import { clientIp } from '@/lib/http/client-ip';
 import { pool } from '@/lib/db/client';
 import { redeemPairingCode, DEVICE_COOKIE, deviceCookieOptions } from '@/lib/auth/device-pairing';
 import {
@@ -17,7 +18,7 @@ import { checkLoginRate, recordLoginAttempt } from '@/lib/auth/login-rate-limit'
 import { settings } from '@/config/settings';
 
 export async function POST(req: Request) {
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1';
+  const ip = clientIp(req);
   const body = (await req.json().catch(() => ({}))) as { code?: string };
   if (!body.code) return NextResponse.json({ error: 'Missing code' }, { status: 400 });
 

@@ -233,3 +233,52 @@ describe('bookkeeping never stands in front of the alert', () => {
     spy.mockRestore();
   });
 });
+
+describe('one child cannot flood their guardians', () => {
+  /** Seed n severe flags for the subject child, inside the window. */
+  async function seedSevere(n: number, severity: 'high' | 'critical') {
+    const { ensurePolicyVersion } = await import('@/lib/guardrails/policy-store');
+    const policyVersion = await ensurePolicyVersion(pool);
+    for (let i = 0; i < n; i += 1) {
+      const m = await pool.query(
+        `insert into messages (conversation_id, child_id, role, content)
+         values ($1,$2,'child','flood seed') returning id`,
+        [conversationId, childId],
+      );
+      await pool.query(
+        `insert into flags (conversation_id, message_id, severity, triggered_rules, policy_version, reason)
+         values ($1,$2,$3,$4,$5,'flood seed')`,
+        [conversationId, m.rows[0].id, severity, JSON.stringify(['inap.violence']), policyVersion],
+      );
+    }
+  }
+
+  it('stops mailing at the ceiling, for high', async () => {
+    const { NOTIFY_MAX_HIGH_PER_CHILD } = await import('@/lib/notify/dispatch');
+    await seedSevere(NOTIFY_MAX_HIGH_PER_CHILD + 1, 'high');
+
+    const r = recorder();
+    const out = await alert('high', [r.transport]);
+    expect(out.sent).toBe(0);
+    expect(r.to).toEqual([]);
+  });
+
+  it('still delivers CRITICAL past the same ceiling', async () => {
+    // The ceiling exists to stop an inbox flood. It must never be able to
+    // swallow the alert the product exists to send.
+    const r = recorder();
+    const out = await alert('critical', [r.transport]);
+    expect(out.sent).toBeGreaterThan(0);
+    expect(r.to).toContain(CONSENTED);
+  });
+
+  it('records the suppression rather than dropping it silently', async () => {
+    const r = await pool.query<{ n: string }>(
+      `select count(*) as n from audit_events
+        where event_type = 'notification.dispatch'
+          and outcome = 'denied'
+          and metadata->>'suppressed' = 'volume'`,
+    );
+    expect(Number(r.rows[0].n)).toBeGreaterThan(0);
+  });
+});

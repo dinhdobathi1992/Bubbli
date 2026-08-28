@@ -21,6 +21,7 @@ import { db } from '@/lib/db/drizzle';
 import { settings } from '@/config/settings';
 import { sendMail } from '@/lib/email/send';
 import { recordDeliveryFailure, deliveryFailure } from '@/lib/auth/otp-delivery';
+import { log } from '@/lib/log/redact';
 import * as schema from '@/db/schema';
 
 export const auth = betterAuth({
@@ -93,7 +94,7 @@ export const auth = betterAuth({
           // provider error text (`send.ts`), so this is safe to log. The OTP is
           // never logged on this path — a code in the log is a code on disk.
           const reason = (e as Error).message;
-          console.error(`[email] OTP delivery failed: ${reason}`);
+          log.error('email', 'OTP delivery failed', reason);
           recordDeliveryFailure(reason);
           throw e;
         }

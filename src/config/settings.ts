@@ -115,6 +115,17 @@ const schema = z.object({
   /** Days a paired device may sign a child in without a PIN. */
   DEVICE_TRUST_DAYS: z.coerce.number().int().positive().default(30),
 
+  /**
+   * How many proxies sit in front of the app.
+   *
+   * Per-IP ceilings key on the entry the LAST trusted hop wrote, because every
+   * entry to its left is client-supplied and spoofable. 0 locally, 1 behind a
+   * single platform load balancer, 2 behind a CDN as well. Wrong in one
+   * direction throttles whole households sharing a proxy address; wrong in the
+   * other makes every per-IP limit bypassable by rotating a header.
+   */
+  TRUSTED_PROXY_HOPS: z.coerce.number().int().min(0).max(4).default(0),
+
   // ── Safety ─────────────────────────────────────────────────────────────
   SAFETY_ENABLED: z.stringbool().default(true),
   /** Layer 2. Fail-closed when unavailable (Phase 2). */

@@ -15,6 +15,7 @@
 import type { Pool } from 'pg';
 import type { Severity } from '@/config/settings';
 import { audit, pseudonymFor } from '@/lib/audit/write';
+import { log } from '@/lib/log/redact';
 
 export interface NotificationPayload {
   childName: string;
@@ -51,6 +52,46 @@ async function defaultTransports(): Promise<Transport[]> {
 /** Severities that reach a guardian at all. */
 const NOTIFY_AT: Severity[] = ['high', 'critical'];
 
+/**
+ * A ceiling on how often ONE child's flags may mail their guardians.
+ *
+ * A gate-blocked message consumes no quota, by decision
+ * (docs/decisions/0007-budget-on-blocked-requests.md). That is right for the
+ * child and it leaves this path unbounded: nothing stops a loop of severe
+ * messages from sending a guardian one email each, which is both an inbox
+ * flood and a bill.
+ *
+ * `critical` is deliberately EXEMPT. The whole product exists so that a child
+ * saying the worst thing reaches an adult, and a rate limit that can swallow
+ * that is worse than the flood it prevents. Only `high` is bounded.
+ *
+ * Suppression is never silent: the attempt is audited as `denied`, so a
+ * guardian reviewing the trail can see that alerts were withheld and why.
+ */
+export const NOTIFY_MAX_HIGH_PER_CHILD = 10;
+export const NOTIFY_WINDOW_MS = 15 * 60 * 1000;
+
+/**
+ * Fails OPEN. If the count cannot be established the notification is sent:
+ * an unsent safety alert is a worse failure than a duplicated one.
+ */
+async function highVolumeForChild(db: Pool, childId: string): Promise<boolean> {
+  try {
+    const r = await db.query<{ n: string }>(
+      `select count(*) as n
+         from flags f
+         join conversations c on c.id = f.conversation_id
+        where c.child_id = $1
+          and f.severity in ('high','critical')
+          and f.created_at > now() - ($2 || ' milliseconds')::interval`,
+      [childId, NOTIFY_WINDOW_MS],
+    );
+    return Number(r.rows[0].n) > NOTIFY_MAX_HIGH_PER_CHILD;
+  } catch {
+    return false;
+  }
+}
+
 export async function notifyGuardians(
   db: Pool,
   args: {
@@ -66,6 +107,21 @@ export async function notifyGuardians(
   if (!NOTIFY_AT.includes(args.severity)) return { sent: 0, failed: 0, auditFailed: 0 };
 
   const active = transports ?? (await defaultTransports());
+
+  // Bounded only at `high`. A `critical` flag always goes out.
+  if (args.severity === 'high' && (await highVolumeForChild(db, args.childId))) {
+    await audit(db, {
+      actorPseudonym: await pseudonymFor(db, args.familyId, 'family', args.familyId),
+      subjectPseudonym: await pseudonymFor(db, args.familyId, 'child', args.childId),
+      eventType: 'notification.dispatch',
+      entityType: 'flag',
+      entityId: args.flagId,
+      authorisingSeverity: args.severity,
+      outcome: 'denied',
+      metadata: { severity: args.severity, suppressed: 'volume' },
+    }).catch(() => undefined);
+    return { sent: 0, failed: 0, auditFailed: 0 };
+  }
 
   // Consent is required, not merely un-withdrawn. A guardian row can exist
   // before anyone consented — `parents` is written at family setup and
@@ -164,8 +220,9 @@ export async function notifyGuardians(
    * log sink.
    */
   if (auditFailed > 0) {
-    console.error(
-      `[notify] ${auditFailed} of ${attempts.length} dispatch audit rows could not be written`,
+    log.error(
+      'notify',
+      `${auditFailed} of ${attempts.length} dispatch audit rows could not be written`,
     );
   }
 

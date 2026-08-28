@@ -30,11 +30,17 @@ const url =
 if (!url) throw new Error('No database URL');
 const pool = new Pool({ connectionString: url, max: 4 });
 
-/** Every path on the mount that reaches `sendVerificationOTP`. */
-const MAILING_PATHS = [
-  '/api/auth/email-otp/send-verification-otp',
+/** The one mailing path this product actually uses. */
+const MAILING_PATHS = ['/api/auth/email-otp/send-verification-otp'];
+
+/**
+ * Mounted by the plugin, unused by the product, and closed at the mount.
+ * `emailAndPassword` is disabled, so there is no password to reset.
+ */
+const DISABLED_PATHS = [
   '/api/auth/forget-password/email-otp',
   '/api/auth/email-otp/request-password-reset',
+  '/api/auth/reset-password/email-otp',
 ];
 
 const stamp = Date.now();
@@ -92,17 +98,27 @@ describe('every mailing endpoint on the mount is throttled', () => {
     });
   }
 
-  it('refuses once the mailbox ceiling is crossed, whichever path is used', async () => {
+  it('refuses once the mailbox ceiling is crossed', async () => {
     const { PARENT_OTP_EMAIL_MAX } = await import('@/lib/auth/login-rate-limit');
     await pool.query(`delete from login_attempts where identifier like 'parent-otp:%'`);
 
-    // Spread across all three paths: the ceiling is per mailbox, not per route.
     for (let i = 0; i < PARENT_OTP_EMAIL_MAX; i += 1) {
-      await post(MAILING_PATHS[i % MAILING_PATHS.length]);
+      await post(MAILING_PATHS[0]);
     }
     sent.length = 0;
-    const res = await post(MAILING_PATHS[1]);
+    const res = await post(MAILING_PATHS[0]);
     expect(res.status).toBe(429);
     expect(sent).toEqual([]);
   });
+});
+
+describe('the password-reset endpoints are closed', () => {
+  for (const path of DISABLED_PATHS) {
+    it(`${path} answers 404 and mails nothing`, async () => {
+      sent.length = 0;
+      const res = await post(path);
+      expect(res.status).toBe(404);
+      expect(sent, `${path} still sent mail`).toEqual([]);
+    });
+  }
 });

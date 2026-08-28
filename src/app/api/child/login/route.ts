@@ -8,6 +8,7 @@
  * comparison and raise 22P02 out of an unguarded handler.
  */
 import { NextResponse } from 'next/server';
+import { clientIp } from '@/lib/http/client-ip';
 import { pool } from '@/lib/db/client';
 import { verifyChildPin } from '@/lib/auth/child-pin';
 import {
@@ -22,7 +23,7 @@ import { familyIdForJoinCode } from '@/lib/auth/join-code';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(req: Request) {
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1';
+  const ip = clientIp(req);
   const body = (await req.json().catch(() => ({}))) as {
     family?: string;
     familyId?: string;

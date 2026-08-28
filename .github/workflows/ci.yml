@@ -63,3 +63,39 @@ jobs:
         run: pnpm corpus:eval
       - name: Guard mutation gate (G3)
         run: pnpm test:mutation
+
+  # Separate job: it needs neither a database nor the app's environment, and
+  # keeping it apart means a dependency advisory does not sit behind a
+  # ten-minute mutation run before anyone sees it.
+  audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+
+      # `high` is the gate, not `critical`. This product holds children's
+      # conversations, and a high-severity advisory in a dependency that touches
+      # the request path is not something to carry to the next sprint.
+      - name: Dependency audit
+        run: pnpm audit --audit-level high
+
+  secrets:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Gitleaks compares against history, so a shallow clone reports a
+          # clean tree while the secret sits one commit back.
+          fetch-depth: 0
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

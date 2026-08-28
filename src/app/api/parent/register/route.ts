@@ -11,6 +11,7 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { pool } from '@/lib/db/client';
+import { log } from '@/lib/log/redact';
 import { auth } from '@/lib/auth/better-auth';
 import { ensureJoinCode, formatJoinCode } from '@/lib/auth/join-code';
 import { CONSENT_MECHANISM } from '@/lib/auth/consent';
@@ -88,7 +89,7 @@ export async function POST(req: Request) {
   } catch (e) {
     await client.query('rollback').catch(() => undefined);
     // Log the cause, never the guardian's address.
-    console.error('[parent/register] family creation failed:', (e as Error).message);
+    log.error('parent/register', 'family creation failed', e);
     return NextResponse.json({ error: 'Could not create your family' }, { status: 500 });
   } finally {
     client.release();

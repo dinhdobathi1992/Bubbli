@@ -21,6 +21,7 @@ import { pool } from '@/lib/db/client';
 import { auth } from '@/lib/auth/better-auth';
 import { withDeliveryTracking } from '@/lib/auth/otp-delivery';
 import { checkParentOtpRate, recordParentOtpSend } from '@/lib/auth/login-rate-limit';
+import { clientIp } from '@/lib/http/client-ip';
 
 /**
  * Which endpoints get a ceiling: FAIL CLOSED.
@@ -45,9 +46,26 @@ import { checkParentOtpRate, recordParentOtpSend } from '@/lib/auth/login-rate-l
  */
 const AUTH_MOUNT = '/api/auth/';
 
-function clientIp(req: Request): string {
-  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1';
-}
+/**
+ * Endpoints the emailOTP plugin mounts that this product does not use.
+ *
+ * `emailAndPassword` is disabled, so there is no password to forget and no
+ * password to reset. The routes are mounted anyway, and measured 2026-08-28
+ * they will take an anonymous address and mail a code to it. An auth surface
+ * with no product behind it is one nobody reviews and everybody forgets.
+ *
+ * Closed at the mount rather than through a plugin option, so the block does
+ * not depend on Better Auth's internals and cannot be reopened by an upgrade
+ * without this list being read.
+ *
+ * 404, not 403: every denial in this codebase is a 404, so that no response
+ * confirms which endpoints exist.
+ */
+const DISABLED = new Set([
+  '/api/auth/forget-password/email-otp',
+  '/api/auth/email-otp/request-password-reset',
+  '/api/auth/reset-password/email-otp',
+]);
 
 /**
  * Read the address without consuming the body the handler still needs.
@@ -69,6 +87,10 @@ async function emailFrom(req: Request): Promise<string | null> {
 
 async function handle(req: Request): Promise<Response> {
   const path = new URL(req.url).pathname;
+
+  if (DISABLED.has(path)) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
 
   if (req.method === 'POST' && path.startsWith(AUTH_MOUNT)) {
     const email = await emailFrom(req);
