@@ -183,11 +183,10 @@ describe('G2: the severity ladder, both directions', () => {
     const below = projectFlagRow({
       conversation_id: 'c1',
       severity: 'info',
-      category: 'pii',
+      triggered_rules: ['pii.email'],
       count: 3,
       last_at: new Date().toISOString(),
       child_name: 'Kid',
-      reason: 'Matched pii.email on "kid@example.com"',
     });
     expect(below.opensTranscript).toBe(false);
     // The exact field the prior art leaked.
@@ -195,17 +194,39 @@ describe('G2: the severity ladder, both directions', () => {
     expect(JSON.stringify(below)).not.toMatch(/Matched/);
   });
 
-  it('carries a reason only at or above the gate', () => {
-    const above = projectFlagRow({
-      conversation_id: 'c2',
-      severity: 'high',
-      category: 'harmful_intent',
+  it('carries NO rule identifier at ANY severity', () => {
+    // It used to carry two: `category` was `triggered_rules->>0`, and `reason`
+    // held strings like "Matched inap.violence". Both reached the page or sat
+    // one render call from it.
+    for (const severity of ['info', 'low', 'medium', 'high', 'critical'] as const) {
+      const row = projectFlagRow({
+        conversation_id: 'c2',
+        severity,
+        triggered_rules: ['harm.self.direct', 'inap.violence'],
+        count: 1,
+        last_at: new Date().toISOString(),
+        child_name: 'Kid',
+      });
+      const json = JSON.stringify(row);
+      expect(json).not.toMatch(/harm\.self|inap\.violence|\breason\b|\bcategory\b/);
+      // A written sentence, not an identifier.
+      expect(row.headline).toMatch(/^Kid .+\.$/);
+    }
+  });
+
+  it('marks self-harm from the WHOLE array, not element zero', () => {
+    // `triggeredRules` preserves DECLARATION order, so [0] is whichever rule
+    // sits earliest in rules.ts. Reordering that file must not change this.
+    const row = projectFlagRow({
+      conversation_id: 'c3',
+      severity: 'critical',
+      triggered_rules: ['inap.violence', 'harm.self.direct'],
       count: 1,
       last_at: new Date().toISOString(),
       child_name: 'Kid',
-      reason: 'Matched harm.self.direct',
     });
-    expect(above.opensTranscript).toBe(true);
+    expect(row.opensTranscript).toBe(true);
+    if (row.opensTranscript) expect(row.isSelfHarm).toBe(true);
   });
 });
 

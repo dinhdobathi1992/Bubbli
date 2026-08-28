@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The parent dashboard, in plain language &middot; plan</title>
+<style>
+:root{
+  --paper:#faf7f2; --panel:#f0ebe1; --ink:#0a0a0a; --muted:#6b6258;
+  --accent:#b8232c; --rule:#d9d1c4; --rule-soft:#e6dfd3;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  /* Bubbli Forest tokens, for the product mockups only */
+  --b-ground:#0d1512; --b-surface:#16211d; --b-raised:#1e2a25; --b-ink:#e8efe9;
+  --b-muted:#9ab0a4; --b-subtle:#6d8176; --b-accent:#f0a882; --b-soft:#3a2b21;
+  --b-line:#25342e;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--sans); font-size:16px; line-height:1.6;
+  background-image:
+    radial-gradient(circle at 17% 23%, rgba(107,98,88,.030) 0 1px, transparent 1px),
+    radial-gradient(circle at 73% 61%, rgba(107,98,88,.022) 0 1px, transparent 1px);
+  background-size:37px 37px, 53px 53px;
+}
+.wrap{max-width:60rem;margin:0 auto;padding:0 1.5rem}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:600;line-height:1.15;text-wrap:balance;margin:0}
+.eyebrow{font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.folio{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+/* cover */
+.cover{padding:5rem 0 3rem;border-bottom:2px solid var(--ink)}
+.cover h1{font-size:clamp(2.4rem,6vw,4.2rem);margin:.6rem 0 1rem;letter-spacing:-.02em}
+.cover .lede{font-family:var(--serif);font-size:clamp(1.05rem,2.2vw,1.3rem);color:var(--muted);max-width:44ch;font-style:italic}
+.meta{display:flex;flex-wrap:wrap;gap:2rem;margin-top:2.5rem;padding-top:1.25rem;border-top:1px solid var(--rule)}
+.meta div{min-width:7rem}
+.meta dt{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.3rem}
+.meta dd{margin:0;font-family:var(--serif);font-size:1.35rem}
+
+section{padding:3.25rem 0;border-bottom:1px solid var(--rule-soft)}
+section > h2{font-size:clamp(1.5rem,3.4vw,2rem);margin-bottom:.4rem;letter-spacing:-.01em}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;margin-bottom:1.75rem}
+p{max-width:66ch}
+a{color:var(--accent)}
+
+/* correction callout */
+.correction{border-left:3px solid var(--accent);background:var(--panel);padding:1.1rem 1.35rem;margin:1.5rem 0;max-width:70ch}
+.correction .eyebrow{display:block;margin-bottom:.4rem}
+.correction p{margin:.4rem 0}
+.correction p:last-child{margin-bottom:0}
+
+/* verification table */
+table{border-collapse:collapse;width:100%;font-size:.9rem;margin:1rem 0}
+th,td{text-align:left;padding:.55rem .7rem;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-family:var(--mono);font-size:.62rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td code,p code,li code{font-family:var(--mono);font-size:.84em;background:var(--panel);padding:.08em .34em}
+.v-pass{color:var(--muted);font-family:var(--mono);font-size:.78rem}
+.v-fail{color:var(--accent);font-family:var(--mono);font-size:.78rem;font-weight:700}
+
+/* stat band */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr));gap:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin:2rem 0}
+.stat{padding:1.15rem 1rem;border-right:1px solid var(--rule-soft)}
+.stat:last-child{border-right:0}
+.stat b{display:block;font-family:var(--serif);font-size:2rem;line-height:1}
+.stat span{font-family:var(--mono);font-size:.6rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.stat.alert b{color:var(--accent)}
+
+/* phase cards */
+.phases{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--rule)}
+.phase{width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule-soft);
+  padding:1.6rem .25rem;cursor:pointer;font:inherit;color:inherit;display:grid;
+  grid-template-columns:3.2rem 1fr;gap:1.25rem;transition:background .15s}
+.phase:hover,.phase:focus-visible{background:var(--panel)}
+.phase:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.pnum{font-family:var(--serif);font-size:2.2rem;color:var(--accent);line-height:1}
+.ptitle{font-family:var(--serif);font-size:1.3rem;margin-bottom:.3rem}
+.ptags{display:flex;flex-wrap:wrap;gap:.9rem;margin-bottom:.6rem}
+.ptag{font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.pobj{color:var(--muted);max-width:62ch;margin:0 0 .8rem}
+.pbul{margin:0 0 .8rem;padding-left:1.05rem;max-width:62ch}
+.pbul li{margin-bottom:.22rem;font-size:.92rem}
+.pfiles{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
+.pfile{font-family:var(--mono);font-size:.68rem;background:var(--panel);padding:.16em .5em;color:var(--muted)}
+.pfile b{color:var(--accent);font-weight:600}
+.more{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-top:.7rem;display:inline-block}
+
+/* diagram */
+figure{margin:2rem 0}
+figure svg{display:block;width:100%;height:auto;max-width:100%}
+figcaption{font-family:var(--mono);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:.8rem}
+.scroll-x{overflow-x:auto}
+
+/* mockups */
+.mocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(19rem,1fr));gap:2rem;margin-top:1.5rem}
+.mock h3{font-size:1.05rem;margin-bottom:.15rem}
+.mock .cap{font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.8rem}
+.annot{list-style:none;padding:0;margin:.9rem 0 0;font-size:.83rem}
+.annot li{padding-left:1.7rem;position:relative;margin-bottom:.45rem;color:var(--muted)}
+.annot li b{counter-increment:none;position:absolute;left:0;top:0;font-family:var(--mono);font-size:.62rem;color:var(--accent);border:1px solid var(--accent);width:1.15rem;height:1.15rem;display:grid;place-items:center;border-radius:50%}
+
+/* modal */
+dialog{border:0;padding:0;max-width:52rem;width:calc(100% - 2rem);background:var(--paper);color:var(--ink);box-shadow:0 0 0 1px var(--rule)}
+dialog::backdrop{background:rgba(10,10,10,.45)}
+.dlg-head{position:sticky;top:0;background:var(--paper);border-bottom:1px solid var(--ink);padding:1.4rem 1.6rem 1rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+.dlg-head h2{font-size:1.5rem}
+.dlg-body{padding:1.4rem 1.6rem 2.5rem}
+.dlg-body h2{font-size:1.15rem;margin:1.8rem 0 .5rem;padding-bottom:.3rem;border-bottom:1px solid var(--rule-soft)}
+.dlg-body h3{font-size:1rem;margin:1.3rem 0 .4rem}
+.dlg-body p{margin:.7rem 0}
+.dlg-body ul,.dlg-body ol{padding-left:1.3rem;max-width:66ch}
+.dlg-body li{margin-bottom:.3rem}
+.dlg-body pre{background:var(--panel);padding:.9rem 1rem;overflow-x:auto;font-family:var(--mono);font-size:.76rem;line-height:1.5;border-left:2px solid var(--rule)}
+.dlg-body blockquote{margin:1rem 0;padding-left:1rem;border-left:2px solid var(--accent);color:var(--muted);font-style:italic}
+.dlg-body hr{border:0;border-top:1px solid var(--rule);margin:1.6rem 0}
+.dlg-body .task{list-style:none;margin-left:-1.3rem}
+.dlg-body .task li{padding-left:1.4rem;position:relative}
+.dlg-body .task li::before{content:"";position:absolute;left:0;top:.42em;width:.72em;height:.72em;border:1px solid var(--muted)}
+.close{background:none;border:1px solid var(--rule);font-family:var(--mono);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;padding:.5rem .8rem;cursor:pointer;color:var(--muted);min-height:44px}
+.close:hover{border-color:var(--accent);color:var(--accent)}
+footer{padding:3rem 0 4rem;color:var(--muted);font-size:.85rem}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{.phase{page-break-inside:avoid}dialog{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="cover">
+  <span class="eyebrow">Bubbli &middot; implementation plan &middot; red-teamed &amp; validated</span>
+  <h1 id="ttl"></h1>
+  <p class="lede" id="desc"></p>
+  <dl class="meta">
+    <div><dt>Phases</dt><dd id="m-ph"></dd></div>
+    <div><dt>Checks</dt><dd id="m-ck"></dd></div>
+    <div><dt>Effort</dt><dd id="m-ef"></dd></div>
+    <div><dt>Priority</dt><dd id="m-pr"></dd></div>
+    <div><dt>Branch</dt><dd style="font-size:1rem">main-rebuild</dd></div>
+  </dl>
+</header>
+
+<section>
+  <div class="sec-head"><h2>What a guardian reads today</h2><span class="folio">01</span></div>
+  <p>A guardian whose child typed <em>&ldquo;I don&rsquo;t want to be here anymore&rdquo;</em>
+  currently sees this on <code>/parent</code>:</p>
+
+  <div class="correction">
+    <span class="eyebrow">the alert, verbatim</span>
+    <p style="font-family:var(--mono);font-size:1.05rem;margin:.6rem 0">harm self not here &middot; Thi &nbsp;&nbsp;&nbsp; 8/27/2026</p>
+    <p><code>page.tsx:42</code> selects <code>triggered_rules-&gt;&gt;0</code> &mdash; the rule
+    identifier &mdash; and <code>:87</code> renders it with dots swapped for spaces.
+    &ldquo;inap&rdquo; is not a word.</p>
+    <p><b>An alert a guardian cannot read is an alert that failed</b>, and this is the most
+    consequential thing the product does.</p>
+  </div>
+
+  <div class="scroll-x">
+  <table>
+    <thead><tr><th>Rule fires</th><th>Guardian reads</th></tr></thead>
+    <tbody>
+      <tr><td><code>harm.self.not_here</code></td><td class="v-fail">harm self not here</td></tr>
+      <tr><td><code>harm.self.direct</code></td><td class="v-fail">harm self direct</td></tr>
+      <tr><td><code>inap.sexual.topic.young</code></td><td class="v-pass">inap sexual topic young</td></tr>
+      <tr><td><code>inap.violence</code></td><td class="v-pass">inap violence</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>Every id above is present in live flag data. The rest follows: no next step at any
+  severity, &ldquo;Below the gate&rdquo; as a user-facing heading, reviewed flags deleted from
+  view so a pattern is invisible, and <code>toLocaleDateString()</code> on something
+  time-sensitive.</p>
+</section>
+
+<section>
+  <div class="sec-head"><h2>What the red team found</h2><span class="folio">02</span></div>
+  <p>Three adversarial lenses over five phases. Three findings, every one carrying a
+  <code>file:line</code> citation, all accepted. Both High findings are places where the
+  plan&rsquo;s stated guarantee held <em>only by coincidence</em> &mdash; neither would have
+  failed a review that read the plan alone.</p>
+
+  <div class="stats">
+    <div class="stat alert"><b>2</b><span>high</span></div>
+    <div class="stat"><b>1</b><span>medium</span></div>
+    <div class="stat"><b>3</b><span>accepted</span></div>
+    <div class="stat"><b>0</b><span>evidence-free</span></div>
+  </div>
+
+  <div class="correction">
+    <span class="eyebrow">F2 &middot; high &middot; a rule id that contains the child&rsquo;s own words</span>
+    <p><code>engine.ts:143</code> builds <code>`evasion.devoweled.${alert.token}`</code>
+    &mdash; an id constructed at runtime <b>from a fragment of what the child typed</b>,
+    and absent from <code>RULES</code>.</p>
+    <p>Two decisions failed at once. The exhaustiveness test walks <code>RULES</code>, so it
+    <em>cannot see this id</em> and passes while flags exist with no label. And if any path
+    echoes the id &mdash; including a fallback added for debuggability &mdash; the guardian
+    reads part of the child&rsquo;s message, in the flags list, which is precisely the
+    surface the reviewed prior art leaked.</p>
+    <p><b>Fix (D10):</b> labels are keyed on the rule <em>family</em>. The dynamic suffix is
+    stripped <em>before</em> any lookup, so the token stops existing at the boundary rather
+    than being carefully avoided downstream.</p>
+  </div>
+
+  <div class="correction">
+    <span class="eyebrow">F1 &middot; high &middot; the crisis card works by accident</span>
+    <p><code>engine.ts:209</code> iterates rules in declaration order and <code>:195</code>
+    preserves it, so <code>triggered_rules-&gt;&gt;0</code> is the first rule <em>as
+    declared</em>, not the most severe.</p>
+    <p>It is correct today only because of this, at <code>rules.ts:667</code>:</p>
+    <pre>export const RULES: Rule[] = [
+  ...harmfulIntent,   &lt;- self-harm, spread first
+  ...pii,
+  ...inappropriate,
+];</pre>
+    <p><b>Swapping two lines in that array literal would stop a self-harm disclosure
+    rendering the crisis card</b>, and no test would fail.</p>
+    <p><b>Fix (D11):</b> the predicate scans the whole array for the <code>harm.self</code>
+    family, and the described rule is chosen by severity. Nothing a guardian sees may depend
+    on the order of declarations in a source file.</p>
+  </div>
+
+  <div class="scroll-x">
+  <table>
+    <thead><tr><th>#</th><th>Sev</th><th>Finding</th><th>Evidence</th><th>&rarr;</th></tr></thead>
+    <tbody>
+      <tr><td>F1</td><td class="v-fail">HIGH</td><td>Crisis card depends on declaration order</td><td><code>rules.ts:667-674</code></td><td>D11</td></tr>
+      <tr><td>F2</td><td class="v-fail">HIGH</td><td>A rule id can contain the child&rsquo;s words</td><td><code>engine.ts:143</code></td><td>D10</td></tr>
+      <tr><td>F3</td><td class="v-pass">MED</td><td>The DTO still carries a rule id in <code>reason</code></td><td><code>dto.ts</code></td><td>D12</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p><b>Rejected:</b> fixing F2 at source by making <code>engine.ts:143</code> emit a static
+  id. It is the cleanest repair, and it edits the guardrail engine &mdash; a declared
+  non-goal that would move <code>policyVersion()</code>. Recorded so the option is not lost:
+  it is the right change for a plan that owns the engine.</p>
+
+  <p style="color:var(--muted);font-size:.86rem;max-width:70ch">Reviewers were not spawned as
+  subagents: <code>AGENT.md</code> &sect;2A routes delegation through herdr panes and
+  <code>HERDR_ENV</code> is unset in this session, so the lenses were run inline. Recorded
+  rather than silently skipped.</p>
+</section>
+
+<section>
+  <div class="sec-head"><h2>How it fits together</h2><span class="folio">03</span></div>
+  <p>Phase&nbsp;1 is the whole point. If only one phase ships it should be that one &mdash;
+  it removes the safety-relevant defect on its own. Phase&nbsp;4 is independent and can go
+  at any time.</p>
+  <figure>
+  <svg viewBox="0 0 900 350" role="img" aria-labelledby="dgt dgd">
+    <title id="dgt">Phase dependency and data flow</title>
+    <desc id="dgd">Phase 1 writes the family-keyed vocabulary and strips dynamic suffixes.
+    Phase 2 builds the crisis card on top of it. Phase 3 rebuilds the dashboard. Phase 4 is
+    independent. Phase 5 verifies all of them.</desc>
+    <defs>
+      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+        <path d="M0 0 L10 5 L0 10 z" fill="#6b6258"/>
+      </marker>
+      <marker id="ara" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+        <path d="M0 0 L10 5 L0 10 z" fill="#b8232c"/>
+      </marker>
+    </defs>
+    <g font-family="ui-monospace,Menlo,monospace" font-size="10">
+      <text x="0" y="14" fill="#b8232c" letter-spacing="1.6">CONTENT</text>
+      <text x="0" y="152" fill="#b8232c" letter-spacing="1.6">SURFACE</text>
+      <text x="0" y="272" fill="#b8232c" letter-spacing="1.6">PROOF</text>
+    </g>
+    <line x1="0" y1="22" x2="900" y2="22" stroke="#e6dfd3"/>
+    <line x1="0" y1="160" x2="900" y2="160" stroke="#e6dfd3"/>
+    <line x1="0" y1="280" x2="900" y2="280" stroke="#e6dfd3"/>
+
+    <g>
+      <rect x="0" y="40" width="270" height="92" fill="#f0ebe1" stroke="#b8232c" stroke-width="2"/>
+      <text x="14" y="62" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#b8232c" letter-spacing="1.3">PHASE 1 &middot; THE POINT</text>
+      <text x="14" y="83" font-family="Georgia,serif" font-size="15" fill="#0a0a0a">FLAG_FAMILIES</text>
+      <text x="14" y="101" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#6b6258">keyed by family, not id (D10)</text>
+      <text x="14" y="114" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#6b6258">chosen by severity, not position (D11)</text>
+      <text x="14" y="127" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#6b6258">enumeration test over RULES + synthetic</text>
+    </g>
+    <g>
+      <rect x="320" y="40" width="250" height="92" fill="#faf7f2" stroke="#d9d1c4"/>
+      <text x="334" y="62" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#6b6258" letter-spacing="1.3">familyOf()</text>
+      <text x="334" y="84" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="#b8232c">evasion.devoweled.kll</text>
+      <text x="334" y="100" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="#6b6258">        &darr; strip</text>
+      <text x="334" y="116" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="#0a0a0a">evasion.devoweled</text>
+      <text x="334" y="128" font-family="ui-monospace,Menlo,monospace" font-size="8.5" fill="#6b6258">the token stops existing here</text>
+    </g>
+    <g>
+      <rect x="620" y="40" width="230" height="92" fill="#faf7f2" stroke="#d9d1c4"/>
+      <text x="634" y="62" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#6b6258" letter-spacing="1.3">D12 &middot; PROJECTION</text>
+      <text x="634" y="84" font-family="Georgia,serif" font-size="14" fill="#0a0a0a">no rule id at all</text>
+      <text x="634" y="103" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#6b6258">reason &rarr; removed</text>
+      <text x="634" y="117" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#6b6258">headline &rarr; written copy</text>
+    </g>
+    <line x1="320" y1="86" x2="276" y2="86" stroke="#6b6258" marker-end="url(#ar)"/>
+    <line x1="620" y1="86" x2="576" y2="86" stroke="#6b6258" marker-end="url(#ar)"/>
+
+    <g>
+      <rect x="0" y="178" width="215" height="76" fill="#f0ebe1" stroke="#b8232c" stroke-width="2"/>
+      <text x="14" y="199" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#b8232c" letter-spacing="1.3">PHASE 2</text>
+      <text x="14" y="220" font-family="Georgia,serif" font-size="14" fill="#0a0a0a">the crisis card</text>
+      <text x="14" y="237" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#6b6258">scans the WHOLE array</text>
+      <text x="14" y="249" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#6b6258">988 from one module</text>
+    </g>
+    <g>
+      <rect x="255" y="178" width="215" height="76" fill="#faf7f2" stroke="#d9d1c4"/>
+      <text x="269" y="199" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#6b6258" letter-spacing="1.3">PHASE 3</text>
+      <text x="269" y="220" font-family="Georgia,serif" font-size="14" fill="#0a0a0a">the dashboard</text>
+      <text x="269" y="237" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#6b6258">rows, relative time</text>
+      <text x="269" y="249" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#6b6258">reviewed history</text>
+    </g>
+    <g>
+      <rect x="620" y="178" width="230" height="76" fill="#faf7f2" stroke="#d9d1c4" stroke-dasharray="4 3"/>
+      <text x="634" y="199" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#6b6258" letter-spacing="1.3">PHASE 4 &middot; INDEPENDENT</text>
+      <text x="634" y="220" font-family="Georgia,serif" font-size="14" fill="#0a0a0a">the child header</text>
+      <text x="634" y="237" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#6b6258">one primary action</text>
+      <text x="634" y="249" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#6b6258">Sign out reaches AA</text>
+    </g>
+    <line x1="107" y1="138" x2="107" y2="172" stroke="#b8232c" marker-end="url(#ara)"/>
+    <line x1="221" y1="216" x2="249" y2="216" stroke="#6b6258" marker-end="url(#ar)"/>
+
+    <g>
+      <rect x="0" y="298" width="850" height="46" fill="#faf7f2" stroke="#0a0a0a" stroke-width="1.5"/>
+      <text x="14" y="317" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#0a0a0a" letter-spacing="1.3">PHASE 5 &middot; VERIFICATION</text>
+      <text x="14" y="335" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="#6b6258">no identifier rendered &middot; every id resolves &middot; 988 in one module &middot; reorder RULES and nothing changes &middot; policyVersion() unchanged</text>
+    </g>
+    <line x1="107" y1="260" x2="107" y2="292" stroke="#b8232c" marker-end="url(#ara)"/>
+  </svg>
+  <figcaption>Fig. 1 &mdash; Red-bordered blocks are new work. The dashed block has no dependencies. Phase 5&rsquo;s reorder check is the only test that proves F1 is fixed rather than coincidentally correct again.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="sec-head"><h2>The interface</h2><span class="folio">04</span></div>
+  <p>Mockups render in Bubbli&rsquo;s own Forest tokens, not this document&rsquo;s palette.
+  No label is derived from anything the child wrote &mdash; only the child&rsquo;s name is
+  interpolated.</p>
+
+  <div class="mocks">
+    <div class="mock">
+      <h3>The alert, before and after</h3>
+      <p class="cap">Phase 1 &amp; 3</p>
+      <svg viewBox="0 0 420 300" role="img" aria-label="An alert row rendered as a rule identifier, and the same alert rendered as a sentence">
+        <rect width="420" height="300" fill="#faf7f2"/>
+        <text x="4" y="14" font-family="ui-monospace,Menlo,monospace" font-size="8" fill="#6b6258" letter-spacing="1.2">TODAY</text>
+        <rect x="4" y="22" width="412" height="60" fill="#0d1512" stroke="#d9d1c4"/>
+        <rect x="4" y="22" width="3" height="60" fill="#d95f45"/>
+        <text x="20" y="46" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#d95f45">HIGH</text>
+        <text x="66" y="46" font-family="Helvetica,Arial" font-size="11" fill="#e8efe9">harm self not here &#183; Thi</text>
+        <text x="330" y="46" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#6d8176">8/27/2026</text>
+        <text x="66" y="66" font-family="ui-monospace,Menlo,monospace" font-size="8" fill="#b8232c">a rule identifier, shown to a parent</text>
+
+        <text x="4" y="112" font-family="ui-monospace,Menlo,monospace" font-size="8" fill="#b8232c" letter-spacing="1.2">AFTER</text>
+        <rect x="4" y="120" width="412" height="150" fill="#16211d" stroke="#25342e"/>
+        <rect x="4" y="120" width="3" height="150" fill="#d95f45"/>
+        <text x="20" y="144" font-family="Georgia,serif" font-size="13" fill="#e8efe9">Thi may be struggling</text>
+        <text x="20" y="166" font-family="Helvetica,Arial" font-size="10" fill="#9ab0a4">Thi said something about not wanting to be</text>
+        <text x="20" y="181" font-family="Helvetica,Arial" font-size="10" fill="#9ab0a4">here.</text>
+        <text x="20" y="200" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#6d8176">2 hours ago</text>
+        <rect x="20" y="212" width="130" height="26" rx="13" fill="#3a2b21"/>
+        <text x="34" y="229" font-family="Helvetica,Arial" font-size="10" fill="#f0a882">Read what was said</text>
+        <text x="158" y="229" font-family="ui-monospace,Menlo,monospace" font-size="8" fill="#6d8176">Opening this is recorded.</text>
+        <line x1="20" y1="246" x2="400" y2="246" stroke="#25342e"/>
+        <text x="20" y="262" font-family="Helvetica,Arial" font-size="10" fill="#9ab0a4">Help starting the conversation: call or text 988</text>
+        <g font-family="ui-monospace,Menlo,monospace" font-size="8" fill="#b8232c">
+          <circle cx="404" cy="166" r="7" fill="#faf7f2" stroke="#b8232c"/><text x="401" y="169">1</text>
+          <circle cx="404" cy="229" r="7" fill="#faf7f2" stroke="#b8232c"/><text x="401" y="232">2</text>
+          <circle cx="404" cy="262" r="7" fill="#faf7f2" stroke="#b8232c"/><text x="401" y="265">3</text>
+        </g>
+      </svg>
+      <ul class="annot">
+        <li><b>1</b>A written sentence from <code>FLAG_FAMILIES</code>. Only the child&rsquo;s name is interpolated &mdash; nothing the child typed (D3, D10).</li>
+        <li><b>2</b>The audit consequence sits on the control that triggers it, not in a page footnote (D8).</li>
+        <li><b>3</b><code>988</code> comes from <code>LIFELINE</code> in the crisis module. One source, asserted by test (D5).</li>
+      </ul>
+    </div>
+
+    <div class="mock">
+      <h3>The page, recomposed</h3>
+      <p class="cap">Phase 3 &middot; three sections</p>
+      <svg viewBox="0 0 420 300" role="img" aria-label="The dashboard with a crisis card, an attention section, a recorded-not-shown section and a reviewed section">
+        <rect width="420" height="300" fill="#0d1512"/>
+        <text x="16" y="26" font-family="ui-monospace,Menlo,monospace" font-size="7" fill="#6d8176" letter-spacing="1.4">BUBBLI</text>
+        <text x="16" y="46" font-family="Georgia,serif" font-size="17" fill="#e8efe9">Safety dashboard</text>
+
+        <rect x="16" y="60" width="388" height="42" fill="#16211d" stroke="#25342e"/>
+        <rect x="16" y="60" width="3" height="42" fill="#d95f45"/>
+        <text x="30" y="78" font-family="Georgia,serif" font-size="11" fill="#e8efe9">Thi may be struggling</text>
+        <text x="30" y="94" font-family="ui-monospace,Menlo,monospace" font-size="8" fill="#6d8176">2 hours ago &#183; 988 &#183; read what was said</text>
+
+        <text x="16" y="122" font-family="ui-monospace,Menlo,monospace" font-size="7" fill="#9ab0a4" letter-spacing="1.4">NEEDS YOUR ATTENTION</text>
+        <rect x="16" y="130" width="388" height="26" fill="#16211d"/>
+        <text x="30" y="147" font-family="Helvetica,Arial" font-size="10" fill="#e8efe9">Thi asked how to hurt someone</text>
+        <text x="330" y="147" font-family="ui-monospace,Menlo,monospace" font-size="8" fill="#6d8176">yesterday</text>
+
+        <text x="16" y="180" font-family="ui-monospace,Menlo,monospace" font-size="7" fill="#f0a882" letter-spacing="1.4">RECORDED, NOT SHOWN</text>
+        <line x1="152" y1="177" x2="404" y2="177" stroke="#f0a882" stroke-dasharray="2 3"/>
+        <text x="16" y="196" font-family="Helvetica,Arial" font-size="9" fill="#6d8176">Counted so you know it happened. The words stay private to Thi.</text>
+        <text x="30" y="214" font-family="Helvetica,Arial" font-size="10" fill="#9ab0a4">Thi asked about drugs &#183; 2 times</text>
+
+        <text x="16" y="244" font-family="ui-monospace,Menlo,monospace" font-size="7" fill="#6d8176" letter-spacing="1.4">ALREADY REVIEWED</text>
+        <text x="30" y="262" font-family="Helvetica,Arial" font-size="10" fill="#6d8176">Thi asked about sex &#183; 3 times this week</text>
+        <g font-family="ui-monospace,Menlo,monospace" font-size="8" fill="#b8232c">
+          <circle cx="404" cy="196" r="7" fill="#faf7f2" stroke="#b8232c"/><text x="401" y="199">4</text>
+          <circle cx="404" cy="262" r="7" fill="#faf7f2" stroke="#b8232c"/><text x="401" y="265">5</text>
+        </g>
+      </svg>
+      <ul class="annot">
+        <li><b>4</b>&ldquo;Below the gate&rdquo; becomes &ldquo;Recorded, not shown&rdquo;. The distinction survives; the codebase&rsquo;s metaphor does not reach a guardian.</li>
+        <li><b>5</b>Reviewed flags stay visible and carry a count. Today they vanish, so three concerns in a week read exactly like one (D6).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Phases</h2><span class="folio">05</span></div>
+  <p>Select any phase for its full specification &mdash; architecture, files, steps, success criteria and risk.</p>
+  <div class="phases" id="phases"></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Open questions</h2><span class="folio">06</span></div>
+  <p><b>None.</b> Navigation shape, deletion policy and row label were settled in the
+  brainstorm; the family-keyed labels, severity-based selection and the removal of
+  <code>reason</code> from the projection were settled in red team session&nbsp;1. The
+  helpline was already settled by <code>src/content/crisis/index.ts</code> &mdash; 988,
+  cited &mdash; and is reused rather than re-decided.</p>
+</section>
+
+<footer>
+  <p class="folio">Canonical source</p>
+  <p><code>plans/260827-2255-parent-dashboard-in-plain-language/</code> &mdash; <code>plan.md</code>
+  plus five phase files. This page is generated from them; the markdown is authoritative.</p>
+</footer>
+
+</div>
+
+<dialog id="dlg">
+  <div class="dlg-head">
+    <h2 id="dlg-t"></h2>
+    <button class="close" id="dlg-x" autofocus>Close &nbsp;esc</button>
+  </div>
+  <div class="dlg-body" id="dlg-b"></div>
+</dialog>
+
+<script>
+const DATA = {"title": "The parent dashboard, in plain language", "description": "Stop showing guardians raw rule identifiers, give a self-harm flag its own treatment with the crisis line, keep reviewed flags visible so patterns show, and settle the chrome on both surfaces.", "effort": "1-2d", "priority": "P1", "created": "2026-08-27", "phases": [{"file": "phase-01-vocabulary.md", "num": "1", "title": "The vocabulary", "status": "pending", "priority": "P1", "effort": "5h", "deps": "[]", "md": "# Phase 1: The vocabulary\n\n<!-- Updated: Red Team Session 1 — D10 family keys, D11 severity selection, D12 label in the DTO -->\n\n## Overview\n\nWrite a parent-facing sentence for every guardrail rule, and make it structurally\nimpossible for a rule to reach a guardian without one.\n\nThis is the phase that removes the defect. If nothing else in this plan ships, this\nshould.\n\n## Requirements\n\n- Functional: every rule **family** resolves to a written, parent-facing sentence, and\n  every id the engine can emit maps to a family — including the ones that are not in\n  `RULES` at all.\n- Functional: a dynamic id's suffix is stripped **before** any lookup, so a fragment of\n  the child's message cannot reach a label even through the fallback (D10).\n- Functional: when several rules fire, the one described is chosen by **severity**, never\n  by position in the array (D11).\n- Functional: a rule with no label is a **build failure**, not a fallback to the id.\n- Functional: labels are per-rule and hand-written. None interpolates message content,\n  a child's words, or anything derived from them.\n- Functional: the sentence names what happened, not which rule matched. A guardian does\n  not need to know the product has rules.\n- Non-functional: severity governs tone. `harm.self.*` reads gravely; `inap.substance`\n  does not.\n- Non-functional: no change to `src/lib/guardrails/`. `policyVersion()` unchanged.\n\n## Architecture\n\nA new `src/content/flag-labels.ts`, beside the crisis copy rather than in\n`src/config/vocabulary.ts` — this is **content**, subject to review and rewriting, not\nconfiguration. `src/content/` already holds the highest-stakes text in the product and\nis the right neighbourhood.\n\n```ts\ninterface FlagLabel {\n  /** What a guardian reads. Complete sentence, no rule vocabulary. */\n  headline: string;\n  /** One line of context. Optional. */\n  detail?: string;\n}\n/** Keyed by FAMILY. `rank` decides which family speaks when several fire. */\nexport const FLAG_FAMILIES: Record<string, FlagLabel & { rank: number }>\n\n/** Strips any dynamic suffix. `evasion.devoweled.kll` → `evasion.devoweled`. */\nexport function familyOf(ruleId: string): string\n\n/** Takes the WHOLE array; picks by rank, never by position. */\nexport function labelFor(ruleIds: string[], childName: string): FlagLabel\n```\n\n**Keys are FAMILIES, not ids** (D10). The engine emits ids that are not in `RULES`:\n\n| Source | Id | In `RULES`? |\n|---|---|---|\n| `engine.ts:112` | the rule's own id | yes |\n| `engine.ts:143` | `` `evasion.devoweled.${alert.token}` `` | **no — and the suffix is a fragment of the child's message** |\n| `engine.ts:164` | `out.age_complexity` | **no** |\n\nSo `familyOf(id)` strips to the longest declared family prefix and the token is discarded\nbefore anything is looked up. That is what makes D3 hold structurally rather than by\ncare: there is no code path in which the token can be rendered, because it stops existing\nat the boundary.\n\n**The exhaustiveness guard is the point of the phase**, and after F2 it must cover more\nthan `RULES`. It enumerates `RULES` **and** the synthetic ids the engine constructs,\nasserting each resolves to a family with copy. A new rule — or a new synthetic id —\nwithout a label fails the suite, which is exactly the moment someone should be made to\nwrite the sentence.\n\n**Selection is by severity** (D11). `labelFor` takes the whole `triggeredRules` array and\npicks the family with the highest declared rank, so the copy never depends on the order\nof declarations in `rules.ts`.\n\nShape of the copy, for the two that matter most:\n\n| Rule | Headline |\n|---|---|\n| `harm.self.not_here` | *\"{child} said something about not wanting to be here.\"* |\n| `harm.self.direct` | *\"{child} talked about hurting themselves.\"* |\n| `inap.violence` | *\"{child} asked how to hurt someone.\"* |\n| `inap.sexual.topic.young` | *\"{child} asked about sex.\"* |\n| `inap.substance` | *\"{child} asked about drugs or alcohol.\"* |\n\nThe child's name is interpolated; **nothing the child wrote is**. That is the whole of\nD3, and it is why the signature takes `childName` rather than the flag row.\n\n`labelFor` must not throw on an unknown id at runtime — a rule could be added and\ndeployed before the test runs in a branch. It returns a deliberately bland fallback\n(*\"{child} said something that needs your attention.\"*) that leaks no identifier, while\nthe test makes the fallback unreachable in a healthy tree.\n\n## Related Code Files\n\n- Create: `src/content/flag-labels.ts`\n- Create: `tests/parent/flag-labels.test.ts`\n- Modify: `src/lib/parent/dto.ts` — carry the label; **remove `reason`** (D12)\n- Verify only: `src/lib/guardrails/rules.ts` — read to enumerate; never edited\n\n## Implementation Steps\n\n1. `RULES` is already exported (`rules.ts:667`), so the test can enumerate it directly.\n   List the synthetic ids from `engine.ts` alongside it — they are the half the table\n   cannot show.\n2. Write `FLAG_FAMILIES` covering every family. Write them in one sitting, in rank order,\n   so the tonal ladder is deliberate rather than emergent.\n3. Add `familyOf` and `labelFor`, with the bland fallback.\n4. Thread the label through `projectFlagRow` so the page receives copy, never a category.\n5. Remove `reason` from `FlagRowAtGate` (D12) and update the projection snapshot.\n6. Write the enumeration test over `RULES` **plus** the synthetic ids, and confirm it\n   FAILS with one family removed.\n\n## Success Criteria\n\n- [ ] Every id in `RULES` **and every synthetic id in `engine.ts`** resolves to a family\n      with copy — asserted by enumerating both\n- [ ] Removing one family fails the suite (verified by doing it)\n- [ ] `familyOf('evasion.devoweled.kll')` returns `evasion.devoweled` — the token is gone\n- [ ] No label contains `.` or `_` between lowercase words\n- [ ] No label interpolates anything but the child's name — asserted structurally\n- [ ] `labelFor` given `['inap.substance','harm.self.direct']` describes the SELF-HARM one,\n      in either array order (D11)\n- [ ] `FlagRowAtGate` no longer has `reason` — asserted by the projection snapshot\n- [ ] `harm.self.*` labels read gravely; reviewed against severity, not house tone\n- [ ] `projectFlagRow` no longer exposes a raw rule id to the page\n- [ ] `policyVersion()` unchanged\n- [ ] `pnpm typecheck && pnpm lint && pnpm test` clean\n\n## Risk Assessment\n\n**Writing crisis-adjacent copy without a clinician.** Unavoidable here and named rather\nthan hidden: `src/content/crisis/index.ts` already records this as an ACCEPTED RISK with\na cited source. These labels join that body of copy and go for review together.\n\n**Signal it broke:** a label that reads as reassuring for a `critical` rule.\n**Response:** tone is reviewed against the severity ladder, not smoothed toward the\nchild surface's warmth. This page is an instrument.\n\n**The fallback becomes load-bearing.** If the enumeration test is skipped or deleted,\nthe bland fallback silently absorbs every new rule and a guardian gets a uniform\nnon-message. The test is the control; the fallback only prevents a crash.\n\n**Signal it broke:** more than one flag type rendering the same headline in real data.\n**Response:** the test was disabled. Restore it before adding copy.\n\n**The synthetic-id list in the test drifts from `engine.ts`.** It is a hand-kept list,\nwhich is exactly the failure F2 exposed one level down. Keep it beside a comment pointing\nat `engine.ts:143` and `:164`, and prefer a test that greps the engine for\n`` ruleId: ` `` templates over one that trusts the list.\n\n**Signal it broke:** a flag in real data whose family is not in `FLAG_FAMILIES`.\n**Response:** the engine grew an id the list does not know. Add the family AND the grep.\n\n**A family label becomes too coarse to be useful.** `inap.sexual` and\n`inap.sexual.topic.young` are different conversations for a guardian. Families are\ndeclared at the granularity the copy needs, not at the first dot.\n", "objective": "Write a parent-facing sentence for every guardrail rule, and make it structurally impossible for a rule to reach a guardian without one.", "bullets": ["Functional: every rule **family** resolves to a written, parent-facing sentence, and", "Functional: a dynamic id's suffix is stripped **before** any lookup, so a fragment of", "Functional: when several rules fire, the one described is chosen by **severity**, never", "Functional: a rule with no label is a **build failure**, not a fallback to the id.", "Functional: labels are per-rule and hand-written. None interpolates message content,"], "files": [{"verb": "Create", "path": "src/content/flag-labels.ts"}, {"verb": "Create", "path": "tests/parent/flag-labels.test.ts"}, {"verb": "Modify", "path": "src/lib/parent/dto.ts"}], "criteria": ["Every id in `RULES` **and every synthetic id in `engine.ts`** resolves to a family", "Removing one family fails the suite (verified by doing it)", "`familyOf('evasion.devoweled.kll')` returns `evasion.devoweled` — the token is gone", "No label contains `.` or `_` between lowercase words"], "criteria_total": 11}, {"file": "phase-02-crisis-card.md", "num": "2", "title": "The crisis card", "status": "pending", "priority": "P1", "effort": "4h", "deps": "[1]", "md": "# Phase 2: The crisis card\n\n<!-- Updated: Red Team Session 1 — D11, the predicate scans the whole array -->\n\n## Overview\n\nA self-harm flag stops being a row. It becomes a card at the top of the page carrying\nplain language, the crisis line, and a way to start the conversation.\n\n## Requirements\n\n- Functional: a flag renders the crisis card when **any** id in `triggeredRules` is in\n  the `harm.self.` family — not merely the first one (D11).\n- Functional: the card carries the phase-1 headline, a relative time, a control to read\n  what was said, and the crisis line.\n- Functional: no other severity renders it. A `high` violence flag is a row.\n- Functional: multiple self-harm flags collapse into one card, newest first — a guardian\n  in that moment needs one clear thing, not a list.\n- Non-functional: the crisis number comes from `LIFELINE` in `src/content/crisis/index.ts`.\n  It is not retyped.\n- Non-functional: the card states that opening the transcript is recorded, on the control\n  that does it.\n- Non-functional: grave, not alarming. No red flashing, no siren styling. A guardian\n  reading this is already frightened.\n\n## Architecture\n\n`src/components/parent/crisis-card.tsx`, fed by the dashboard.\n\nThe trigger is the RULE FAMILY, not the severity. `critical` and `harm.self.*` overlap\ntoday but are not the same predicate: a future critical rule about violence should not\nrender a self-harm card, and a `high` self-harm rule should still render one.\n\n**And it scans the WHOLE array** (D11). Testing `triggered_rules->>0` was the plan's\noriginal wording and the red team found it correct only by coincidence: `engine.ts:209`\niterates in declaration order, and `RULES` (`rules.ts:667-674`) spreads `harmfulIntent`\nfirst. The guarantee rests on the order of two lines in an array literal. A message tripping both a self-harm rule and another one would render the\ncard today and stop rendering it the moment someone reorders the file — with no test\nfailing. The predicate is `triggeredRules.some(id => familyOf(id) === 'harm.self')`.\n\n```\n┌─────────────────────────────────────────────┐\n│ Thi said something about not wanting to be  │  ← phase-1 headline\n│ here.                                        │\n│ 2 hours ago                                  │  ← relative, D7\n│                                              │\n│ [ Read what was said ]                       │  ← primary\n│ Opening this is recorded, and other          │  ← D8: consequence at the control\n│ guardians can see that record.               │\n│ ───────────────────────────────────────────  │\n│ If you would like help starting the          │\n│ conversation, call or text 988.              │  ← LIFELINE, single source\n└─────────────────────────────────────────────┘\n```\n\nCopy for the opening suggestion is deliberately short and non-prescriptive. A guardian\ndoes not need a script; they need permission to begin. Anything longer becomes advice\nthis project is not qualified to give.\n\n## Related Code Files\n\n- Create: `src/components/parent/crisis-card.tsx`\n- Create: `tests/parent/crisis-card.test.ts`\n- Modify: `src/app/(parent)/parent/page.tsx` — partition flags before rendering\n\n## Implementation Steps\n\n1. Partition the dashboard's flags into `harm.self.*` and the rest.\n2. Build the card against the phase-1 label, importing `LIFELINE` from the crisis module.\n3. Collapse multiple self-harm flags to one card keyed on the newest.\n4. Confirm by hand at 1440x900 and 390x844, both themes.\n\n## Success Criteria\n\n- [ ] A `harm.self.*` flag renders the card; `inap.violence` at `high` does not\n- [ ] A flag whose array is `['inap.violence','harm.self.direct']` — self-harm NOT first —\n      still renders the card (D11). This is the F1 regression\n- [ ] The literal `988` appears in exactly one module — asserted structurally\n- [ ] Two self-harm flags render ONE card, not two\n- [ ] The audit sentence sits on the control, not in a page footer\n- [ ] The card carries no rule id and quotes nothing the child wrote\n- [ ] Grave, not alarming: no `critical` red as a fill, only as an edge\n- [ ] Both themes, AA, controls >= 44px\n\n## Risk Assessment\n\n**Keying on severity, or on the first element, instead of scanning the family.** Both\ncoincide with the right answer today, which is what makes them dangerous: the wrong\npredicate passes every test written against current data.\n\n**Signal it broke:** reordering `rules.ts` changes which flags render the card.\n**Response:** the predicate is reading position again. Nothing about a source file's\ndeclaration order may affect what a guardian is shown.\n\n**Signal it broke:** a non-self-harm flag rendering the crisis line.\n**Response:** the predicate drifted to severity. Restore the rule-family check.\n\n**The card reads as an emergency siren.** A guardian opening this at 11pm is already\nfrightened; styling that amplifies it makes the page harder to act on.\n\n**Giving advice this project cannot stand behind.** The suggestion stays to one line and\nroutes onward. Anything resembling counselling is out of scope and is why the copy is\nshort by design, not by omission.\n", "objective": "A self-harm flag stops being a row. It becomes a card at the top of the page carrying plain language, the crisis line, and a way to start the conversation.", "bullets": ["Functional: a flag renders the crisis card when **any** id in `triggeredRules` is in", "Functional: the card carries the phase-1 headline, a relative time, a control to read", "Functional: no other severity renders it. A `high` violence flag is a row.", "Functional: multiple self-harm flags collapse into one card, newest first — a guardian", "Non-functional: the crisis number comes from `LIFELINE` in `src/content/crisis/index.ts`."], "files": [{"verb": "Create", "path": "src/components/parent/crisis-card.tsx"}, {"verb": "Create", "path": "tests/parent/crisis-card.test.ts"}, {"verb": "Modify", "path": "src/app/(parent)/parent/page.tsx"}], "criteria": ["A `harm.self.*` flag renders the card; `inap.violence` at `high` does not", "A flag whose array is `['inap.violence','harm.self.direct']` — self-harm NOT first —", "The literal `988` appears in exactly one module — asserted structurally", "Two self-harm flags render ONE card, not two"], "criteria_total": 8}, {"file": "phase-03-dashboard.md", "num": "3", "title": "The dashboard", "status": "pending", "priority": "P1", "effort": "6h", "deps": "[1, 2]", "md": "# Phase 3: The dashboard\n\n<!-- Updated: Red Team Session 1 — D11 select whole array, D12 drop `reason` -->\n\n## Overview\n\nRebuild `/parent` around the phase-1 vocabulary: readable rows, relative time, reviewed\nhistory, no internal jargon, and a page that composes at desktop height.\n\n## Requirements\n\n- Functional: rows show the phase-1 headline, the child, and a relative time.\n- Functional: reviewed flags remain visible under their own heading, excluded from the\n  attention count (D6).\n- Functional: recurrence is visible — a repeated concern shows how often, not just once.\n- Functional: \"Below the gate\" is replaced with language a guardian understands. The\n  distinction it draws stays; only the words change.\n- Functional: relative time under 7 days, absolute beyond (D7).\n- Functional: rows are obviously activatable, and the audit consequence is stated where\n  the action is (D8).\n- Non-functional: the severity boundary is unchanged. `opensTranscript` still decides\n  what may be read (D9).\n- Non-functional: composes at 1440x900 with no dead region taller than the tallest card.\n- Non-functional: the empty state reassures without being cute — this is an instrument.\n\n## Architecture\n\nThe query at `page.tsx:38-49` changes in three ways: it selects the **whole**\n`triggered_rules` array rather than `->>0` (D11 — the first element is the\nfirst-declared rule, not the most severe), it stops filtering `f.reviewed = false`,\npartitioning on `reviewed` in the projection instead, and it stops selecting `reason`\n(D12).\n\nThree sections, in the order a guardian needs them:\n\n```\n  [ crisis card, when present ]        ← phase 2\n\n  NEEDS YOUR ATTENTION                 ← unreviewed, above the gate\n    Thi asked how to hurt someone\n    2 hours ago                 [ Read what was said ]\n\n  RECORDED, NOT SHOWN                  ← was \"Below the gate\"\n    Counted so you know it happened. The words stay private to Thi.\n    Thi asked about drugs · 2 times this week\n\n  ALREADY REVIEWED                     ← D6, new\n    Thi asked about sex · 3 times in the past week\n```\n\nThe third section is what makes a pattern legible. One sexual-topic flag and three read\nidentically today because the reviewed ones are deleted from view; grouping by rule and\ncounting is what turns that into information.\n\n**\"Recorded, not shown\"** replaces \"Below the gate\". The gate is the codebase's metaphor\nfor `opensTranscript`, and it is a good one internally — it is meaningless to a guardian\nwho has never read the source.\n\nThe vertical composition follows the chat's phase-4 lesson: bound the column and centre\nit at `md` and up, rather than letting content pin to the top of a tall viewport.\n\n## Related Code Files\n\n- Modify: `src/app/(parent)/parent/page.tsx` — query, partition, sections, layout\n- Modify: `src/lib/parent/dto.ts` — expose `reviewed`, drop the raw category **and `reason`** (D12)\n- Create: `src/components/parent/flag-row.tsx` — shared by all three sections\n- Create: `tests/parent/dashboard.test.ts`\n\n## Implementation Steps\n\n1. Change the query to include reviewed rows; partition in the projection.\n2. Extract `flag-row.tsx` so the three sections cannot drift apart.\n3. Add relative-time formatting with the 7-day cutover.\n4. Rewrite the section headings and the explanatory copy.\n5. Recompose the page vertically; check the empty state, one flag, and a dozen.\n\n## Success Criteria\n\n- [ ] No string on the page matches `/^[a-z]+([._][a-z_]+)+$/`\n- [ ] The projection carries no `reason` and no rule id at all (D12)\n- [ ] A reviewed flag appears under its own heading and is absent from the attention count\n- [ ] A repeated concern shows its count\n- [ ] \"Below the gate\" does not appear; the distinction it drew still does\n- [ ] Relative under 7 days, absolute beyond\n- [ ] The audit sentence sits on the control that triggers it\n- [ ] Rows above and below the gate render from the SAME component\n- [ ] 1440x900: no dead region taller than the tallest card; also checked at 390x844\n- [ ] Empty state reads as reassurance, not as an error\n- [ ] Both themes, AA, controls >= 44px\n\n## Risk Assessment\n\n**Rewriting the query changes what a guardian may read.** Including reviewed rows widens\nwhat the page selects. It must not widen what `opensTranscript` permits — a reviewed\nbelow-gate flag stays counted, never quoted.\n\n**Signal it broke:** content appearing under \"Recorded, not shown\".\n**Response:** the partition is being applied after the gate rather than inside it. Stop\nand re-derive; this is the product's central promise.\n\n**The reviewed section becomes an archive nobody reads.** If it grows unbounded it stops\nbeing a pattern and becomes noise. Bound it to a rolling window and say so in the copy.\n\n**Three sections drift into three components.** `flag-row.tsx` is shared for that reason;\na divergence is how a below-gate row starts quoting content.\n", "objective": "Rebuild `/parent` around the phase-1 vocabulary: readable rows, relative time, reviewed history, no internal jargon, and a page that composes at desktop height.", "bullets": ["Functional: rows show the phase-1 headline, the child, and a relative time.", "Functional: reviewed flags remain visible under their own heading, excluded from the", "Functional: recurrence is visible — a repeated concern shows how often, not just once.", "Functional: \"Below the gate\" is replaced with language a guardian understands. The", "Functional: relative time under 7 days, absolute beyond (D7)."], "files": [{"verb": "Modify", "path": "src/app/(parent)/parent/page.tsx"}, {"verb": "Modify", "path": "src/lib/parent/dto.ts"}, {"verb": "Create", "path": "src/components/parent/flag-row.tsx"}, {"verb": "Create", "path": "tests/parent/dashboard.test.ts"}], "criteria": ["No string on the page matches `/^[a-z]+([._][a-z_]+)+$/`", "The projection carries no `reason` and no rule id at all (D12)", "A reviewed flag appears under its own heading and is absent from the attention count", "A repeated concern shows its count"], "criteria_total": 11}, {"file": "phase-04-child-header.md", "num": "4", "title": "The child header", "status": "pending", "priority": "P2", "effort": "2h", "deps": "[]", "md": "# Phase 4: The child header\n\n## Overview\n\nThe child surface's header gives its loudest treatment to its least important action.\nFix the hierarchy without adding chrome.\n\n## The specific problem\n\n`chat-client.tsx` renders three controls beside the wordmark:\n\n| Control | Current treatment | Actual importance |\n|---|---|---|\n| History toggle | bare icon, `text-muted` | primary — it is how a child finds their chats |\n| \"How you're kept safe\" | bordered pill, `hover:border-accent` | tertiary — read once, rarely again |\n| \"Sign out\" | `text-subtle`, no border | secondary, and nearly invisible |\n\nThe bordered pill is the heaviest element on a surface whose entire job is to feel calm,\nand `text-subtle` on `Sign out` is the lowest-contrast text in the header.\n\n## Requirements\n\n- Functional: exactly one visually primary control in the header.\n- Functional: every header control reachable and operable by keyboard, with a visible\n  focus ring.\n- Non-functional: `Sign out` meets AA contrast against the header background.\n- Non-functional: the header does not compete with the conversation. Less weight, not more.\n- Non-functional: both themes; every control >= 44px.\n- Non-functional: no new controls. This is a hierarchy fix, not a redesign.\n\n## Architecture\n\nDemote rather than promote. The pill border comes off \"How you're kept safe\", leaving it\na plain link; `Sign out` moves up to `text-muted`; the history toggle keeps the only\naffordance that reads as a button.\n\nThe wordmark stays put. It is the only thing in the header that should be noticed\nwithout being looked for.\n\n## Related Code Files\n\n- Modify: `src/components/chat/chat-client.tsx` — the header block\n\n## Implementation Steps\n\n1. Remove the border from the safety link; keep the target >= 44px.\n2. Raise `Sign out` to a token that passes AA, and verify by measurement.\n3. Check the header at 390px: three controls plus a wordmark must not crowd.\n4. Keyboard pass: tab order matches visual order, focus visible on each.\n\n## Success Criteria\n\n- [ ] One visually primary control\n- [ ] `Sign out` passes AA — measured, not assumed\n- [ ] No control below 44px in either dimension\n- [ ] At 390px the header does not wrap or crowd\n- [ ] Tab order follows visual order; focus ring visible on every control\n- [ ] Both themes\n\n## Risk Assessment\n\n**Demoting the safety link buries a promise the product makes to the child.** \"How\nyou're kept safe\" exists because a child is told a safety helper reads their messages;\nit must stay findable.\n\n**Signal it broke:** the link is no longer distinguishable from body text.\n**Response:** it needs to read as a link, just not as a button. Underline or accent\ncolour, not a border.\n\n**Contrast fixed by eye.** `text-subtle` looked acceptable and is not. Measure the pair.\n", "objective": "The child surface's header gives its loudest treatment to its least important action. Fix the hierarchy without adding chrome.", "bullets": ["Functional: exactly one visually primary control in the header.", "Functional: every header control reachable and operable by keyboard, with a visible", "Non-functional: `Sign out` meets AA contrast against the header background.", "Non-functional: the header does not compete with the conversation. Less weight, not more.", "Non-functional: both themes; every control >= 44px."], "files": [{"verb": "Modify", "path": "src/components/chat/chat-client.tsx"}], "criteria": ["One visually primary control", "`Sign out` passes AA — measured, not assumed", "No control below 44px in either dimension", "At 390px the header does not wrap or crowd"], "criteria_total": 6}, {"file": "phase-05-verification.md", "num": "5", "title": "Verification", "status": "pending", "priority": "P1", "effort": "3h", "deps": "[1, 2, 3, 4]", "md": "# Phase 5: Verification\n\n<!-- Updated: Red Team Session 1 — F1, F2, F3 assertions -->\n\n## Overview\n\nProve the rule id cannot come back, the crisis line has one home, and nothing about who\nmay read what has moved.\n\n## Architecture\n\nFour properties fail silently and so are asserted structurally, against source and\nagainst a rendered page rather than by review:\n\n| Property | Check |\n|---|---|\n| No identifier reaches a guardian | no rendered string matches `/^[a-z]+([._][a-z_]+)+$/` |\n| Every rule has copy | enumerate `RULES` **and the synthetic ids in `engine.ts`**; every one resolves to a `FLAG_FAMILIES` entry |\n| One crisis number | the literal `988` appears in exactly one module |\n| Labels quote nobody | no label template interpolates anything but the child's name |\n| A dynamic suffix never survives | `familyOf('evasion.devoweled.<token>')` drops the token; no rendered string contains it |\n| Position never decides | reordering `RULES` changes nothing a guardian sees |\n| No identifier in the projection | `FlagRowAtGate` has no `reason` and no rule id |\n\nThe first is the regression test for the whole plan. The second is what stops it\nrecurring the next time a rule is added — and it is the one that matters in six months,\nwhen nobody remembers this page was ever wrong.\n\n## Implementation Steps\n\n1. Write the four structural tests.\n2. **Verify each fails when its invariant is broken** — remove a label entry, retype 988\n   in a component, interpolate content into a label. A guard that cannot fail is\n   decoration; this project has already shipped one metric that measured nothing.\n3. Drive the real page with a guardian session against seeded flags covering\n   `harm.self.*`, `inap.*`, **a devoweled-evasion flag with a real token**, reviewed and\n   unreviewed, above and below the gate.\n3b. **Reorder `RULES` in a scratch branch and re-run.** Nothing a guardian sees may\n   change. This is the only check that actually proves F1 is fixed rather than\n   coincidentally correct again; revert the reorder afterwards.\n4. Sweep both themes at 1440x900 and 390x844: empty, one flag, a dozen, crisis present.\n5. Keyboard pass across both surfaces.\n6. Run every gate.\n\n## Success Criteria\n\n- [ ] No rendered string on `/parent` matches the identifier pattern — asserted\n- [ ] Every rule id has a label — asserted by enumeration, and PROVEN to fail without one\n- [ ] `988` in exactly one module — asserted, and proven to fail on a second copy\n- [ ] No label interpolates message content — asserted\n- [ ] `harm.self.*` renders the crisis card; `inap.violence` at `high` does not\n- [ ] Self-harm NOT first in the array still renders the card — the F1 regression\n- [ ] A devoweled-evasion flag renders copy containing none of the child's token — the F2 regression\n- [ ] The projection carries no `reason` — the F3 regression\n- [ ] A below-gate flag is counted and never quoted, reviewed or not\n- [ ] `opensTranscript` and the transcript route are byte-unchanged\n- [ ] `policyVersion()` unchanged — guardrails untouched\n- [ ] Both themes x both breakpoints x four states: no contrast failure, no horizontal\n      scroll, no dead region taller than the tallest card\n- [ ] Keyboard-complete on both surfaces, focus visible throughout\n- [ ] `pnpm typecheck`, `pnpm lint`, `pnpm build`, full suite, `pnpm corpus:eval` pass\n\n## Risk Assessment\n\n**A green suite is read as proof of what was never tested.** This project has been here:\nG4 reported 100% recall on a guardrail that missed the plainest violence request in the\nlanguage, because the corpus shared the rule's blind spot. A test that was never written\nmeasures nothing, and a metric derived from it is worse than none because it reassures.\n\n**Signal it broke:** a success criterion ticked without command output behind it.\n**Response:** it is not done. Write the assertion.\n\n**Step 2 is skipped because the tests already pass.** Passing proves they run, not that\nthey discriminate. Break each invariant once and watch the failure.\n\n**The by-hand sweep is replaced by unit tests.** They cover the projection; they do not\ncover a guardian session rendering a real page with real flags. Step 3 is not optional.\n", "objective": "Prove the rule id cannot come back, the crisis line has one home, and nothing about who may read what has moved.", "bullets": [], "files": [], "criteria": ["No rendered string on `/parent` matches the identifier pattern — asserted", "Every rule id has a label — asserted by enumeration, and PROVEN to fail without one", "`988` in exactly one module — asserted, and proven to fail on a second copy", "No label interpolates message content — asserted"], "criteria_total": 14}], "planMd": "# The parent dashboard, in plain language\n\n## Overview\n\nA guardian whose child typed *\"I don't want to be here anymore\"* currently sees this\non `/parent`:\n\n```\nharm self not here · Thi                                    8/27/2026\n```\n\nThat is `triggered_rules->>0` — the rule identifier — with dots swapped for spaces\n(`src/app/(parent)/parent/page.tsx:42`, rendered at `:87`). Every alert on the page is\ndeveloper shorthand. \"inap\" is not a word.\n\n**An alert a guardian cannot read is an alert that failed**, and this is the most\nconsequential thing the product does. That is why this is a P1 and why it is not a\nstyling job.\n\n## What is actually wrong\n\nEstablished by reading the page and the live flag data, not inferred from a screenshot:\n\n| # | Finding | Evidence |\n|---|---------|----------|\n| 1 | The parent-facing label IS the rule id | `page.tsx:42` selects `triggered_rules->>0`; `page.tsx:87` renders `.replace(/[._]/g,' ')` |\n| 2 | Live data already contains the worst case | flags table holds `harm.self.not_here`, `harm.self.direct`, `inap.sexual.topic.young`, `inap.violence`, `inap.sexual` |\n| 3 | The page offers no next step | rows link to a transcript; nothing else, at any severity |\n| 4 | Internal vocabulary is user-facing | \"Below the gate\" is the codebase's own term for `opensTranscript` |\n| 5 | Reviewed flags disappear entirely | `page.tsx:46` — `where f.reviewed = false`. No history, so three flags in a week read as one |\n| 6 | Absolute US dates on a time-sensitive alert | `toLocaleDateString()` → `8/27/2026` |\n| 7 | The page ends around 900px on a tall viewport | `max-w-3xl px-6 py-14`, no vertical composition |\n| 8 | The child header's loudest element is its least important action | \"How you're kept safe\" is a bordered pill; `Sign out` is `text-subtle` |\n| 9 | **The rule shown is the first DECLARED, not the most severe** | `engine.ts:209` iterates `activeRules()` in table order; `:195` preserves it. Found by red team |\n| 10 | **A rule id can contain the child's own words** | `engine.ts:143` builds `evasion.devoweled.${alert.token}` at runtime, and it is not in `RULES`. Found by red team |\n\n## Decisions taken\n\n| # | Decision | Why |\n|---|----------|-----|\n| D1 | **A re-think, not a re-skin** | A visual pass leaves `harm self not here` on screen in a nicer font. Findings 1–5 are about what the page says and does; the styling problems are downstream |\n| D2 | **Every rule gets a written, parent-facing sentence** | Exhaustive by construction, asserted by a test enumerating `RULES` **and the synthetic ids `engine.ts` builds** — red team F2 showed the table alone does not cover them. Without it, the next rule added silently reintroduces finding 1 |\n| D3 | **A label never quotes the child** | Labels are per-rule generic sentences. The flags list is exactly the surface the reviewed prior art leaked, and the same reasoning that forbids a stored conversation title (V6) applies here |\n| D4 | **`harm.self.*` gets its own card with the crisis line** | A self-harm disclosure is categorically different from a violence question. It gets plain language, the 988 line, and a suggested opening — at the top, not in a row |\n| D5 | **One source for the crisis number** | Parent guidance reuses `LIFELINE` from `src/content/crisis/index.ts`. Two copies of a helpline is a copy that goes stale, and that module already carries the citation and the accepted risk |\n| D6 | **Reviewed flags stay visible under their own heading** | Repetition is often the actual signal. Today marking one reviewed deletes it from view |\n| D7 | **Relative time under 7 days, absolute beyond** | \"2 hours ago\" is actionable; \"8/27/2026\" is a lookup |\n| D8 | **The audit consequence moves to the point of action** | \"Opening a transcript is recorded\" is currently a grey footnote under a fold. It belongs on the button that does it |\n| D9 | **The gate itself is untouched** | `opensTranscript` still decides what may be read. This changes presentation, never who may see what |\n| D10 | **Labels are keyed on the rule FAMILY, not the exact id** | Red team F2. `engine.ts:143` builds `evasion.devoweled.${token}` from a fragment of the child's message. Stripping to the family *before* any lookup means the token is discarded and can never reach a label — not even through a fallback. It also means a new rule in an existing family inherits sensible copy instead of falling through |\n| D11 | **The described rule is chosen by severity, never by position** | Red team F1. Selecting `triggered_rules->>0` picks whichever rule sits earliest in `rules.ts`. It works today only because `harmfulIntent` happens to be declared first — a cosmetic reorder would silently stop self-harm flags rendering the crisis card |\n| D12 | **The projection carries the written label, not `reason`** | Red team F3. `FlagRowAtGate.reason` holds `\"Matched inap.violence\"`. Removing the field entirely means no downstream render can leak an identifier, and the existing snapshot test starts guarding the new contract |\n\n## Relationship to other plans\n\n- **`260827-1226-forest-rebrand`** put \"the parent dashboard's layout\" in its **non-goals**\n  (`plan.md:69`). This plan completes what that one deliberately deferred. No conflict.\n- **`260826-0750-path-to-launch`** is tagged `parent-surface`, but its phase 1 is *parent\n  access* — sign-in and session — which is now implemented and reachable, though that plan\n  still reads `Pending`. Different concern; no blocking dependency. Its stale status wants\n  reconciling separately, and guessing which of its phases shipped would be worse than\n  leaving it flagged.\n\n## Goals\n\n| # | Goal | Priority |\n|---|------|----------|\n| 1 | No rule identifier ever reaches a guardian's screen | P1 |\n| 2 | A self-harm flag carries plain language, the crisis line, and a way to start talking | P1 |\n| 3 | A guardian can see whether a concern is recurring | P2 |\n| 4 | The page reads as a composed instrument, not a stub | P2 |\n| 5 | Nothing about who may read what changes | P1 |\n\n## Non-goals\n\n- **No changes under `src/lib/guardrails/`.** No rule edits, no severity changes, no new\n  rules. `policyVersion()` must come out unchanged, and phase 5 asserts it.\n- Notification transports. Owned by `path-to-launch` phase 2.\n- `/parent/family`, `/parent/setup`, and the transcript page, except where a shared row\n  component touches them.\n- A parent mobile app, or any new route.\n- Clinician review of the new copy. Named as a risk below, not performed here.\n\n## Phases\n\n| # | Phase | Status | Depends on |\n|---|-------|--------|------------|\n| 1 | [The vocabulary](./phase-01-vocabulary.md) | Pending | — |\n| 2 | [The crisis card](./phase-02-crisis-card.md) | Pending | 1 |\n| 3 | [The dashboard](./phase-03-dashboard.md) | Pending | 1, 2 |\n| 4 | [The child header](./phase-04-child-header.md) | Pending | — |\n| 5 | [Verification](./phase-05-verification.md) | Pending | 1-4 |\n\nPhase 1 is the whole point. If only one phase ships, it should be that one — it removes\nthe safety-relevant defect on its own.\n\n## Success Criteria\n\n- [ ] No string rendered on `/parent` matches `/^[a-z]+([._][a-z_]+)+$/` — asserted, not eyeballed\n- [ ] **No rule identifier survives in the DTO** — `reason` is gone, asserted by the projection snapshot (D12)\n- [ ] **A dynamic id's suffix is discarded before lookup** — `evasion.devoweled.<token>` never reaches a label (D10)\n- [ ] **A self-harm flag renders the crisis card even when another rule fires first** (D11)\n- [ ] **Every rule id in `rules.ts` has a parent-facing label**, asserted by enumerating the rule table\n- [ ] A label is a written sentence; none is derived from message content\n- [ ] A `harm.self.*` flag renders the crisis card; no other severity does\n- [ ] The literal `988` appears in exactly one module\n- [ ] A reviewed flag stays visible under its own heading and is excluded from the attention count\n- [ ] Times render relative under 7 days, absolute beyond\n- [ ] \"Below the gate\" no longer appears as a user-facing heading\n- [ ] The audit warning sits on the control that triggers it\n- [ ] 1440x900: no dead region taller than the tallest card\n- [ ] Child header: exactly one visually primary action; `Sign out` passes AA\n- [ ] Both themes, WCAG AA, every control >= 44px\n- [ ] `policyVersion()` unchanged — the guardrails were not touched\n- [ ] `pnpm typecheck`, `pnpm lint`, `pnpm build`, full suite, `pnpm corpus:eval` all pass\n\n## Risks\n\n| Risk | Mitigation |\n|------|------------|\n| **Writing, unreviewed, the sentence a guardian reads at the worst moment of their week** | `src/content/crisis/index.ts` already carries this as a named ACCEPTED RISK with a cited source rather than pretending otherwise. The new labels inherit it and go to a clinician before launch, together, as one body of copy |\n| A new rule ships with no label and the raw id returns | D2's enumeration test fails the build. This is the single highest-value guard in the plan |\n| A label becomes specific enough to leak content | D3 keeps labels per-rule and written by hand. Phase 5 asserts no label interpolates a message |\n| Softening the language makes a serious flag read as routine | Copy is reviewed against the severity it represents, not against a house tone. `harm.self.*` should read gravely |\n| The rewrite quietly changes who can see what | D9. Phase 5 re-asserts the `opensTranscript` boundary and that the transcript route is unchanged |\n\n## Red Team Review\n\n### Session 1 — 2026-08-27\n\nThree adversarial lenses over 5 phases. **3 findings, all carrying `file:line` evidence,\nall accepted.** Reviewers were not spawned as subagents — `AGENT.md` §2A routes\ndelegation through herdr panes and `HERDR_ENV` is unset in this session, so the lenses\nwere run inline. Stated rather than silently skipped.\n\n| # | Sev | Finding | Evidence | Disposition |\n|---|-----|---------|----------|-------------|\n| F1 | High | The crisis card works by accident. `triggered_rules->>0` is the first rule *as declared*, not the most severe. `RULES = [...harmfulIntent, ...pii, ...]` spreads self-harm first — **swapping two lines in that array literal would stop self-harm flags rendering the card**, with no test failing | `rules.ts:667-674`, `engine.ts:209`, `engine.ts:195` | **Accept** → D11 |\n| F2 | High | A rule id can contain the child's own words. `evasion.devoweled.${token}` is built at runtime and is absent from `RULES`, so the enumeration test cannot see it and the fallback could echo the token | `engine.ts:143`, `engine.ts:164` | **Accept** → D10 |\n| F3 | Medium | The DTO still carries a rule id. `FlagRowAtGate.reason` holds `\"Matched inap.violence\"`, one render call from the screen | `dto.ts` `FlagRowAtGate` | **Accept** → D12 |\n\n**What F1 and F2 have in common:** both are places where the plan's stated guarantee held\nonly by coincidence. F1's correctness rested on the order of declarations in a source\nfile; F2's exhaustiveness test walked a table that does not contain every id the engine\ncan emit. Neither would have failed a review that read the plan alone — both needed the\nengine read alongside it.\n\n**F2 is the one that mattered most.** It defeated two decisions at once: D2's\nexhaustiveness guard could not see the id, and D3's promise that a label never quotes the\nchild was breakable through the identifier itself — in the flags list, which is precisely\nthe surface the reviewed prior art leaked.\n\n**Rejected:** fixing F2 at the source by making `engine.ts:143` emit a static id. It is\nthe cleanest repair and it edits the guardrail engine, which this plan declares a non-goal\nand which would move `policyVersion()`. Recorded here so the option is not lost — it is\nthe right change to make in a plan that owns the engine.\n\n## Open questions\n\nNone. Scope, crisis treatment and review history were settled in the brainstorm; the\nhelpline was already settled by `src/content/crisis/index.ts` (988, cited) and is reused\nrather than re-decided.\n"};
+
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+function inline(s){
+  return esc(s)
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+    .replace(/~~([^~]+)~~/g,'<del>$1</del>')
+    .replace(/(^|[\s(])\*([^*\n]+)\*/g,'$1<em>$2</em>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>');
+}
+
+function md(src){
+  const out=[]; const lines=src.split('\n'); let i=0;
+  while(i<lines.length){
+    const l=lines[i];
+    if(/^```/.test(l)){
+      const buf=[]; i++;
+      while(i<lines.length && !/^```/.test(lines[i])) buf.push(lines[i++]);
+      i++; out.push('<pre>'+esc(buf.join('\n'))+'</pre>'); continue;
+    }
+    if(/^<!--/.test(l)){ while(i<lines.length && !/-->/.test(lines[i])) i++; i++; continue; }
+    if(/^\|/.test(l)){
+      const rows=[]; while(i<lines.length && /^\|/.test(lines[i])) rows.push(lines[i++]);
+      const cells=r=>r.split('|').slice(1,-1).map(c=>c.trim());
+      let h='<div style="overflow-x:auto"><table><thead><tr>'+
+        cells(rows[0]).map(c=>'<th>'+inline(c)+'</th>').join('')+'</tr></thead><tbody>';
+      rows.slice(2).forEach(r=>{h+='<tr>'+cells(r).map(c=>'<td>'+inline(c)+'</td>').join('')+'</tr>';});
+      out.push(h+'</tbody></table></div>'); continue;
+    }
+    if(/^#{1,4}\s/.test(l)){
+      const n=l.match(/^#+/)[0].length;
+      out.push('<h'+Math.min(n+1,4)+'>'+inline(l.replace(/^#+\s*/,''))+'</h'+Math.min(n+1,4)+'>'); i++; continue;
+    }
+    if(/^>\s?/.test(l)){
+      const buf=[]; while(i<lines.length && /^>\s?/.test(lines[i])) buf.push(lines[i++].replace(/^>\s?/,''));
+      out.push('<blockquote>'+inline(buf.join(' '))+'</blockquote>'); continue;
+    }
+    if(/^---+$/.test(l)){ out.push('<hr>'); i++; continue; }
+    if(/^\s*-\s\[\s?\]/.test(l)){
+      const buf=[]; while(i<lines.length && /^\s*-\s\[\s?\]/.test(lines[i])){
+        let t=lines[i++].replace(/^\s*-\s\[\s?\]\s*/,'');
+        while(i<lines.length && /^\s{6,}\S/.test(lines[i])) t+=' '+lines[i++].trim();
+        buf.push('<li>'+inline(t)+'</li>');
+      }
+      out.push('<ul class="task">'+buf.join('')+'</ul>'); continue;
+    }
+    if(/^\s*[-*]\s/.test(l)){
+      const buf=[]; while(i<lines.length && /^\s*[-*]\s/.test(lines[i])){
+        let t=lines[i++].replace(/^\s*[-*]\s*/,'');
+        while(i<lines.length && /^\s{2,}\S/.test(lines[i]) && !/^\s*[-*]\s/.test(lines[i])) t+=' '+lines[i++].trim();
+        buf.push('<li>'+inline(t)+'</li>');
+      }
+      out.push('<ul>'+buf.join('')+'</ul>'); continue;
+    }
+    if(/^\s*\d+\.\s/.test(l)){
+      const buf=[]; while(i<lines.length && /^\s*\d+\.\s/.test(lines[i])){
+        let t=lines[i++].replace(/^\s*\d+\.\s*/,'');
+        while(i<lines.length && /^\s{3,}\S/.test(lines[i]) && !/^\s*\d+\.\s/.test(lines[i])) t+=' '+lines[i++].trim();
+        buf.push('<li>'+inline(t)+'</li>');
+      }
+      out.push('<ol>'+buf.join('')+'</ol>'); continue;
+    }
+    if(l.trim()===''){ i++; continue; }
+    const buf=[]; while(i<lines.length && lines[i].trim()!=='' && !/^(#{1,4}\s|\||>|```|\s*[-*]\s|\s*\d+\.\s|---+$)/.test(lines[i])) buf.push(lines[i++]);
+    out.push('<p>'+inline(buf.join(' '))+'</p>');
+  }
+  return out.join('\n');
+}
+
+document.getElementById('ttl').textContent = DATA.title;
+document.getElementById('desc').textContent = DATA.description;
+document.getElementById('m-ph').textContent = DATA.phases.length;
+document.getElementById('m-ck').textContent = DATA.phases.reduce((a,p)=>a+p.criteria_total,0);
+document.getElementById('m-ef').textContent = DATA.effort;
+document.getElementById('m-pr').textContent = DATA.priority;
+
+const host = document.getElementById('phases');
+DATA.phases.forEach(p=>{
+  const b=document.createElement('button');
+  b.className='phase'; b.type='button';
+  b.setAttribute('aria-haspopup','dialog');
+  b.innerHTML =
+    '<span class="pnum">'+esc(p.num)+'</span><span>'+
+    '<span class="ptitle">'+esc(p.title)+'</span>'+
+    '<span class="ptags">'+
+      '<span class="ptag">'+esc(p.status)+'</span>'+
+      '<span class="ptag">'+esc(p.priority)+'</span>'+
+      '<span class="ptag">'+esc(p.effort)+'</span>'+
+      '<span class="ptag">deps '+esc(p.deps)+'</span>'+
+      '<span class="ptag">'+p.criteria_total+' checks</span>'+
+    '</span>'+
+    '<p class="pobj">'+inline(p.objective)+'</p>'+
+    '<ul class="pbul">'+p.bullets.map(x=>'<li>'+inline(x)+'</li>').join('')+'</ul>'+
+    '<span class="pfiles">'+p.files.map(f=>'<span class="pfile"><b>'+f.verb[0]+'</b> '+esc(f.path)+'</span>').join('')+'</span>'+
+    '<span class="more">Full specification &rarr;</span></span>';
+  b.addEventListener('click',()=>open(p));
+  host.appendChild(b);
+});
+
+const dlg=document.getElementById('dlg');
+let last=null;
+function open(p){
+  last=document.activeElement;
+  document.getElementById('dlg-t').textContent='Phase '+p.num+' · '+p.title;
+  document.getElementById('dlg-b').innerHTML=md(p.md);
+  dlg.showModal();
+  dlg.querySelector('.dlg-body').scrollTop=0;
+}
+document.getElementById('dlg-x').addEventListener('click',()=>dlg.close());
+dlg.addEventListener('close',()=>{ if(last) last.focus(); });
+dlg.addEventListener('click',e=>{ if(e.target===dlg) dlg.close(); });
+</script>
+</body>
+</html>

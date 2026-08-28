@@ -17,11 +17,10 @@ export async function GET() {
   const r = await pool.query(
     `select c.id as conversation_id,
             c.max_severity as severity,
-            coalesce((f.triggered_rules->>0), 'unknown') as category,
+            f.triggered_rules,
             count(f.id)::int as count,
             max(f.created_at) as last_at,
-            ch.display_name as child_name,
-            max(f.reason) as reason
+            ch.display_name as child_name
        from conversations c
        join children ch on ch.id = c.child_id
        join flags f on f.conversation_id = c.id

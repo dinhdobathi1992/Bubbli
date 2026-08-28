@@ -18,7 +18,15 @@
  */
 import type { AgeBand } from '@/config/settings';
 
-const LIFELINE = '988';
+/**
+ * The crisis line, in ONE place.
+ *
+ * Exported so the parent-facing guidance reuses it rather than retyping it.
+ * Two copies of a helpline number is a copy that goes stale, and a stale crisis
+ * number is the worst kind of stale string in this product. A test asserts the
+ * literal appears in exactly one module.
+ */
+export const LIFELINE = '988';
 
 const BY_BAND: Record<AgeBand, string> = {
   '4-7': `I'm really glad you told me. What you're feeling matters.
