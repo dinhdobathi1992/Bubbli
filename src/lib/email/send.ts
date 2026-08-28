@@ -66,6 +66,25 @@ function sesReady(): boolean {
  * Pure apart from the readiness probes, so the rule that matters is testable
  * without a network: production must THROW rather than silently degrade.
  */
+/**
+ * Take the recipient out of provider error text before it becomes an exception.
+ *
+ * Both providers name the address in their rejections — Resend's body says
+ * ``Invalid `to` field: someone@example.com is not a valid address``, and an
+ * SES 5xx quotes it back too. That message is thrown, caught upstream, and
+ * written to a log line, so truncating it (which is all this used to do) is not
+ * the same as removing the address: a guardian's email ends up in an unaudited
+ * sink, and the comment two callers up asserted it did not.
+ *
+ * Scrub first, THEN truncate — truncating first can cut an address in half and
+ * leave the readable part behind.
+ */
+const ADDRESS = /[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g;
+
+export function scrubProviderError(text: string, limit: number): string {
+  return text.replace(ADDRESS, '[address]').slice(0, limit);
+}
+
 export function chooseTransport(
   order: readonly EmailProvider[],
   ready: Record<EmailProvider, boolean>,
@@ -113,11 +132,11 @@ async function viaResend(mail: Mail): Promise<MailResult> {
   });
 
   if (!res.ok) {
-    // Resend echoes the recipient in its error body, so only the status and a
-    // short reason are surfaced.
+    // Resend echoes the recipient in its error body, so the address is removed
+    // and only the status and a short reason are surfaced.
     const reason = await res
       .json()
-      .then((b: { message?: string }) => b?.message?.slice(0, 90) ?? '')
+      .then((b: { message?: string }) => (b?.message ? scrubProviderError(b.message, 90) : ''))
       .catch(() => '');
     throw new Error(`Resend rejected the message: ${res.status}${reason ? ` — ${reason}` : ''}`);
   }
@@ -162,7 +181,7 @@ async function viaSes(mail: Mail): Promise<MailResult> {
   } catch (e) {
     // Status only. An SES rejection quotes the recipient back, and a stack can
     // carry the auth header.
-    throw new Error(`SES rejected the message: ${(e as Error).message.slice(0, 120)}`);
+    throw new Error(`SES rejected the message: ${scrubProviderError((e as Error).message, 120)}`);
   }
 }
 

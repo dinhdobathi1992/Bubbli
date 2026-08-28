@@ -72,10 +72,10 @@ the percentage never showed.
 
 | # | Phase | Status | Priority |
 |---|-------|--------|----------|
-| 1 | [Parent access](./phase-01-parent-access.md) | Pending | P1 |
-| 2 | [Notification delivery](./phase-02-notification-delivery.md) | Pending | P1 |
-| 3 | [Isolation and coverage gates](./phase-03-isolation-and-coverage-gates.md) | Pending | P1 |
-| 4 | [Child join code](./phase-04-child-join-code.md) | Pending | P2 |
+| 1 | [Parent access](./phase-01-parent-access.md) | ✅ Complete | P1 |
+| 2 | [Notification delivery](./phase-02-notification-delivery.md) | ✅ Complete | P1 |
+| 3 | [Isolation and coverage gates](./phase-03-isolation-and-coverage-gates.md) | ✅ Complete | P1 |
+| 4 | [Child join code](./phase-04-child-join-code.md) | ✅ Complete | P2 |
 | 5 | [Latency baseline](./phase-05-latency-baseline.md) | Pending | P2 |
 | 6 | [Operational hardening](./phase-06-operational-hardening.md) | Pending | P2 |
 | 7 | [Compliance close-out](./phase-07-compliance-closeout.md) | Blocked | P1 |

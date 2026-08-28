@@ -22,8 +22,28 @@ import { auth } from '@/lib/auth/better-auth';
 import { withDeliveryTracking } from '@/lib/auth/otp-delivery';
 import { checkParentOtpRate, recordParentOtpSend } from '@/lib/auth/login-rate-limit';
 
-/** The one endpoint that sends mail to an address the caller chose. */
-const SEND_OTP = '/api/auth/email-otp/send-verification-otp';
+/**
+ * Which endpoints get a ceiling: FAIL CLOSED.
+ *
+ * The first version named the one endpoint the sign-in page calls. That was
+ * wrong, and measurably so — the emailOTP plugin also mounts
+ * `/forget-password/email-otp` and `/email-otp/request-password-reset`, both of
+ * which take an address from an anonymous body and post a code to it. Driven
+ * against a registered guardian, all three delivered mail and only the named
+ * one recorded an attempt, so the ceiling could be stepped around by changing
+ * one path segment.
+ *
+ * So the rule is inverted. ANY unauthenticated POST on this mount carrying an
+ * `email` is throttled, and a Better Auth upgrade that adds a fourth mailing
+ * endpoint is covered the day it appears rather than the day someone notices.
+ *
+ * The cost of being this broad is that the verify step (`/sign-in/email-otp`)
+ * also carries an address and also consumes the ceiling. That is why the
+ * ceilings allow for it: a guardian sends, verifies, mistypes, and retries well
+ * inside them, and an endpoint that merely CHECKS a code is one worth bounding
+ * anyway.
+ */
+const AUTH_MOUNT = '/api/auth/';
 
 function clientIp(req: Request): string {
   return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1';
@@ -50,7 +70,7 @@ async function emailFrom(req: Request): Promise<string | null> {
 async function handle(req: Request): Promise<Response> {
   const path = new URL(req.url).pathname;
 
-  if (req.method === 'POST' && path === SEND_OTP) {
+  if (req.method === 'POST' && path.startsWith(AUTH_MOUNT)) {
     const email = await emailFrom(req);
     if (email) {
       const ip = clientIp(req);

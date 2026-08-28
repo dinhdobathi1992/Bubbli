@@ -42,13 +42,33 @@ function resolveImport(spec: string, fromFile: string): string | null {
   else if (spec.startsWith('.')) base = resolve(dirname(fromFile), spec);
   else return null; // a package, not our code
 
-  for (const candidate of [base, `${base}.ts`, `${base}.tsx`, join(base, 'index.ts')]) {
+  for (const candidate of [
+    base,
+    `${base}.ts`,
+    `${base}.tsx`,
+    join(base, 'index.ts'),
+    join(base, 'index.tsx'),
+  ]) {
     if (existsSync(candidate) && statSync(candidate).isFile()) return candidate;
   }
   return null;
 }
 
-const IMPORT = /(?:from|import)\s+['"]([^'"]+)['"]/g;
+/**
+ * Static imports, side-effect imports, re-exports, `await import()` and
+ * `require()`.
+ *
+ * The lazy form matters and is not hypothetical: `src/lib/notify/dispatch.ts`
+ * already uses `await import('./transports/email')`. A regex requiring
+ * whitespace before the quote misses `import(` entirely, so a future
+ * `/api/regenerate` doing `const { runTurn } = await import('@/lib/chat/pipeline')`
+ * would escape discovery — the precise failure this file exists to prevent.
+ *
+ * `import type` is excluded: a type-only import is erased at build time and
+ * cannot invoke anything.
+ */
+const IMPORT = /(?:\bfrom\s*|\bimport\s*\(\s*|\brequire\s*\(\s*|\bimport\s+)['"]([^'"]+)['"]/g;
+const TYPE_ONLY = /\bimport\s+type\b[^'"]*['"]([^'"]+)['"]/g;
 
 /** Every file a surface can reach, following our own modules only. */
 function moduleGraph(entry: string): Set<string> {
@@ -59,7 +79,9 @@ function moduleGraph(entry: string): Set<string> {
     if (seen.has(file)) continue;
     seen.add(file);
     const src = readFileSync(file, 'utf8');
+    const typeOnly = new Set([...src.matchAll(TYPE_ONLY)].map((m) => m[1]));
     for (const m of src.matchAll(IMPORT)) {
+      if (typeOnly.has(m[1])) continue;
       const target = resolveImport(m[1], file);
       if (target && !seen.has(target)) queue.push(target);
     }
@@ -70,7 +92,15 @@ function moduleGraph(entry: string): Set<string> {
 const reaches = (graph: Set<string>, targets: string[]) =>
   [...graph].some((f) => targets.some((t) => f === t || f.startsWith(t + sep)));
 
-const routes = walk(APP, (f) => f.endsWith(`${sep}route.ts`));
+/**
+ * Pages and Server Actions spend a model just as a route handler does.
+ *
+ * Restricting this to `route.ts` left an RSC page or an `actions.ts` calling
+ * the pipeline entirely invisible to the gate. The G1 suite already globs all
+ * three; so does this.
+ */
+const SURFACE = new Set(['route.ts', 'page.tsx', 'actions.ts']);
+const routes = walk(APP, (f) => SURFACE.has(f.split(sep).pop()!));
 const graphs = new Map(routes.map((r) => [r, moduleGraph(r)]));
 const aiRoutes = routes.filter((r) => reaches(graphs.get(r)!, AI_MODULES));
 const named = (f: string) => relative(ROOT, f);

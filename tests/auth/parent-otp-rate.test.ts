@@ -103,6 +103,21 @@ describe('the per-IP ceiling', () => {
   });
 });
 
+describe('the ceiling cannot be spent by an anonymous stranger', () => {
+  it('a failed login naming itself `parent-otp:` does not consume the ceiling', async () => {
+    // `/api/child/login` writes the caller-supplied display name straight into
+    // `identifier`. Without the `succeeded = true` filter, ten anonymous POSTs
+    // naming themselves `parent-otp:x` denied sign-in codes to every guardian
+    // behind that IP for fifteen minutes — an unauthenticated request switching
+    // off the alert path for a whole household.
+    for (let i = 0; i < PARENT_OTP_IP_MAX + 5; i += 1) {
+      await recordLoginAttempt(pool, IP, null, 'parent-otp:forged', false);
+    }
+    expect((await checkParentOtpRate(pool, IP, MAILBOX)).allowed).toBe(true);
+    await pool.query(`delete from login_attempts where identifier = 'parent-otp:forged'`);
+  });
+});
+
 describe('the two limiters do not contaminate each other', () => {
   it('a guardian asking for codes cannot lock their household out of the child form', async () => {
     // Recorded as successes precisely so `checkLoginRate`, which counts

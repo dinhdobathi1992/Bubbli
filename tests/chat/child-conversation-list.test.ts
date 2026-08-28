@@ -238,9 +238,16 @@ describe('paging', () => {
 
 describe('the oversight record', () => {
   it('writes no audit event — a child observing themselves is not oversight', async () => {
-    const before = await pool.query(`select count(*)::int as n from audit_events`);
+    // Scoped to THIS family. A global count made the assertion depend on every
+    // other suite running concurrently: the notification and G1 suites write
+    // audit rows, and this test failed intermittently once they existed. The
+    // property under test is "this read wrote nothing", not "the database was
+    // idle".
+    const mine = `select count(*)::int as n from audit_events
+                   where actor_pseudonym in (select pseudonym from family_pseudonyms where family_id = $1)`;
+    const before = await pool.query(mine, [familyId]);
     await listOwnConversations(pool, childSession);
-    const after = await pool.query(`select count(*)::int as n from audit_events`);
+    const after = await pool.query(mine, [familyId]);
     expect(after.rows[0].n).toBe(before.rows[0].n);
   });
 });

@@ -34,7 +34,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { Pool } from 'pg';
 import { readFileSync, existsSync } from 'fs';
-import { readdirSync, statSync } from 'fs';
 import { join, relative, sep } from 'path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { Session } from '@/lib/authz';
@@ -73,6 +72,7 @@ let otherFamilyId: string;
 let parentId: string;
 let otherParentId: string;
 let childId: string;
+let siblingId: string;
 let otherChildId: string;
 let infoConversationId: string;
 let lowConversationId: string;
@@ -80,20 +80,30 @@ let joinCode: string;
 
 // ── Surface discovery ────────────────────────────────────────────────────────
 
-const APP = join(process.cwd(), 'src', 'app');
+const ROOT = process.cwd();
+const APP = join(ROOT, 'src', 'app');
 
-/** Every file under src/app that a request can actually reach. */
-function discoverSurfaces(dir: string, out: string[] = []): string[] {
-  for (const entry of readdirSync(dir)) {
-    const full = join(dir, entry);
-    if (statSync(full).isDirectory()) {
-      discoverSurfaces(full, out);
-    } else if (entry === 'route.ts' || entry === 'page.tsx' || entry === 'actions.ts') {
-      out.push(full);
-    }
-  }
-  return out;
-}
+/**
+ * Discovery goes through `import.meta.glob`, not `readdirSync` + `import()`.
+ *
+ * This is not a style choice and it was a real defect. Loading a surface by
+ * absolute path with `@vite-ignore` takes it OUTSIDE Vite's transform pipeline,
+ * so `vi.mock` never applies to it: every surface reaching `cookies()` threw
+ * `` `cookies` was called outside a request scope ``, the throw was captured as
+ * "output", the output contained no canary, and the assertion passed. Eleven of
+ * twenty-one server surfaces passed that way — including both surfaces where a
+ * child's transcript actually lives.
+ *
+ * The glob is still a glob: a new surface is discovered without anyone adding
+ * it to a list.
+ */
+const loaders = import.meta.glob('/src/app/**/{route.ts,page.tsx,actions.ts}') as Record<
+  string,
+  () => Promise<Record<string, unknown>>
+>;
+
+/** Glob keys are root-relative with a leading slash; disk paths are absolute. */
+const onDisk = (key: string) => join(ROOT, key.slice(1));
 
 /**
  * A `'use client'` surface reaches the database through nothing.
@@ -105,8 +115,10 @@ function discoverSurfaces(dir: string, out: string[] = []): string[] {
  * outside a React renderer its hooks throw, and a thrown hook error is not
  * evidence of isolation.
  */
-function isClientSurface(file: string): boolean {
-  return /^\s*['"]use client['"]/.test(readFileSync(file, 'utf8'));
+function isClientSurface(key: string): boolean {
+  // Multiline: a leading licence header or comment must not misclassify a
+  // client component as a server one, which would drive it and pass vacuously.
+  return /^\s*['"]use client['"]/m.test(readFileSync(onDisk(key), 'utf8'));
 }
 
 /**
@@ -117,7 +129,7 @@ function isClientSurface(file: string): boolean {
  */
 function paramsFor(file: string): Record<string, string | string[]> {
   const params: Record<string, string | string[]> = {};
-  for (const segment of relative(APP, file).split(sep)) {
+  for (const segment of relative(APP, onDisk(file)).split(sep)) {
     const m = /^\[(\.\.\.)?([^\]]+)\]$/.exec(segment);
     if (!m) continue;
     const [, spread, name] = m;
@@ -130,7 +142,7 @@ function paramsFor(file: string): Record<string, string | string[]> {
 
 /** The request path, with dynamic segments filled and route groups removed. */
 function pathFor(file: string): string {
-  const parts = relative(APP, file).split(sep).slice(0, -1).filter((p) => !/^\(.*\)$/.test(p));
+  const parts = relative(APP, onDisk(file)).split(sep).slice(0, -1).filter((p) => !/^\(.*\)$/.test(p));
   const params = paramsFor(file);
   const filled = parts.map((p) => {
     const m = /^\[(\.\.\.)?([^\]]+)\]$/.exec(p);
@@ -146,8 +158,31 @@ function pathFor(file: string): string {
  * or the error it threw. Errors count: a stack that quotes a row is still a
  * leak, and `notFound()`/`redirect()` throw by design.
  */
+/**
+ * Every string reachable in a React element tree, without rendering it.
+ *
+ * `renderToStaticMarkup` throws on a nested async server component, and a throw
+ * that is merely captured reads as "no leak". Walking the tree instead reaches
+ * the props a nested component would have been HANDED — which is where leaked
+ * rows actually sit — and cannot be defeated by a render that never completes.
+ */
+function collectStrings(node: unknown, out: string[] = [], seen = new WeakSet<object>(), depth = 0) {
+  if (node == null || depth > 14) return out;
+  if (typeof node === 'string') {
+    out.push(node);
+    return out;
+  }
+  if (typeof node !== 'object') return out;
+  if (seen.has(node as object)) return out;
+  seen.add(node as object);
+  for (const value of Object.values(node as Record<string, unknown>)) {
+    collectStrings(value, out, seen, depth + 1);
+  }
+  return out;
+}
+
 async function drive(file: string): Promise<string> {
-  const mod = await import(/* @vite-ignore */ file);
+  const mod = await loaders[file]();
   const emitted: string[] = [];
   const path = pathFor(file);
   const params = paramsFor(file);
@@ -155,9 +190,19 @@ async function drive(file: string): Promise<string> {
   const record = async (fn: () => unknown) => {
     try {
       const out = await fn();
-      if (out instanceof Response) emitted.push(await out.clone().text());
-      else if (out != null && typeof out === 'object') emitted.push(renderToStaticMarkup(out as never));
-      else emitted.push(String(out));
+      if (out instanceof Response) {
+        // The marker matters: a 200 with an empty body IS a result, and must be
+        // distinguishable from a surface that produced nothing at all.
+        emitted.push(`[responded ${out.status}]`, await out.clone().text());
+      } else if (out != null && typeof out === 'object') {
+        emitted.push('[rendered]', collectStrings(out).join('\n'));
+        // Markup too when it renders; a failure here is not evidence either way.
+        try {
+          emitted.push(renderToStaticMarkup(out as never));
+        } catch {
+          /* the tree walk above is the load-bearing check */
+        }
+      } else emitted.push(String(out));
     } catch (e) {
       emitted.push(`${(e as Error).message}\n${(e as Error).stack ?? ''}`);
     }
@@ -196,7 +241,7 @@ async function drive(file: string): Promise<string> {
   // A page: an async server component.
   const page = mod.default;
   if (typeof page !== 'function') {
-    throw new Error(`${relative(process.cwd(), file)} exports no default component`);
+    throw new Error(`SURFACE_UNDRIVEABLE: ${file} exports no default component`);
   }
   await record(() =>
     page({
@@ -246,6 +291,10 @@ beforeAll(async () => {
       )
     ).rows[0].id as string;
   childId = await mkChild(familyId, 'Kid');
+  // A sibling: same family, same guardian, different child. The gate protects
+  // a child from their PARENT; whether it also holds between siblings was
+  // never driven, and a shared household is exactly where it matters.
+  siblingId = await mkChild(familyId, 'Sibling');
   otherChildId = await mkChild(otherFamilyId, 'Stranger');
 
   /** A conversation that IS flagged and sits below the gate. */
@@ -287,9 +336,34 @@ afterAll(async () => {
 
 // ── The gate ─────────────────────────────────────────────────────────────────
 
-const surfaces = discoverSurfaces(APP);
+const surfaces = Object.keys(loaders).sort();
 const serverSurfaces = surfaces.filter((f) => !isClientSurface(f));
 const clientSurfaces = surfaces.filter(isClientSurface);
+
+/**
+ * Emissions that mean THE HARNESS FAILED, not that the surface held the line.
+ *
+ * This list is the whole difference between a gate and a decoration. A surface
+ * that throws before it reaches the database emits no canary, and "no canary"
+ * is what the assertion checks — so without this, an undriveable surface is
+ * indistinguishable from a safe one, and the suite reports green over a gap.
+ * That is precisely what it did until it was measured.
+ */
+const HARNESS_FAILURES = [
+  'was called outside a request scope',
+  'invariant expected app router to be mounted',
+  'SURFACE_UNDRIVEABLE',
+  'Cannot find module',
+  'is not a function',
+];
+
+/**
+ * Emissions that mean the surface WAS driven and refused.
+ *
+ * `redirect()` and `notFound()` throw by design — that is a gate working, not a
+ * harness failing, and the difference has to be stated rather than assumed.
+ */
+const REFUSALS = ['NEXT_REDIRECT', 'NEXT_HTTP_ERROR_FALLBACK', 'NEXT_NOT_FOUND'];
 
 /** Every principal that must not see below-gate content. */
 const principals = (): Array<{ label: string; session: Session | null }> => [
@@ -301,6 +375,10 @@ const principals = (): Array<{ label: string; session: Session | null }> => [
   {
     label: 'a child of another family',
     session: { principalType: 'child', familyId: otherFamilyId, childId: otherChildId },
+  },
+  {
+    label: 'a sibling in the same family',
+    session: { principalType: 'child', familyId, childId: siblingId },
   },
   { label: 'nobody at all', session: null },
 ];
@@ -318,24 +396,46 @@ describe('the surface list itself', () => {
     expect(kinds.has('page.tsx')).toBe(true);
   });
 
-  it('accounts for every surface as either server-driven or client', () => {
-    // The two lists must PARTITION the discovered set. A surface belonging to
-    // neither would be a gap that reads as a pass — the exact failure this
-    // suite exists to make impossible.
-    expect(serverSurfaces.length + clientSurfaces.length).toBe(surfaces.length);
-    expect(serverSurfaces.length).toBeGreaterThan(0);
+  it('drives the surfaces where a transcript actually lives', () => {
+    // Naming them is the point. These four are where a child's words can be
+    // read, and each one silently failed to drive until it was measured — so
+    // the suite must assert they are in the DRIVEN set, not merely discovered.
+    for (const key of [
+      '/src/app/(child)/chat/page.tsx',
+      '/src/app/api/child/resume/route.ts',
+      '/src/app/api/chat/route.ts',
+      '/src/app/(parent)/parent/conversations/[id]/page.tsx',
+    ]) {
+      expect(serverSurfaces, `${key} must be driven`).toContain(key);
+    }
   });
 });
 
 describe('no surface returns a child’s words from below the gate', () => {
   for (const file of serverSurfaces) {
-    const name = relative(process.cwd(), file);
+    const name = file;
 
     it(`${name}`, async () => {
       for (const { label, session } of principals()) {
         current = session;
-        // A surface that cannot be driven FAILS here rather than being skipped.
         const emitted = await drive(file);
+
+        // FIRST: did we actually drive it? A surface that fell over before
+        // reaching the database proves nothing, and must not pass as safe.
+        const broke = HARNESS_FAILURES.find((sig) => emitted.includes(sig));
+        expect(
+          broke,
+          `${name} could not be driven as ${label} — "${broke}". A surface that ` +
+            `cannot be exercised is not a surface that was proven safe.`,
+        ).toBeUndefined();
+
+        // A refusal is a result. Silence is not.
+        const refused = REFUSALS.some((sig) => emitted.includes(sig));
+        expect(
+          emitted.trim().length > 0 || refused,
+          `${name} emitted nothing at all as ${label}`,
+        ).toBe(true);
+
         for (const canary of CANARIES) {
           expect(
             emitted.includes(canary),
@@ -349,10 +449,8 @@ describe('no surface returns a child’s words from below the gate', () => {
 
 describe('a client surface holds no data of its own', () => {
   for (const file of clientSurfaces) {
-    const name = relative(process.cwd(), file);
-
-    it(`${name} queries nothing and reaches data only through a driven route`, () => {
-      const src = readFileSync(file, 'utf8');
+    it(`${file} queries nothing and reaches data only through a driven route`, () => {
+      const src = readFileSync(onDisk(file), 'utf8');
       // No pool, no drizzle, no SQL. If one of these ever appears, this surface
       // has become a server surface and must be driven instead.
       expect(src).not.toMatch(/@\/lib\/db\/|from 'pg'|\bpool\.query\b/);

@@ -1,7 +1,7 @@
 ---
 phase: 4
 title: "Child join code"
-status: pending
+status: completed
 priority: P2
 effort: "3h"
 dependencies: []

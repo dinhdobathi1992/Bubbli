@@ -1,7 +1,7 @@
 ---
 phase: 3
 title: "Isolation and coverage gates"
-status: pending
+status: completed
 priority: P1
 effort: "5h"
 dependencies: [1]

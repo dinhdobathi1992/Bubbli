@@ -122,8 +122,8 @@ export async function checkEnquiryRate(
  * email address is exactly what the rest of the product works to keep out of
  * logs and side tables.
  */
-export const PARENT_OTP_IP_MAX = 10;
-export const PARENT_OTP_EMAIL_MAX = 5;
+export const PARENT_OTP_IP_MAX = 15;
+export const PARENT_OTP_EMAIL_MAX = 8;
 export const PARENT_OTP_WINDOW_MS = 15 * 60 * 1000;
 
 /** Namespace prefix inside the shared `login_attempts` table. */
@@ -143,13 +143,20 @@ export async function checkParentOtpRate(
   ip: string,
   email: string,
 ): Promise<RateLimitVerdict> {
+  // `succeeded = true` is not cosmetic. Without it, ANY row whose identifier
+  // starts with the namespace counts — and `/api/child/login` writes the
+  // caller-supplied display name straight into `identifier`. Ten anonymous
+  // POSTs naming themselves `parent-otp:x` would then deny sign-in codes to
+  // every guardian behind that IP for fifteen minutes, renewable forever: an
+  // unauthenticated request switching off the alert path for a whole household.
+  // These rows are only ever written as successes, so the filter costs nothing.
   const r = await db.query<{ ip_sends: string; email_sends: string }>(
     `select
        (select count(*) from login_attempts
-         where ip_hash = $1 and identifier like $2
+         where ip_hash = $1 and identifier like $2 and succeeded = true
            and created_at > now() - ($4 || ' milliseconds')::interval) as ip_sends,
        (select count(*) from login_attempts
-         where identifier = $3
+         where identifier = $3 and succeeded = true
            and created_at > now() - ($4 || ' milliseconds')::interval) as email_sends`,
     [hashIp(ip), `${PARENT_OTP_TAG}:%`, parentOtpIdentifier(email), PARENT_OTP_WINDOW_MS],
   );
@@ -196,7 +203,7 @@ export async function pruneLoginAttempts(db: Pool | PoolClient): Promise<number>
   const r = await db.query(
     `delete from login_attempts
       where created_at < now() - ($1 || ' milliseconds')::interval`,
-    [Math.max(IP_WINDOW_MS, FAMILY_WINDOW_MS) * 4],
+    [Math.max(IP_WINDOW_MS, FAMILY_WINDOW_MS, ENQUIRY_WINDOW_MS, PARENT_OTP_WINDOW_MS) * 4],
   );
   return r.rowCount ?? 0;
 }

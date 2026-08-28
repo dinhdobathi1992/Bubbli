@@ -76,3 +76,21 @@ describe('the compliance gate covers every transport', () => {
     }
   });
 });
+
+describe('provider error text', () => {
+  it('carries no recipient address out to a log line', async () => {
+    const { scrubProviderError } = await import('@/lib/email/send');
+    const real = 'Invalid `to` field: guardian.name+tag@example.co.uk is not a valid address';
+    const out = scrubProviderError(real, 200);
+    expect(out).not.toContain('guardian.name+tag@example.co.uk');
+    expect(out).not.toMatch(/@/);
+    expect(out).toContain('[address]');
+  });
+
+  it('scrubs before truncating, so half an address cannot survive', async () => {
+    // Truncating first would leave `guardian.name@exa` in the message.
+    const { scrubProviderError } = await import('@/lib/email/send');
+    const long = 'x'.repeat(60) + ' rejected guardian.name@example.com hard';
+    expect(scrubProviderError(long, 90)).not.toMatch(/guardian\.name@exa/);
+  });
+});

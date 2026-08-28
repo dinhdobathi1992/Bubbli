@@ -6,7 +6,7 @@
  * nobody, and the audit trail recorded `delivered` regardless. Both halves are
  * pinned here — what the email may say, and what the audit row may claim.
  */
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { Pool } from 'pg';
 import { readFileSync, existsSync } from 'fs';
 import { notifyGuardians, type Transport, type NotificationPayload } from '@/lib/notify/dispatch';
@@ -211,5 +211,25 @@ describe('the audit row records what happened, not what was hoped', () => {
       },
     };
     await expect(alert('critical', [dead])).resolves.toMatchObject({ sent: 0 });
+  });
+});
+
+describe('bookkeeping never stands in front of the alert', () => {
+  it('still notifies when the audit write fails', async () => {
+    // The realistic case is a database missing migration 0006: every `failed`
+    // outcome violates audit_outcome_ck. That must cost the audit row, never
+    // the guardian's alert.
+    const { audit } = await import('@/lib/audit/write');
+    const spy = vi.spyOn(await import('@/lib/audit/write'), 'audit');
+    void audit;
+    spy.mockRejectedValue(new Error('audit_outcome_ck violated'));
+
+    const r = recorder();
+    const out = await alert('critical', [r.transport]);
+
+    expect(r.to).toContain(CONSENTED); // the guardian was still told
+    expect(out.sent).toBeGreaterThan(0);
+    expect(out.auditFailed).toBe(out.sent + out.failed); // and it was reported
+    spy.mockRestore();
   });
 });

@@ -64,6 +64,12 @@ const numbers = (h: Array<{ content: string }>) =>
   h.map((m) => Number(/message (\d+)/.exec(m.content)![1]));
 
 describe('the history window', () => {
+  it('is seeded past the window, or it proves nothing', () => {
+    // Without this, raising HISTORY_TURNS to 30 would make the test assert
+    // 1..30 and pass while testing no recency property at all.
+    expect(SEEDED).toBeGreaterThan(HISTORY_TURNS);
+  });
+
   it('returns the most recent N, not the first N', async () => {
     const h = await loadHistory(pool, conversationId, null);
     expect(h).toHaveLength(HISTORY_TURNS);

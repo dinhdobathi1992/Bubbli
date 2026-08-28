@@ -1,7 +1,7 @@
 ---
 phase: 1
 title: "Parent access"
-status: pending
+status: completed
 priority: P1
 effort: "6h"
 dependencies: []
