@@ -13,6 +13,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { Pool } from 'pg';
 import { readFileSync, existsSync } from 'fs';
+import { parentOtpIdentifier } from '@/lib/auth/login-rate-limit';
 
 const sent: string[] = [];
 vi.mock('@/lib/email/send', () => ({
@@ -47,11 +48,21 @@ const stamp = Date.now();
 const EMAIL = `otp-endpoint-${stamp}@example.test`;
 const USER_ID = `otp-endpoint-${stamp}`;
 
+/**
+ * Scoped to THIS run's mailbox, not to the whole namespace.
+ *
+ * Counting every `parent-otp:%` row made the assertion depend on nothing else
+ * in the process writing one, and it failed the first time a mutation run
+ * executed alongside it.
+ */
+const OWN = parentOtpIdentifier(EMAIL);
+
 const rateRows = async () =>
   Number(
     (
       await pool.query<{ n: string }>(
-        `select count(*) as n from login_attempts where identifier like 'parent-otp:%'`,
+        `select count(*) as n from login_attempts where identifier = $1`,
+        [OWN],
       )
     ).rows[0].n,
   );
@@ -66,7 +77,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await pool.query(`delete from login_attempts where identifier like 'parent-otp:%'`).catch(() => {});
+  await pool.query(`delete from login_attempts where identifier = $1`, [OWN]).catch(() => {});
   await pool.query(`delete from auth_verifications where identifier like $1`, [`%${EMAIL}%`]).catch(() => {});
   await pool.query(`delete from auth_users where id = $1`, [USER_ID]).catch(() => {});
   await pool.end();
@@ -100,7 +111,7 @@ describe('every mailing endpoint on the mount is throttled', () => {
 
   it('refuses once the mailbox ceiling is crossed', async () => {
     const { PARENT_OTP_EMAIL_MAX } = await import('@/lib/auth/login-rate-limit');
-    await pool.query(`delete from login_attempts where identifier like 'parent-otp:%'`);
+    await pool.query(`delete from login_attempts where identifier = $1`, [OWN]);
 
     for (let i = 0; i < PARENT_OTP_EMAIL_MAX; i += 1) {
       await post(MAILING_PATHS[0]);

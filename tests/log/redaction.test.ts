@@ -17,6 +17,44 @@ const PIN = '835492';
 
 afterEach(() => vi.restoreAllMocks());
 
+/**
+ * Every key the module claims to remove, asserted one at a time.
+ *
+ * The list matters more than it looks. Mutation testing showed that removing a
+ * single entry from `SENSITIVE_KEYS` failed nothing, because the tests only
+ * exercised a handful of them: the module claimed 28 protections and proved
+ * about eight. Each key is a separate promise and gets a separate assertion.
+ */
+const SENSITIVE_KEYS = [
+  'content', 'text', 'body', 'reply', 'excerpt', 'transcript', 'messages',
+  'pin', 'pin_hash', 'pinHash', 'password', 'token', 'secret', 'apiKey',
+  'api_key', 'authorization', 'cookie',
+  'email', 'to', 'recipient', 'displayName', 'display_name', 'name',
+  'detail', 'where', 'query', 'internalQuery', 'hint', 'row', 'parameters', 'params',
+];
+
+describe('every sensitive key is removed', () => {
+  for (const key of SENSITIVE_KEYS) {
+    it(`removes \`${key}\``, () => {
+      const out = scrub({ [key]: 'SENTINEL-VALUE-9x' });
+      expect(out, `${key} leaked`).not.toContain('SENTINEL-VALUE-9x');
+      expect(out).toContain(`${key}=[removed]`);
+    });
+  }
+
+  it('keeps a key that is not sensitive, so the walk is not a blanket', () => {
+    // A redactor that removed everything would pass every leak test and be
+    // useless to an operator.
+    const out = scrub({ conversationId: 'c-42', severity: 'high' });
+    expect(out).toContain('c-42');
+    expect(out).toContain('high');
+  });
+
+  it('matches the key regardless of case', () => {
+    expect(scrub({ CONTENT: 'SENTINEL-VALUE-9x' })).not.toContain('SENTINEL-VALUE-9x');
+  });
+});
+
 describe('by shape', () => {
   it('drops message content wherever the key marks it', () => {
     const out = scrub({ conversationId: 'c1', content: CONTENT, reply: CONTENT, body: CONTENT });
@@ -93,6 +131,88 @@ describe('by pattern', () => {
 
   it('leaves a number carrying a unit alone, so timings stay readable', () => {
     expect(scrubText('generation took 1240ms')).toContain('1240ms');
+  });
+
+  it('covers the whole 4 to 8 digit range, at both ends', () => {
+    // A PIN is 6 and a one-time code is 6, but the window is deliberately
+    // wider. Narrowing it at either end would leak one of them.
+    expect(scrubText('x 1234 y')).not.toContain('1234');
+    expect(scrubText('x 12345678 y')).not.toContain('12345678');
+  });
+
+  it('leaves runs outside the range alone', () => {
+    // Three digits is a status code; nine is an id. Masking those costs the
+    // operator information for no privacy gain.
+    expect(scrubText('status 403 here')).toContain('403');
+    expect(scrubText('id 123456789 here')).toContain('123456789');
+  });
+
+  it('masks every occurrence, not only the first', () => {
+    const out = scrubText(`${PIN} and 445566`);
+    expect(out).not.toContain(PIN);
+    expect(out).not.toContain('445566');
+  });
+
+  it('masks every address, not only the first', () => {
+    const out = scrubText('a@x.com and b@y.co.uk');
+    expect(out).not.toContain('a@x.com');
+    expect(out).not.toContain('b@y.co.uk');
+  });
+});
+
+describe('bounds', () => {
+  it('stops walking a deeply nested shape rather than recursing forever', () => {
+    let deep: Record<string, unknown> = { content: 'SENTINEL-VALUE-9x' };
+    for (let i = 0; i < 12; i += 1) deep = { nested: deep };
+    const out = scrub(deep);
+    expect(out).not.toContain('SENTINEL-VALUE-9x');
+    expect(out).toContain('…');
+  });
+
+  it('caps a long array rather than emitting all of it', () => {
+    const out = scrub(Array.from({ length: 40 }, (_, i) => `item${i}`));
+    expect(out).toContain('item0');
+    expect(out).not.toContain('item39');
+  });
+
+  it('caps the emitted line', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    log.error('chat', 'z'.repeat(5000));
+    const line = spy.mock.calls[0][0] as string;
+    expect(line.length).toBeLessThan(700);
+    expect(line.endsWith('…')).toBe(true);
+  });
+});
+
+describe('all three levels scrub, not only error', () => {
+  for (const level of ['info', 'warn', 'error'] as const) {
+    it(`log.${level} removes an address`, () => {
+      const spy = vi.spyOn(console, level).mockImplementation(() => undefined);
+      log[level]('chat', `sent to ${ADDRESS}`);
+      expect(spy.mock.calls[0][0] as string).not.toContain(ADDRESS);
+    });
+
+    it(`log.withKnown().${level} removes a named value`, () => {
+      const spy = vi.spyOn(console, level).mockImplementation(() => undefined);
+      log.withKnown({ known: [CHILD] })[level]('chat', `${CHILD} tripped a rule`);
+      expect(spy.mock.calls[0][0] as string).not.toContain(CHILD);
+    });
+  }
+});
+
+describe('primitives and empties', () => {
+  it('renders null and undefined rather than throwing', () => {
+    expect(scrub(null)).toBe('null');
+    expect(scrub(undefined)).toBe('undefined');
+  });
+
+  it('scrubs numbers and booleans through the same rules', () => {
+    expect(scrub(835492)).not.toContain('835492');
+    expect(scrub(true)).toBe('true');
+  });
+
+  it('ignores a null or undefined entry in the known list', () => {
+    expect(() => scrubText('a line', [null, undefined, CHILD])).not.toThrow();
   });
 });
 
