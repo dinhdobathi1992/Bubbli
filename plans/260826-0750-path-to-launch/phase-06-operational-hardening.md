@@ -1,7 +1,7 @@
 ---
 phase: 6
 title: "Operational hardening"
-status: pending
+status: completed
 priority: P2
 effort: "4h"
 dependencies: [1, 2]
@@ -41,7 +41,7 @@ whichever way it goes.
 ## Related Code Files
 
 - Create: `src/lib/log/redact.ts`
-- Create: `docs/decisions/0005-budget-on-blocked-requests.md`
+- Create: `docs/decisions/0007-budget-on-blocked-requests.md` (0005 and 0006 were taken)
 - Modify: `src/lib/quota/limiter.ts` (only if the decision changes behaviour)
 - Modify: `.github/workflows/ci.yml` (audit + secret scan steps)
 - Create: `tests/log/redaction.test.ts`
@@ -56,6 +56,21 @@ whichever way it goes.
 4. Decide budget behaviour on gate-blocked and aborted requests; record it in `0005`
    and align the limiter if needed.
 5. Add dependency audit and secret scan steps to CI with job-level `contents: read`.
+
+## Outcome (2026-08-28)
+
+Two items resolved differently from the plan, both on evidence:
+
+**Budget on blocked requests.** The plan recommended consuming the per-child
+rate window but not the family budget. Decided the other way and recorded in
+`0007`: a blocked message stays free, matching what the code already did with a
+written rationale. That leaves the per-child rate limit inapplicable to blocked
+turns, which made severe messages an unbounded guardian-inbox amplifier. Bounded
+in the notification layer instead, where the problem is, with `critical` exempt.
+
+**The dev log fallback.** Flagged as a leak in review, and it is not reachable:
+`chooseTransport` throws in production rather than falling back, and two tests
+already assert it. No change needed.
 
 ## Success Criteria
 

@@ -77,7 +77,7 @@ the percentage never showed.
 | 3 | [Isolation and coverage gates](./phase-03-isolation-and-coverage-gates.md) | ✅ Complete | P1 |
 | 4 | [Child join code](./phase-04-child-join-code.md) | ✅ Complete | P2 |
 | 5 | [Latency baseline](./phase-05-latency-baseline.md) | Pending | P2 |
-| 6 | [Operational hardening](./phase-06-operational-hardening.md) | Pending | P2 |
+| 6 | [Operational hardening](./phase-06-operational-hardening.md) | ✅ Complete | P2 |
 | 7 | [Compliance close-out](./phase-07-compliance-closeout.md) | Blocked | P1 |
 
 ## Success Criteria
@@ -104,7 +104,7 @@ the percentage never showed.
       reach a log. The dev/preview log fallback still writes a guardian address and a
       child's display name to stdout — `src/lib/email/send.ts`, gated to non-production)*
 - [x] `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm corpus:eval`, `pnpm test:mutation` pass
-- [ ] Dependency audit and secret scan clean *(phase 6 — neither runs in CI yet)*
+- [x] Dependency audit and secret scan run in CI as separate jobs. `pnpm audit --audit-level high` is clean on this branch (2 moderate advisories, below the gate)
 
 ## Launch blockers outside this repo
 
