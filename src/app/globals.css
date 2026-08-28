@@ -104,6 +104,86 @@
   }
 }
 
+/**
+ * The child's room.
+ *
+ * Declared AFTER the dark media query and re-declaring every colour token, so
+ * it wins at equal specificity and no dark value can leak into it. That
+ * ordering is load-bearing: move this block above the media query and a child
+ * gets a dark room whenever a parent's laptop is in dark mode.
+ *
+ * IT DOES NOT FOLLOW `prefers-color-scheme`, deliberately. A child's surface
+ * should not become a cave because someone set their OS to dark at night. The
+ * guardian register above still follows it, because a guardian reading a
+ * dashboard at 11pm has the opposite need.
+ *
+ * Only COLOUR forks. Spacing, radii, the type ramp and the easings live once in
+ * `@theme inline` below and are shared by both registers — otherwise this stops
+ * being one system with two registers and becomes two systems.
+ */
+[data-register='child'] {
+  /* Deep green-black, the Forest room. Surfaces elevate by lightening within
+     the same hue rather than by piling shadows. */
+  --ground: #0d1512;
+  --surface: #16211d;
+  --surface-raised: #1e2a25;
+  --surface-sunken: #090f0d;
+
+  /* Ink ramp.
+   *
+   * `ink-subtle` is #7d9187, NOT the #6d8176 the guardian register uses. That
+   * value measures 4.46:1 on this ground — below AA — which is why "Sign out"
+   * was nearly invisible before it was raised to `muted`. Reusing it here would
+   * reintroduce a failure that has already been found once. */
+  --ink: #e8efe9;
+  --ink-muted: #9ab0a4;
+  --ink-subtle: #7d9187;
+  --ink-inverse: #0d1512;
+
+  --line: #25342e;
+  --line-strong: #3c5147;
+
+  /* A SOLID HEADER, kept from the light experiment because it was never about
+     the light: a transparent bar with a 1px border gives a child nothing to
+     recognise. The teal reads as a raised bar against the ground (1.53:1) and
+     carries its text at 10.84:1. */
+  --header: #0f3d33;
+  --on-header: #eaf5ef;
+  --on-header-muted: #a8c7ba;
+
+  /* Peach. 137deg of hue from the ground — the separation the pre-Forest
+     palette lacked, which is why everything read as muddy sepia. */
+  --accent: #f0a882;
+  --accent-hover: #f5bb9a;
+  --accent-soft: #3a2b21;
+  --on-accent: #12211a;
+
+  --sev-info: #8fa89a;
+  --sev-low: #ecc76b;
+  --sev-medium: #f0a04a;
+  /* #de6a51, not the guardian register's #d95f45: that value measures 4.47:1
+     against `--surface` — marginally under AA, and only found because this
+     register's pairs were measured from the shipped file rather than assumed to
+     transfer. The guardian register carries the same marginal value; it is not
+     rendered as text on a surface there today, so it is recorded rather than
+     changed under a plan that declares that surface out of scope. */
+  --sev-high: #de6a51;
+  --sev-critical: #ff8a7a;
+  --sev-critical-bg: #331d18;
+
+  --focus: #f0a882;
+
+  /* The child's VOICE. Heavy geometric sans, no serif — that half of the
+     register was never about the palette and stays. */
+  --font-display: var(--font-warm-display), "Avenir Next", system-ui, sans-serif;
+  --font-sans: var(--font-warm-body), system-ui, sans-serif;
+
+  /* FIXED, not `light dark`. The reason is unchanged by the colour: a child's
+     room should not flip because a parent set their laptop to dark at night —
+     it simply turned out the room they wanted was the dark one. */
+  color-scheme: dark;
+}
+
 @theme inline {
   --color-ground: var(--ground);
   --color-surface: var(--surface);
@@ -127,6 +207,9 @@
   --color-low: var(--sev-low);
   --color-medium: var(--sev-medium);
   --color-high: var(--sev-high);
+  --color-header: var(--header, var(--surface));
+  --color-on-header: var(--on-header, var(--ink));
+  --color-on-header-muted: var(--on-header-muted, var(--ink-muted));
   --color-critical: var(--sev-critical);
   --color-critical-bg: var(--sev-critical-bg);
 
@@ -157,6 +240,25 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+}
+
+/**
+ * The DOCUMENT background follows whichever register is inside it.
+ *
+ * `<body>` paints `--ground`, which resolves to the guardian register because
+ * `<body>` sits above the register wrapper and cannot know what is beneath it.
+ * Anywhere the wrapper does not cover — most visibly an overscroll bounce on
+ * macOS — that instrument ground shows through, which on a child's page is a
+ * black flash at the edge of a light room.
+ *
+ * The literal below is the one value in this file that is deliberately
+ * duplicated; `tests/design/register.test.ts` asserts it stays equal to the child
+ * register's `--ground`. A `var()` cannot be used here: the custom property is
+ * declared on the descendant, so it does not resolve at this level.
+ */
+html:has([data-register='child']) {
+  background-color: #0d1512;
+  color-scheme: dark;
 }
 
 body {
@@ -199,7 +301,9 @@ body::before {
   background-size: 3px 3px;
 }
 
-/* Dark mode reads heavier: loosen tracking and leading slightly. */
+/* Dark mode reads heavier: loosen tracking and leading slightly. Scoped to the
+   guardian register — the warm one is never dark, so it must not inherit a
+   compensation for a problem it does not have. */
 @media (prefers-color-scheme: dark) {
   body {
     letter-spacing: 0.006em;

@@ -1,5 +1,7 @@
 'use client';
 
+import { SendIcon } from '@/components/icons';
+
 /**
  * The composer.
  *
@@ -72,8 +74,10 @@ export function Composer({
         type="submit"
         disabled={!canSend}
         aria-label="Send message"
-        className="min-h-12 shrink-0 rounded-3xl bg-accent px-6 text-[16px] font-medium text-on-accent transition-all duration-150 ease-[var(--ease-spring)] hover:-translate-y-0.5 hover:bg-accent-hover active:translate-y-0 active:scale-[0.97] disabled:border disabled:border-line disabled:bg-transparent disabled:text-subtle disabled:hover:translate-y-0"
+        className="flex min-h-12 shrink-0 items-center gap-2 rounded-3xl bg-accent px-6 text-[16px] font-semibold text-on-accent transition-all duration-150 ease-[var(--ease-spring)] hover:-translate-y-0.5 hover:bg-accent-hover active:translate-y-0 active:scale-[0.97] disabled:border disabled:border-line disabled:bg-transparent disabled:text-subtle disabled:hover:translate-y-0"
       >
+        {/* The icon reinforces the word; it never replaces it. */}
+        <SendIcon size={16} />
         Send
       </button>
     </form>
