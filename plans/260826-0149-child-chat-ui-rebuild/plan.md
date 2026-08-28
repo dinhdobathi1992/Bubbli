@@ -1,7 +1,7 @@
 ---
 title: "Child chat UI rebuild"
 description: "Rebuild /chat so it reads as a companion a child wants to talk to, not a text box with an answer stranded in a void."
-status: pending
+status: in-progress
 priority: P1
 effort: "3-4h"
 tags: [ui, child-surface, design-system]
@@ -10,6 +10,11 @@ blockedBy: [260827-2117-child-conversation-history]
 ---
 
 # Child chat UI rebuild
+
+> **State, 2026-08-28.** Every functional item is built and shipped. What remains
+> is capture evidence: the empty, short, long, blocked and crisis states. That
+> was blocked on tooling until puppeteer was installed today, so it is now
+> doable rather than deferred.
 
 > **Status is stale, and Goal 1 is superseded.** Phases 1 and 2 are substantially
 > implemented — `message.tsx`, `composer.tsx` and `suggestions.tsx` exist, the Bubbli

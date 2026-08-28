@@ -1,7 +1,7 @@
 ---
 title: "Path to launch"
 description: "Everything genuinely unbuilt between today's 74% MVP and a Bubbli that can serve a real family."
-status: pending
+status: in-progress
 priority: P1
 effort: "3-5d"
 tags: [launch, parent-surface, notifications, gates, compliance]

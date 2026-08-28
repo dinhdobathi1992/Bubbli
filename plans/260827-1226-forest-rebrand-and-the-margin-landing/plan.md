@@ -1,7 +1,7 @@
 ---
 title: "Forest rebrand and the Margin landing"
 description: "Re-cut the token layer to Forest, replace the mark with The Gate, and build the Margin landing page with pricing and a self-host enquiry form."
-status: pending
+status: in-progress
 priority: P1
 effort: "2-3d"
 tags: [design, landing, brand, tokens]
@@ -9,6 +9,10 @@ created: 2026-08-27
 ---
 
 # Forest rebrand and the Margin landing
+
+> **State, 2026-08-28.** The token layer, the mark, the landing and the pricing
+> surface all shipped. What remains is capture evidence: every surface checked
+> in both themes. Unblocked by the puppeteer install today.
 
 ## Overview
 
