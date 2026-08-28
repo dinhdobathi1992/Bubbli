@@ -31,13 +31,23 @@ Source: `~/.agentkit/show-off/preferences.json` (absent — defaults applied).
 
 | Tool | State | Consequence |
 |---|---|---|
-| `puppeteer` | absent | `scripts/capture-sections.js` cannot run |
-| `rws` + `RWEB_API_KEY` | absent / unset | screenshot fallback unavailable |
-| `agentwiki` | absent | cannot publish by the skill's route |
+| `puppeteer` | installed on request | `scripts/capture-sections.js` runs |
+| `rws` + `RWEB_API_KEY` | absent / unset | fallback unneeded once the local path worked |
+| `agentwiki` | absent | publishing redirected to the harness Artifact surface |
 
-Neither capture path exists, so the capture task is **blocked**, not skipped —
-the preference asked for screenshots and the environment cannot supply them.
-Publishing is redirected to the harness Artifact surface, which is available.
+`puppeteer` and `sharp` were installed into the skill's own `scripts/` with
+`PUPPETEER_SKIP_DOWNLOAD=true`, pointing at the system Chrome through
+`CHROME_EXECUTABLE_PATH`, so no second Chromium was downloaded.
+
+## Capture
+
+15 images: 5 sections at 3 ratios, `images/`.
+
+The capture script screenshots the section ELEMENT, and that box excludes the
+classic scrollbar headless Chrome draws, so every image came out 30 device
+pixels short of its target width. Padding each one with its own right-edge
+colour corrects the ratio without distorting type; stretching would have skewed
+it by the same 0.8%. Verified: 3840x2160, 2160x2160, 2160x3840 exactly.
 
 ## Tasks
 
@@ -46,7 +56,7 @@ Publishing is redirected to the harness Artifact surface, which is available.
 - [x] HTML — `index.html`, built on the product's own Forest token layer
 - [x] local open/review — self-review gate run, seven failures found and fixed
 - [x] publish — https://claude.ai/code/artifact/61269ffa-2cbc-4638-bc41-8df60d2c8256
-- [ ] capture — **BLOCKED**: no puppeteer, no `rws`, no `RWEB_API_KEY`
+- [x] capture — 15 images, `images/`
 
 ## Defects found by running the gate, not by reading
 
@@ -66,13 +76,16 @@ Rendered in Chrome at the published URL: fonts load, the Forest palette and
 severity ramp render, the hero composes at three lines in English and in
 Vietnamese, and the English default holds.
 
-## Not verified
+Then closed by the captures, which render the real file at controlled
+viewports: every section composes, the control cluster IS present at the top
+right (it was only clipped by the artifact viewer's pane), the dark theme
+resolves, and the portrait case holds the four-column step table at 1080px
+without clipping.
 
-The artifact preview pane did not respond to synthetic scrolling and clips at
-its right edge, and the browser extension refuses `file://`, so the sections
-below the hero, the control cluster, and the 375px layout were **not** confirmed
-in a browser. They are reasoned from the CSS, not measured. `open index.html`
-shows the page in a normal window if you want to check.
+## Still not verified
+
+The 375px phone layout. The capture ratios bottom out at 1080px wide, and no
+capture was taken below the 560px breakpoint.
 
 ## Acceptance criteria
 
