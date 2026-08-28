@@ -13,7 +13,9 @@
     "src/lib/auth/child-pin.ts",
     "src/lib/auth/child-session.ts",
     "src/lib/auth/consent.ts",
-    "src/lib/auth/login-rate-limit.ts"
+    "src/lib/auth/login-rate-limit.ts",
+    "src/lib/log/redact.ts",
+    "src/lib/http/client-ip.ts"
   ],
   "thresholds": {
     "high": 85,
