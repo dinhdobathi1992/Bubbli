@@ -99,6 +99,84 @@ export async function checkEnquiryRate(
   return { allowed: true };
 }
 
+/**
+ * Parent sign-in codes.
+ *
+ * The child login form and this one fail differently, so they count differently.
+ * A wrong PIN is a FAILURE and `checkLoginRate` counts failures; an OTP send is
+ * a SUCCESS that costs a delivery to somebody's mailbox and a call to a paid
+ * sub-processor. Counting only failures here would have left the endpoint wide
+ * open, which is the exact defect `checkEnquiryRate` was written to repair.
+ *
+ * Two ceilings, because the two abuses are different:
+ *
+ * - per IP, against an attacker sweeping many guardians from one place;
+ * - per mailbox, against mailbox-bombing ONE guardian from rotating IPs, which
+ *   an IP ceiling alone cannot see.
+ *
+ * `allowedAttempts` on the OTP itself bounds grinding a code that was sent.
+ * This bounds how many codes can be asked for in the first place.
+ *
+ * The address is hashed before it is stored, for the same reason the IP is:
+ * this table needs to compare identities, never to read them, and a guardian's
+ * email address is exactly what the rest of the product works to keep out of
+ * logs and side tables.
+ */
+export const PARENT_OTP_IP_MAX = 10;
+export const PARENT_OTP_EMAIL_MAX = 5;
+export const PARENT_OTP_WINDOW_MS = 15 * 60 * 1000;
+
+/** Namespace prefix inside the shared `login_attempts` table. */
+const PARENT_OTP_TAG = 'parent-otp';
+
+/** The stored identifier: a namespace, and a mailbox nobody can read back. */
+export function parentOtpIdentifier(email: string): string {
+  const digest = createHash('sha256')
+    .update(email.trim().toLowerCase())
+    .digest('hex')
+    .slice(0, 32);
+  return `${PARENT_OTP_TAG}:${digest}`;
+}
+
+export async function checkParentOtpRate(
+  db: Pool | PoolClient,
+  ip: string,
+  email: string,
+): Promise<RateLimitVerdict> {
+  const r = await db.query<{ ip_sends: string; email_sends: string }>(
+    `select
+       (select count(*) from login_attempts
+         where ip_hash = $1 and identifier like $2
+           and created_at > now() - ($4 || ' milliseconds')::interval) as ip_sends,
+       (select count(*) from login_attempts
+         where identifier = $3
+           and created_at > now() - ($4 || ' milliseconds')::interval) as email_sends`,
+    [hashIp(ip), `${PARENT_OTP_TAG}:%`, parentOtpIdentifier(email), PARENT_OTP_WINDOW_MS],
+  );
+
+  if (Number(r.rows[0].ip_sends) >= PARENT_OTP_IP_MAX) {
+    return { allowed: false, reason: 'ip', retryAfterMs: PARENT_OTP_WINDOW_MS };
+  }
+  if (Number(r.rows[0].email_sends) >= PARENT_OTP_EMAIL_MAX) {
+    return { allowed: false, reason: 'family', retryAfterMs: PARENT_OTP_WINDOW_MS };
+  }
+  return { allowed: true };
+}
+
+/**
+ * Recorded as a SUCCESS, deliberately. `checkLoginRate` counts `succeeded =
+ * false` rows across every identifier for an IP, so writing these as failures
+ * would let a guardian asking for a sign-in code lock their own household out
+ * of the child login form.
+ */
+export async function recordParentOtpSend(
+  db: Pool | PoolClient,
+  ip: string,
+  email: string,
+): Promise<void> {
+  await recordLoginAttempt(db, ip, null, parentOtpIdentifier(email), true);
+}
+
 export async function recordLoginAttempt(
   db: Pool | PoolClient,
   ip: string,
