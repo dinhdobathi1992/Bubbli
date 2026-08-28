@@ -132,11 +132,26 @@ confirmed available in that region by a real call**, since GDPR-K residency depe
 
 Release gates. Each maps to an acceptance criterion in the accepted brainstorm contract.
 
-- [ ] **G1 — Isolation proven.** No parent-facing response contains content from any conversation
-      with `max_severity < medium`. Enumerated by **filesystem glob** over `src/app/**`, covering
-      route handlers, pages, and Server Actions, driven with **both** principal types. Seeded with
-      `info`/`low` conversations, not merely unflagged ones. *(Restated — the previous predicate
-      tested unflagged conversations and excluded the actual leak surface. Red team #2, #3)*
+- [x] **G1 — Isolation proven, both statically and at runtime.** No parent-facing response contains
+      content from any conversation with `max_severity < medium`. Enumerated by **filesystem glob**
+      over `src/app/**`, covering route handlers, pages, and Server Actions, driven with **both**
+      principal types. Seeded with `info`/`low` conversations, not merely unflagged ones.
+      *(Restated — the previous predicate tested unflagged conversations and excluded the actual
+      leak surface. Red team #2, #3)*
+
+      Proven two ways, because neither subsumes the other (decision L1):
+
+      | | `bubbli/no-direct-message-query` (ESLint) | `tests/isolation/g1-surfaces.test.ts` |
+      |---|---|---|
+      | Proves | who may read `messages.content` | what a real request returns |
+      | Sees RSC pages and Server Actions | yes, every file | only what the glob finds |
+      | Catches a leak through an allow-listed module | no | yes |
+      | Blind spot | a permitted module leaking downstream | a surface the glob misses |
+
+      The runtime suite partitions all 24 surfaces into 21 server-driven and 3 `'use client'`,
+      asserts the partition is total so nothing goes uncounted, and treats an undriveable surface
+      as a failure rather than a skip. Verified 2026-08-28 by planting a leak in
+      `api/health/route.ts`: the suite named the surface and the principal.
 - [ ] **G2 — Visibility ladder proven.** A `medium`+ flag opens the transcript; a conversation whose
       only findings are `info`/`low` never does. Both directions asserted, including the flags-list
       payload, not only the transcript route.
