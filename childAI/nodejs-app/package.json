@@ -36,7 +36,7 @@
     "@sinclair/typebox": "^0.32.34",
     "@testcontainers/postgresql": "^11.14.0",
     "dotenv": "^17.4.2",
-    "fastify": "^4.27.0",
+    "fastify": "^5.12.1",
     "fastify-plugin": "^4.5.1",
     "ioredis": "^5.4.1",
     "jose": "^5.4.1",
